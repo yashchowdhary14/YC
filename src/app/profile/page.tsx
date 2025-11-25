@@ -25,11 +25,13 @@ import StatsRow from '@/components/profile/StatsRow';
 import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
+import EditProfileDialog from '@/components/app/edit-profile';
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   // Mock data as requested for the skeleton
   const mockUser = {
@@ -78,43 +80,50 @@ export default function ProfilePage() {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <div className="p-1.5 rounded-lg bg-primary">
-              <Sparkles className="h-6 w-6 text-primary-foreground" />
+    <>
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader>
+            <div className="flex items-center gap-2 p-2">
+              <div className="p-1.5 rounded-lg bg-primary">
+                <Sparkles className="h-6 w-6 text-primary-foreground" />
+              </div>
+              <h1 className="text-xl font-semibold">YC</h1>
             </div>
-            <h1 className="text-xl font-semibold">YC</h1>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-        <SidebarFooter>
-          <Separator className="my-2" />
-          <div className="p-2">
-            <Button onClick={handleSignOut} variant="outline" className="w-full">
-              Logout
-            </Button>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader />
-        <main className="min-h-[calc(100vh-4rem)] bg-background">
-          <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-            <ProfileHeader user={mockUser} />
-            <div className="my-8">
-              <StatsRow stats={mockUser} />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarNav />
+          </SidebarContent>
+          <SidebarFooter>
+            <Separator className="my-2" />
+            <div className="p-2">
+              <Button onClick={handleSignOut} variant="outline" className="w-full">
+                Logout
+              </Button>
             </div>
-            <HighlightsCarousel />
-            <Separator className="my-8" />
-            <TabSwitcher />
-            <PostsGrid posts={mockPosts} />
-          </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <AppHeader />
+          <main className="min-h-[calc(100vh-4rem)] bg-background">
+            <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+              <ProfileHeader user={mockUser} onEditProfile={() => setIsEditProfileOpen(true)} />
+              <div className="my-8">
+                <StatsRow stats={mockUser} />
+              </div>
+              <HighlightsCarousel />
+              <Separator className="my-8" />
+              <TabSwitcher />
+              <PostsGrid posts={mockPosts} />
+            </div>
+          </main>
+        </SidebarInset>
+      </SidebarProvider>
+      <EditProfileDialog
+        open={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+        userProfile={mockUser}
+      />
+    </>
   );
 }
