@@ -1,7 +1,6 @@
 import type {NextConfig} from 'next';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const baseConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -30,17 +29,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Allow cross-origin requests from the development environment.
-  ...(process.env.NODE_ENV === 'development'
-    ? {
-        experimental: {
-          allowedDevOrigins: [
-            // This is the domain of your Firebase Studio development environment.
-            'https://6000-firebase-studio-1764064547455.cluster-y75up3teuvc62qmnwys4deqv6y.cloudworkstations.dev',
-          ],
-        }
-      }
-    : {}),
 };
+
+const devConfig: NextConfig = {
+  experimental: {
+    allowedDevOrigins: [
+      'https://6000-firebase-studio-1764064547455.cluster-y75up3teuvc62qmnwys4deqv6y.cloudworkstations.dev',
+    ],
+  },
+};
+
+const nextConfig: NextConfig =
+  process.env.NODE_ENV === 'development'
+    ? { ...baseConfig, ...devConfig }
+    : baseConfig;
 
 export default nextConfig;

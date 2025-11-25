@@ -16,8 +16,8 @@ export async function handleCaptionGeneration(mediaDataUri: string) {
       trendingKeywords: ['techlife', 'innovation', 'futureoftech', 'startups', 'coding'],
     });
     return { caption: result.caption, error: null };
-  } catch (e) {
-    console.error(e);
+  } catch (e: any) {
+    console.error('Error generating caption:', e?.message || e);
     // Return a user-friendly error message.
     return { caption: null, error: 'Failed to generate caption. The AI model might be temporarily unavailable. Please try again later.' };
   }
