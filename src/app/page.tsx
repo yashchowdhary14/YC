@@ -75,12 +75,16 @@ export default function Home() {
     }
   };
 
-  if (isUserLoading || !user || postsLoading || isHydrating) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
+  }
+  
+  if (!user) {
+      return null; // or a login page redirect
   }
 
   return (
@@ -114,7 +118,11 @@ export default function Home() {
               <div className="lg:col-span-2">
                 <div className="flex flex-col gap-8">
                   <StoriesCarousel />
-                  {posts.length > 0 ? (
+                  {postsLoading || isHydrating ? (
+                     <div className="flex justify-center items-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                  ) : posts.length > 0 ? (
                      posts.map((post) => (
                       <PostCard key={post.id} post={post} />
                     ))

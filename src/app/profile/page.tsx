@@ -37,6 +37,12 @@ export default function ProfilePage() {
   const { user, isUserLoading } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
   const userDocRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
     [firestore, user]
@@ -58,7 +64,7 @@ export default function ProfilePage() {
       bio: userProfileData.bio || 'Edit your profile to add a bio.',
       profilePhoto: userProfileData.profilePhoto || user.photoURL || `https://picsum.photos/seed/${user.uid}/150/150`,
       postsCount: postsData?.length || 0,
-      followersCount: userProfileData.followersCount || 0, // Assuming these fields exist
+      followersCount: userProfileData.followersCount || 0,
       followingCount: userProfileData.followingCount || 0,
     };
   }, [user, userProfileData, postsData]);
@@ -74,11 +80,6 @@ export default function ProfilePage() {
     }));
   }, [postsData]);
 
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.push('/login');
-    }
-  }, [user, isUserLoading, router]);
 
   const handleSignOut = async () => {
     if (auth) {
@@ -87,12 +88,16 @@ export default function ProfilePage() {
     }
   };
 
-  if (isUserLoading || isProfileLoading || !user || !profileUser) {
+  if (isUserLoading || (user && isProfileLoading)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
+  }
+  
+  if (!user) {
+      return null; // Or redirect to login
   }
 
   return (
@@ -124,10 +129,10 @@ export default function ProfilePage() {
         <ScrollArea className="h-[calc(100vh-4rem)]">
           <main className="min-h-full bg-background">
             <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
+              {profileUser && <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />}
               
               <div className="my-4 sm:hidden">
-                <StatsRow stats={profileUser} />
+                {profileUser && <StatsRow stats={profileUser} />}
               </div>
 
               <div className="hidden sm:block my-8">
@@ -138,7 +143,7 @@ export default function ProfilePage() {
                 <HighlightsCarousel />
               </div>
               <TabSwitcher 
-                postsContent={<PostsGrid posts={posts} />}
+                postsContent={arePostsLoading ? <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div> : <PostsGrid posts={posts} />}
                 reelsContent={
                   <Card className="flex items-center justify-center h-64">
                     <p className="text-muted-foreground">Reels will be displayed here.</p>
