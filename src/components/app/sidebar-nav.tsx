@@ -9,8 +9,6 @@ import {
   Search,
   User,
   Clapperboard,
-  LayoutDashboard,
-  Menu,
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';

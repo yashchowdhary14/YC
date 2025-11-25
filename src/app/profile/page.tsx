@@ -18,7 +18,6 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
-  SidebarProvider,
 } from '@/components/ui/sidebar';
 import SidebarNav from '@/components/app/sidebar-nav';
 
@@ -58,22 +57,31 @@ export default function ProfilePage() {
       postsCount: postsData?.length ?? userProfileData.postsCount ?? 0,
       followersCount: userProfileData.followersCount ?? 0,
       followingCount: userProfileData.followingCount ?? 0,
+      verified: userProfileData.verified ?? false,
     };
   }, [user, userProfileData, postsData]);
 
   const posts = useMemo(() => {
     if (!postsData) return [];
     return postsData.map(post => ({
-        ...post,
-        likes: post.likes || [],
+      ...post,
+      likes: post.likes || [],
     }));
   }, [postsData]);
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+      <Sidebar>
+        <SidebarHeader>
+           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarNav />
+        </SidebarContent>
+        <div className="flex h-screen items-center justify-center bg-background">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Sidebar>
     );
   }
   
@@ -89,7 +97,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -104,25 +112,11 @@ export default function ProfilePage() {
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} isCurrentUser={true} />
              
-             {/* Bio for mobile */}
-            <div className="text-sm mt-4 sm:hidden">
-                <p className="font-semibold">{profileUser.fullName}</p>
-                <p className="whitespace-pre-wrap">{profileUser.bio}</p>
-            </div>
-            
-            {/* Stats for mobile */}
-            <Separator className="my-4 sm:hidden" />
-             <div className="flex sm:hidden items-center justify-around text-center text-sm">
-                <div><span className="font-semibold">{profileUser.postsCount}</span><br/>posts</div>
-                <div><span className="font-semibold">{profileUser.followersCount}</span><br/>followers</div>
-                <div><span className="font-semibold">{profileUser.followingCount}</span><br/>following</div>
-            </div>
-             <Separator className="my-4 sm:hidden" />
-
-
              <div className="my-8">
                 <HighlightsCarousel />
              </div>
+             
+             <Separator />
 
              <TabSwitcher 
                 postsContent={<PostsGrid posts={posts} />}
@@ -139,6 +133,6 @@ export default function ProfilePage() {
           userProfile={profileUser}
         />
       )}
-    </SidebarProvider>
+    </>
   );
 }
