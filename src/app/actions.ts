@@ -2,7 +2,7 @@
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -117,5 +117,43 @@ export async function toggleLike(postId: string, userId: string) {
   } catch (error: any) {
     console.error('Error toggling like:', error);
     return { success: false, error: error.message || 'Failed to update like status.' };
+  }
+}
+
+export async function addComment(postId: string, userId: string, text: string) {
+  const { firestore } = initializeFirebase();
+  const commentsRef = collection(firestore, 'comments');
+  const postRef = doc(firestore, 'posts', postId);
+
+  if (!text.trim()) {
+    return { success: false, error: 'Comment cannot be empty.' };
+  }
+
+  try {
+    const newComment = {
+      parentId: postId,
+      userId,
+      text,
+      createdAt: serverTimestamp(),
+    };
+
+    // Add the comment and update the post's comment count in a transaction
+    await runTransaction(firestore, async (transaction) => {
+      // 1. Add the new comment
+      const newCommentRef = doc(commentsRef); // Create a new ref with a new ID
+      transaction.set(newCommentRef, { ...newComment, id: newCommentRef.id });
+
+      // 2. Increment the commentsCount on the post
+      transaction.update(postRef, {
+        commentsCount: increment(1),
+      });
+    });
+    
+    revalidatePath(`/p/${postId}`);
+    return { success: true };
+
+  } catch (error: any) {
+    console.error("Error adding comment:", error);
+    return { success: false, error: error.message || "Could not post comment." };
   }
 }
