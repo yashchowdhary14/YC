@@ -1,12 +1,25 @@
 'use client';
 
-import { Grid3x3, Clapperboard, Tag } from 'lucide-react';
+import { Suspense } from 'react';
+import { Grid3x3, Clapperboard, Tag, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface TabSwitcherProps {
   postsContent: React.ReactNode;
   reelsContent: React.ReactNode;
   taggedContent: React.ReactNode;
+}
+
+function TabContentWrapper({ children }: { children: React.ReactNode }) {
+    return (
+        <Suspense fallback={
+            <div className="flex justify-center items-center h-64">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        }>
+            {children}
+        </Suspense>
+    )
 }
 
 export default function TabSwitcher({ postsContent, reelsContent, taggedContent }: TabSwitcherProps) {
@@ -27,13 +40,13 @@ export default function TabSwitcher({ postsContent, reelsContent, taggedContent 
         </TabsTrigger>
       </TabsList>
       <TabsContent value="posts" className="mt-4">
-        {postsContent}
+        <TabContentWrapper>{postsContent}</TabContentWrapper>
       </TabsContent>
       <TabsContent value="reels" className="mt-4">
-        {reelsContent}
+        <TabContentWrapper>{reelsContent}</TabContentWrapper>
       </TabsContent>
       <TabsContent value="tagged" className="mt-4">
-        {taggedContent}
+        <TabContentWrapper>{taggedContent}</TabContentWrapper>
       </TabsContent>
     </Tabs>
   );
