@@ -2,8 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, AtSign } from 'lucide-react';
-import Link from 'next/link';
+import { Settings } from 'lucide-react';
 
 interface ProfileHeaderProps {
   user: {
@@ -21,54 +20,45 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user, onEditClick, isCurrentUser = true }: ProfileHeaderProps) {
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-6">
+    <div className="flex w-full max-w-5xl flex-col items-center gap-6 p-4 md:flex-row md:items-start md:gap-16">
       {/* Profile Picture */}
-      <div className="relative">
-        <Avatar className="h-32 w-32 border-4 border-black ring-2 ring-zinc-700">
+      <div className="relative flex-shrink-0">
+        <Avatar className="h-36 w-36 md:h-40 md:w-40 border-4 border-background ring-2 ring-zinc-800">
           <AvatarImage src={user.profilePhoto} alt={user.username} />
           <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
-        <div className="absolute -top-1 -right-2 rounded-full bg-zinc-800 px-3 py-1 text-xs font-medium">
-          Note...
-        </div>
       </div>
 
       {/* Profile Info */}
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold">{user.username}</h1>
-          {isCurrentUser && (
-            <Settings className="h-5 w-5 text-zinc-400" />
+      <div className="flex flex-col gap-4 w-full text-center md:text-left">
+        <div className="flex items-center gap-4 justify-center md:justify-start">
+          <h1 className="text-xl font-light text-zinc-300">{user.username}</h1>
+           {isCurrentUser && (
+            <div className="flex items-center gap-2">
+                 <Button onClick={onEditClick} variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700">
+                    Edit profile
+                </Button>
+                <Button variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700">
+                    View archive
+                </Button>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Settings className="h-5 w-5 text-zinc-300" />
+                </Button>
+            </div>
           )}
         </div>
         
-        <p className="font-medium text-zinc-300">{user.fullName}</p>
-        
-        <div className="flex items-center gap-4 text-sm text-zinc-400">
+        <div className="flex items-center gap-8 text-sm justify-center md:justify-start">
           <span><span className="font-semibold text-white">{user.postsCount}</span> posts</span>
           <span><span className="font-semibold text-white">{user.followersCount}</span> followers</span>
           <span><span className="font-semibold text-white">{user.followingCount}</span> following</span>
         </div>
         
-        <div className="flex items-center gap-1 text-sm">
-          <AtSign className="h-4 w-4 text-zinc-500" />
-          <Link href={`/${user.username}`} className="font-medium text-blue-400 hover:underline">
-            {user.username}
-          </Link>
+        <div className="flex flex-col gap-1">
+            <p className="font-semibold text-sm">{user.fullName}</p>
+            <p className="text-sm whitespace-pre-line text-zinc-300">{user.bio}</p>
         </div>
       </div>
-      
-      {/* Action Buttons */}
-      {isCurrentUser && (
-        <div className="grid w-full grid-cols-2 gap-3">
-          <Button onClick={onEditClick} className="rounded-xl bg-zinc-800 text-white hover:bg-zinc-700 font-medium h-10">
-            Edit profile
-          </Button>
-          <Button className="rounded-xl bg-zinc-800 text-white hover:bg-zinc-700 font-medium h-10">
-            View archive
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

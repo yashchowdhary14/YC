@@ -25,18 +25,18 @@ function TabContentWrapper({ children }: { children: React.ReactNode }) {
 export default function TabSwitcher({ postsContent, reelsContent, taggedContent }: TabSwitcherProps) {
   return (
     <Tabs defaultValue="posts" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="posts">
+      <TabsList className="grid w-full grid-cols-3 bg-transparent border-t border-zinc-800 rounded-none">
+        <TabsTrigger value="posts" className="rounded-none border-t-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
           <Grid3x3 className="h-5 w-5 sm:mr-2" />
-          <span className="hidden sm:inline">Posts</span>
+          <span className="hidden sm:inline">POSTS</span>
         </TabsTrigger>
-        <TabsTrigger value="reels">
+        <TabsTrigger value="reels" className="rounded-none border-t-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
           <Clapperboard className="h-5 w-5 sm:mr-2" />
-          <span className="hidden sm:inline">Reels</span>
+          <span className="hidden sm:inline">REELS</span>
         </TabsTrigger>
-        <TabsTrigger value="tagged">
+        <TabsTrigger value="tagged" className="rounded-none border-t-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none">
           <Tag className="h-5 w-5 sm:mr-2" />
-          <span className="hidden sm:inline">Tagged</span>
+          <span className="hidden sm:inline">TAGGED</span>
         </TabsTrigger>
       </TabsList>
       <TabsContent value="posts" className="mt-4">

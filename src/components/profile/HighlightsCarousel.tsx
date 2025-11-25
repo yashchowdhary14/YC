@@ -67,7 +67,7 @@ export default function HighlightsCarousel() {
           {highlights.map((highlight) => (
             <CarouselItem key={highlight.id} className="basis-auto pl-4">
                <button className="flex flex-col items-center gap-2 text-center">
-                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
+                 <div className="p-0.5 rounded-full bg-zinc-700">
                   <div className="p-0.5 bg-background rounded-full">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={highlight.thumbnailUrl} alt={highlight.title} />
