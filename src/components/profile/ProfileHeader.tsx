@@ -27,31 +27,6 @@ interface ProfileHeaderProps {
 
 export default function ProfileHeader({ user, onEditClick, isCurrentUser = true }: ProfileHeaderProps) {
   const [isFollowing, setIsFollowing] = useState(false);
-
-  const renderBio = (bio: string) => {
-    const linkRegex = /(https?:\/\/[^\s]+)/g;
-    const hashtagRegex = /#(\w+)/g;
-
-    const parts = bio.split(new RegExp(`(${linkRegex.source}|${hashtagRegex.source})`, 'g'));
-
-    return parts.map((part, index) => {
-      if (part.match(linkRegex)) {
-        return (
-          <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-            {part}
-          </a>
-        );
-      }
-      if (part.match(hashtagRegex)) {
-        return (
-          <span key={index} className="text-primary hover:underline cursor-pointer">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
   
   return (
     <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-12 md:gap-24">
@@ -99,7 +74,7 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
           </div>
         </div>
 
-        <div className="hidden sm:flex gap-8">
+        <div className="flex justify-center sm:justify-start gap-8">
             <button className="text-sm"><span className="font-semibold">{user.postsCount.toLocaleString()}</span> posts</button>
             <button className="text-sm"><span className="font-semibold">{user.followersCount.toLocaleString()}</span> followers</button>
             <button className="text-sm"><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</button>
@@ -107,7 +82,7 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
 
         <div>
           <h1 className="font-semibold">{user.fullName}</h1>
-          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{renderBio(user.bio)}</p>
+          <p className="text-sm text-foreground/80 whitespace-pre-wrap">{user.bio}</p>
         </div>
       </div>
     </div>

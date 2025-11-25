@@ -21,7 +21,6 @@ import { signOut } from 'firebase/auth';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import ProfileHeader from '@/components/profile/ProfileHeader';
-import StatsRow from '@/components/profile/StatsRow';
 import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
@@ -124,12 +123,8 @@ export default function ProfilePage() {
           <main className="min-h-full bg-background">
             <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
               {profileUser && <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />}
-              
-              <div className="my-4 sm:hidden">
-                {profileUser && <StatsRow stats={profileUser} />}
-              </div>
 
-              <div className="hidden sm:block my-8">
+              <div className="my-8">
                  {/* This space is occupied by stats in the header on desktop */}
               </div>
 
