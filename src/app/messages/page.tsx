@@ -64,10 +64,9 @@ export default function MessagesPage() {
     return (
       <main className="min-h-svh bg-background">
         <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
-          <div className="p-4 border-b flex items-center gap-4">
-            <Sidebar anInset>
-              <AppHeader />
-            </Sidebar>
+          {/* The AppHeader now correctly uses the global Sidebar context */}
+          <AppHeader />
+          <div className="p-4 border-b">
             <h1 className="text-xl font-semibold">Messages</h1>
           </div>
           {isLoading ? (
