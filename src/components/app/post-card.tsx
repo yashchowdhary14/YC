@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
@@ -14,17 +13,13 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { doc } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 
 interface PostCardProps {
   post: Post;
   isCard?: boolean;
 }
 
-export default function PostCard({ post: initialPost, isCard = true }: PostCardProps) {
-  const post = useHydratedPost(initialPost);
-
+export default function PostCard({ post, isCard = true }: PostCardProps) {
   const Wrapper = isCard ? Card : 'div';
   
   return (
@@ -96,30 +91,4 @@ export default function PostCard({ post: initialPost, isCard = true }: PostCardP
       </CardFooter>
     </Wrapper>
   );
-}
-
-
-function useHydratedPost(initialPost: Post) {
-  const firestore = useFirestore();
-  
-  const userRef = useMemoFirebase(
-    () => (firestore && initialPost.user.id ? doc(firestore, 'users', initialPost.user.id) : null),
-    [firestore, initialPost.user.id]
-  );
-  const { data: userData } = useDoc(userRef);
-
-  return useMemo(() => {
-    if (userData) {
-      return {
-        ...initialPost,
-        user: {
-          id: initialPost.user.id,
-          username: userData.username || initialPost.user.username,
-          fullName: userData.fullName || initialPost.user.fullName,
-          avatarUrl: userData.profilePhoto || initialPost.user.avatarUrl
-        }
-      };
-    }
-    return initialPost;
-  }, [initialPost, userData]);
 }

@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCollection } from '@/firebase/firestore/use-collection';
+import { useHydratedPosts } from '@/firebase/firestore/use-hydrated-posts';
 
 const suggestions = [
   {
@@ -63,29 +64,9 @@ export default function Home() {
     [firestore]
   );
   const { data: postsData, isLoading: postsLoading } = useCollection<Omit<Post, 'user'>>(postsQuery);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const { posts, isLoading: isHydrating } = useHydratedPosts(postsData);
 
-  // This is a placeholder effect to hydrate user data for each post.
-  // In a real app, this might be a single query or denormalized on the post document.
-  useEffect(() => {
-    if (postsData) {
-      const hydratedPosts = postsData.map(post => ({
-        ...post,
-        id: post.id,
-        createdAt: post.createdAt?.toDate ? post.createdAt.toDate() : new Date(),
-        user: {
-          id: post.userId,
-          username: 'loading...',
-          fullName: 'loading...',
-          avatarUrl: `https://picsum.photos/seed/${post.userId}/100/100`
-        }
-      }));
-      setPosts(hydratedPosts);
-    }
-  }, [postsData]);
-
-
-  if (isUserLoading || !user || postsLoading) {
+  if (isUserLoading || !user || postsLoading || isHydrating) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
