@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import type { Post } from '@/lib/types';
@@ -24,6 +24,7 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useHydratedPosts } from '@/firebase/firestore/use-hydrated-posts';
+import { signOut } from 'firebase/auth';
 
 const suggestions = [
   {
@@ -50,6 +51,7 @@ const suggestions = [
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
 
@@ -65,6 +67,13 @@ export default function Home() {
   );
   const { data: postsData, isLoading: postsLoading } = useCollection<Omit<Post, 'user'>>(postsQuery);
   const { posts, isLoading: isHydrating } = useHydratedPosts(postsData);
+
+  const handleSignOut = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+  };
 
   if (isUserLoading || !user || postsLoading || isHydrating) {
     return (
@@ -91,22 +100,8 @@ export default function Home() {
         <SidebarFooter>
           <Separator className="my-2" />
           <div className="p-2">
-            <Button variant="outline" className="w-full justify-start">
-              <Avatar className="mr-2 h-8 w-8">
-                <AvatarImage
-                  src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`}
-                  alt={user.displayName || ''}
-                />
-                <AvatarFallback>
-                  {user.email?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col items-start">
-                <span className="font-medium">{user.displayName || user.email}</span>
-                <span className="text-xs text-muted-foreground">
-                  @{user.email?.split('@')[0]}
-                </span>
-              </div>
+            <Button onClick={handleSignOut} variant="outline" className="w-full">
+              Logout
             </Button>
           </div>
         </SidebarFooter>
@@ -133,11 +128,11 @@ export default function Home() {
 
               <div className="hidden lg:block lg:col-span-1">
                  <div className="sticky top-24">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="font-semibold text-muted-foreground">Suggestions for you</p>
-                    <Button variant="link" size="sm" className="p-0 h-auto">See All</Button>
-                  </div>
-                  <div className="flex flex-col gap-4">
+                   <div className="flex items-center justify-between mb-4">
+                     <p className="font-semibold text-muted-foreground">Suggestions for you</p>
+                     <Button variant="link" size="sm" className="p-0 h-auto">See All</Button>
+                   </div>
+                   <div className="flex flex-col gap-4">
                     {suggestions.map((s) => (
                       <div key={s.username} className="flex items-center gap-3">
                         <Avatar>
@@ -152,7 +147,7 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                </div>
+                 </div>
               </div>
             </div>
           </div>
