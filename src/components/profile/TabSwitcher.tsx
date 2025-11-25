@@ -1,28 +1,11 @@
 'use client';
 
-import { Grid3x3, Clapperboard, UserSquare2 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
+// Placeholder for TabSwitcher component
 export default function TabSwitcher({ children }: { children: React.ReactNode }) {
   return (
-    <Tabs defaultValue="posts" className="w-full">
-      <TabsList className="grid w-full grid-cols-3 h-12">
-        <TabsTrigger value="posts" className="gap-2">
-          <Grid3x3 className="h-5 w-5" />
-          <span className="hidden sm:inline">POSTS</span>
-        </TabsTrigger>
-        <TabsTrigger value="reels" className="gap-2">
-          <Clapperboard className="h-5 w-5" />
-          <span className="hidden sm:inline">REELS</span>
-        </TabsTrigger>
-        <TabsTrigger value="tagged" className="gap-2">
-          <UserSquare2 className="h-5 w-5" />
-          <span className="hidden sm:inline">TAGGED</span>
-        </TabsTrigger>
-      </TabsList>
-      <div className="mt-4">
-        {children}
-      </div>
-    </Tabs>
+    <div className="p-4 border rounded-lg bg-card">
+      <div>TabSwitcher</div>
+      {children}
+    </div>
   );
 }
