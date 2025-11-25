@@ -1,3 +1,6 @@
+
+import type { Timestamp } from 'firebase/firestore';
+
 export interface User {
   id: string;
   username: string;
@@ -21,7 +24,7 @@ export interface Message {
   chatId: string;
   senderId: string;
   text: string;
-  timestamp: Date;
+  timestamp: Timestamp | Date;
   isRead: boolean;
   mediaUrl?: string;
   mediaType?: 'image' | 'video';
@@ -29,6 +32,9 @@ export interface Message {
 
 export interface Chat {
   id: string;
-  users: User[];
-  lastMessage: Message;
+  users: string[]; // Array of user IDs
+  lastMessage?: Message;
+  // We can add user details here if needed, but for now we'll fetch them separately
+  // to keep the chat document light.
+  userDetails: User[];
 }
