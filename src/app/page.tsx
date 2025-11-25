@@ -3,7 +3,7 @@
 import { useEffect, useState, useOptimistic } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { collection, query, orderBy } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import type { Post } from '@/lib/types';
 import PostCard from '@/components/app/post-card';
@@ -105,7 +105,7 @@ export default function Home() {
   }, [user, isUserLoading, router]);
 
   const postsQuery = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'posts') : null),
+    () => (firestore ? query(collection(firestore, 'posts'), orderBy('createdAt', 'desc')) : null),
     [firestore]
   );
   const { data: postsData, isLoading: postsLoading } = useCollection<Omit<Post, 'user'>>(postsQuery);
@@ -188,5 +188,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
-    

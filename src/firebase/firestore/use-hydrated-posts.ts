@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, getDocs, collection, query, where, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Post as PostType, User } from '@/lib/types';
 
 // The raw post type from Firestore, before user data is embedded
-type RawPost = Omit<PostType, 'user'> & { userId: string };
+type RawPost = Omit<PostType, 'user' | 'createdAt'> & { userId: string, createdAt: Timestamp };
 
 /**
  * A hook to efficiently fetch and hydrate post data with associated user data.
@@ -27,6 +27,7 @@ export function useHydratedPosts(postsData: (RawPost & { id: string })[] | null)
     const hydratePosts = async () => {
       if (!memoizedPostsData || memoizedPostsData.length === 0) {
         setHydratedPosts([]);
+        setIsLoading(false);
         return;
       }
 
@@ -54,12 +55,12 @@ export function useHydratedPosts(postsData: (RawPost & { id: string })[] | null)
                 const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
                 const userSnapshots = await getDocs(usersQuery);
                 userSnapshots.forEach(userDoc => {
-                    const userData = userDoc.data() as User;
+                    const userData = userDoc.data() as DocumentData;
                     usersMap.set(userDoc.id, {
                         id: userDoc.id,
                         username: userData.username || 'unknown',
                         fullName: userData.fullName || 'Unknown User',
-                        avatarUrl: userData.avatarUrl || `https://picsum.photos/seed/${userDoc.id}/100/100`,
+                        avatarUrl: userData.profilePhoto || `https://picsum.photos/seed/${userDoc.id}/100/100`,
                     });
                 });
             }
