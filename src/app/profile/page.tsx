@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -15,7 +16,7 @@ import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import { Separator } from '@/components/ui/separator';
 import AppHeader from '@/components/app/header';
-
+import SidebarNav from '@/components/app/sidebar-nav';
 import {
   Sidebar,
   SidebarHeader,
@@ -24,105 +25,59 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 
-import SidebarNav from '@/components/app/sidebar-nav';
-
 export default function ProfilePage() {
   const router = useRouter();
   const firestore = useFirestore();
-
   const { user, isUserLoading } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  /* ---------------------------------------------
-    REDIRECT IF NOT LOGGED IN
-  ----------------------------------------------*/
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.replace('/login');
     }
   }, [isUserLoading, user, router]);
 
-  /* ---------------------------------------------
-    FIRESTORE DOC REFERENCES
-  ----------------------------------------------*/
-  const userDocRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
+  const userDocRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    [firestore, user]
+  );
 
-  const postsQuery = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
+  const postsQuery = useMemoFirebase(
+    () => (firestore && user ? query(collection(firestore, 'users', user.uid, 'posts'), orderBy('createdAt', 'desc')) : null),
+    [firestore, user]
+  );
 
-    try {
-      return query(
-        collection(firestore, 'users', user.uid, 'posts'),
-        orderBy('createdAt', 'desc')
-      );
-    } catch {
-      // if createdAt missing, return without order
-      return collection(firestore, 'users', user.uid, 'posts');
-    }
-  }, [firestore, user]);
+  const { data: userProfileData, isLoading: isProfileLoading } = useDoc(userDocRef);
+  const { data: postsData, isLoading: arePostsLoading } = useCollection(postsQuery);
 
-  /* ---------------------------------------------
-    LOAD DATA SAFELY
-  ----------------------------------------------*/
-  const {
-    data: userProfileData,
-    isLoading: isProfileLoading,
-  } = userDocRef ? useDoc(userDocRef) : { data: null, isLoading: true };
-
-  const {
-    data: postsSnapshot,
-    isLoading: arePostsLoading,
-  } = postsQuery ? useCollection(postsQuery) : { data: null, isLoading: true };
-
-  /* ---------------------------------------------
-    PARSE PROFILE USER
-  ----------------------------------------------*/
   const profileUser = useMemo(() => {
     if (!user) return null;
 
     return {
       id: user.uid,
-      username:
-        userProfileData?.username ||
-        user.email?.split('@')[0] ||
-        'user',
-      fullName:
-        userProfileData?.fullName ||
-        user.displayName ||
-        'User',
+      username: userProfileData?.username || user.email?.split('@')[0] || 'user',
+      fullName: userProfileData?.fullName || user.displayName || 'User',
       bio: userProfileData?.bio || 'Welcome to my profile!',
-      profilePhoto:
-        userProfileData?.profilePhoto ||
-        user.photoURL ||
-        `https://picsum.photos/seed/${user.uid}/150`,
-
-      postsCount: postsSnapshot?.length ?? 0,
+      profilePhoto: userProfileData?.profilePhoto || user.photoURL || `https://picsum.photos/seed/${user.uid}/150`,
+      postsCount: postsData?.length ?? 0,
       followersCount: userProfileData?.followersCount ?? 0,
       followingCount: userProfileData?.followingCount ?? 0,
       verified: userProfileData?.verified ?? false,
     };
-  }, [user, userProfileData, postsSnapshot]);
+  }, [user, userProfileData, postsData]);
 
-  /* ---------------------------------------------
-    MAP POSTS
-  ----------------------------------------------*/
   const posts = useMemo(() => {
-    if (!postsSnapshot) return [];
-
-    return postsSnapshot.map((d) => ({
+    if (!postsData) return [];
+    return postsData.map((d: any) => ({
       id: d.id,
-      ...d,
+      imageUrl: d.imageUrl,
+      imageHint: d.imageHint || '',
       likes: d.likes || [],
+      commentsCount: d.commentsCount || 0,
     }));
-  }, [postsSnapshot]);
+  }, [postsData]);
 
-  /* ---------------------------------------------
-    GLOBAL LOADING
-  ----------------------------------------------*/
-  if (isUserLoading || isProfileLoading) {
+  if (isUserLoading || isProfileLoading || !profileUser) {
     return (
       <SidebarProvider>
         <Sidebar>
@@ -133,8 +88,8 @@ export default function ProfilePage() {
             <SidebarNav />
           </SidebarContent>
         </Sidebar>
-
         <SidebarInset>
+          <AppHeader />
           <div className="flex h-screen items-center justify-center bg-background">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
@@ -142,21 +97,7 @@ export default function ProfilePage() {
       </SidebarProvider>
     );
   }
-
-  /* ---------------------------------------------
-    IF USER OR PROFILE MISSING
-  ----------------------------------------------*/
-  if (!user || !profileUser) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  /* ---------------------------------------------
-    EMPTY STATE
-  ----------------------------------------------*/
+  
   const emptyState = (
     <div className="text-center p-8">
       <h3 className="font-semibold text-lg">No content yet</h3>
@@ -166,39 +107,29 @@ export default function ProfilePage() {
     </div>
   );
 
-  /* ---------------------------------------------
-    MAIN UI RENDER
-  ----------------------------------------------*/
   return (
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
         </SidebarHeader>
-
         <SidebarContent>
           <SidebarNav />
         </SidebarContent>
       </Sidebar>
-
       <SidebarInset>
         <AppHeader />
-
         <main className="bg-background">
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-
             <ProfileHeader
               user={profileUser}
               onEditClick={() => setIsEditDialogOpen(true)}
               isCurrentUser={true}
             />
-
             <div className="my-8">
               <HighlightsCarousel />
             </div>
-
             <Separator />
-
             <TabSwitcher
               postsContent={<PostsGrid posts={posts} />}
               reelsContent={emptyState}
@@ -207,8 +138,6 @@ export default function ProfilePage() {
           </div>
         </main>
       </SidebarInset>
-
-      {/* EDIT PROFILE DIALOG */}
       <EditProfileDialog
         open={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
