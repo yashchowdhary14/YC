@@ -44,7 +44,7 @@ export default function PostPage() {
     imageHint: postData.imageHint || '',
     caption: postData.caption,
     createdAt: postData.createdAt?.toDate ? postData.createdAt.toDate() : new Date(),
-    likes: postData.likes?.length || 0,
+    likes: postData.likes || [],
     commentsCount: postData.commentsCount || 0,
   } : null;
   

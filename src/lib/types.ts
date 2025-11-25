@@ -12,7 +12,7 @@ export interface Post {
   imageHint: string;
   caption: string;
   createdAt: Date;
-  likes: number;
+  likes: string[]; // Changed from number to string[]
   commentsCount: number;
 }
 

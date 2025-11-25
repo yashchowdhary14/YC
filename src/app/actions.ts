@@ -2,8 +2,9 @@
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
+import { revalidatePath } from 'next/cache';
 
 export async function handleCaptionGeneration(mediaDataUri: string) {
   try {
@@ -70,11 +71,48 @@ export async function handleCreatePost(formData: FormData) {
         const userPostsCollectionRef = collection(firestore, 'users', userId, 'posts');
         await setDoc(doc(userPostsCollectionRef, addedPost.id), { ...newPost, id: addedPost.id });
 
-
+        revalidatePath('/');
+        revalidatePath('/profile');
         return { success: true, postId: addedPost.id };
 
     } catch (error: any) {
         console.error('Error creating post:', error);
         throw new Error(error.message || 'Failed to create post due to a server error.');
     }
+}
+
+export async function toggleLike(postId: string, userId: string) {
+  const { firestore } = initializeFirebase();
+  const postRef = doc(firestore, 'posts', postId);
+  const userPostRef = doc(firestore, 'users', userId, 'posts', postId);
+
+  try {
+    const postDoc = await getDoc(postRef);
+    if (!postDoc.exists()) {
+      throw new Error('Post not found');
+    }
+
+    const postData = postDoc.data();
+    const isLiked = postData.likes?.includes(userId);
+
+    const mainUpdate = updateDoc(postRef, {
+      likes: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+    });
+
+    // Also update the user's subcollection post if it exists
+    const userPostUpdate = updateDoc(userPostRef, {
+        likes: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+    }).catch(err => console.log("User's own post copy not found, skipping update.")); // Don't block if this fails
+
+    await Promise.all([mainUpdate, userPostUpdate]);
+    
+    revalidatePath('/');
+    revalidatePath(`/p/${postId}`);
+    revalidatePath('/profile');
+
+    return { success: true, isLiked: !isLiked };
+  } catch (error: any) {
+    console.error('Error toggling like:', error);
+    return { success: false, error: error.message };
+  }
 }
