@@ -16,8 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useUser, useFirestore, addDocumentNonBlocking, useMemoFirebase } from '@/firebase';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 
 interface ChatDisplayProps {
@@ -55,7 +55,7 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
     };
 
     // We use a non-blocking add so the UI updates instantly
-    await addDocumentNonBlocking(messagesCollectionRef, newMessage);
+    await addDoc(messagesCollectionRef, newMessage);
 
     setMessageText('');
     setMediaPreview(null);
