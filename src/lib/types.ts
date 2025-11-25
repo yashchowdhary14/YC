@@ -15,3 +15,18 @@ export interface Post {
   likes: number;
   commentsCount: number;
 }
+
+export interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  text: string;
+  timestamp: Date;
+  isRead: boolean;
+}
+
+export interface Chat {
+  id: string;
+  users: User[];
+  lastMessage: Message;
+}
