@@ -55,7 +55,7 @@ export default function HighlightsCarousel() {
           {/* Add New Highlight */}
           <CarouselItem className="basis-auto pl-4">
             <div className="flex flex-col items-center gap-2 text-center">
-              <button className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed bg-muted transition-colors hover:bg-accent hover:border-primary">
+              <button className="flex h-[68px] w-[68px] items-center justify-center rounded-full border-2 border-dashed bg-muted transition-colors hover:bg-accent hover:border-primary">
                 <Plus className="h-8 w-8 text-muted-foreground" />
                 <span className="sr-only">Add new highlight</span>
               </button>
@@ -67,7 +67,7 @@ export default function HighlightsCarousel() {
           {highlights.map((highlight) => (
             <CarouselItem key={highlight.id} className="basis-auto pl-4">
                <button className="flex flex-col items-center gap-2 text-center">
-                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-muted via-muted to-muted">
+                 <div className="p-0.5 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
                   <div className="p-0.5 bg-background rounded-full">
                     <Avatar className="h-16 w-16">
                       <AvatarImage src={highlight.thumbnailUrl} alt={highlight.title} />

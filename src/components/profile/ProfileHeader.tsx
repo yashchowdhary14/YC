@@ -57,11 +57,15 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
     <div className="flex flex-col sm:flex-row items-center gap-6 sm:gap-12">
       <Dialog>
         <DialogTrigger asChild>
-          <div className="relative cursor-pointer">
-            <Avatar className="w-24 h-24 sm:w-36 sm:h-36 border-4 border-background ring-2 ring-primary/50">
-              <AvatarImage src={user.profilePhoto} alt={user.username} />
-              <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-            </Avatar>
+          <div className="relative cursor-pointer group">
+            <div className="p-1 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500">
+                <div className="p-1 bg-background rounded-full">
+                    <Avatar className="w-24 h-24 sm:w-36 sm:h-36">
+                    <AvatarImage src={user.profilePhoto} alt={user.username} />
+                    <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                </div>
+            </div>
           </div>
         </DialogTrigger>
         <DialogContent className="p-0 max-w-md w-full aspect-square">
