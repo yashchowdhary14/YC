@@ -55,8 +55,10 @@ export default function ProfilePage() {
   const userRef = useMemoFirebase(() => user ? doc(firestore, 'users', user.uid) : null, [firestore, user]);
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef);
 
-  const postsQuery = useMemoFirebase(() => user ? query(collection(firestore, 'posts'), where('userId', '==', user.uid)) : null, [firestore, user]);
+  // This is the correct reference to the user's posts subcollection.
+  const postsQuery = useMemoFirebase(() => user ? collection(firestore, 'users', user.uid, 'posts') : null, [firestore, user]);
   const { data: posts, isLoading: arePostsLoading } = useCollection<Post>(postsQuery);
+
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -67,20 +69,39 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchCounts = async () => {
       if (user && firestore) {
+        // Correctly reference subcollections for counts
         const postsCol = collection(firestore, 'users', user.uid, 'posts');
         const followersCol = collection(firestore, 'users', user.uid, 'followers');
         const followingCol = collection(firestore, 'users', user.uid, 'following');
         
-        const postsSnapshot = await getCountFromServer(postsCol);
-        const followersSnapshot = await getCountFromServer(followersCol);
-        const followingSnapshot = await getCountFromServer(followingCol);
+        try {
+            const postsSnapshot = await getCountFromServer(postsCol);
+            setPostCount(postsSnapshot.data().count);
+        } catch (error) {
+            console.error("Error fetching post count:", error);
+            setPostCount(0);
+        }
 
-        setPostCount(postsSnapshot.data().count);
-        setFollowerCount(followersSnapshot.data().count);
-        setFollowingCount(followingSnapshot.data().count);
+        try {
+            const followersSnapshot = await getCountFromServer(followersCol);
+            setFollowerCount(followersSnapshot.data().count);
+        } catch (error) {
+            console.error("Error fetching followers count:", error);
+            setFollowerCount(0);
+        }
+
+        try {
+            const followingSnapshot = await getCountFromServer(followingCol);
+            setFollowingCount(followingSnapshot.data().count);
+        } catch (error) {
+            console.error("Error fetching following count:", error);
+            setFollowingCount(0);
+        }
       }
     };
-    fetchCounts();
+    if (user && firestore) {
+        fetchCounts();
+    }
   }, [user, firestore]);
 
   const handleSignOut = async () => {
@@ -88,13 +109,21 @@ export default function ProfilePage() {
     router.push('/login');
   };
 
-  if (isUserLoading || isProfileLoading || !userProfile) {
+  if (isUserLoading || isProfileLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+  
+  const profile = userProfile || {
+      username: user.email?.split('@')[0],
+      fullName: user.displayName,
+      bio: '',
+      profilePhoto: user.photoURL
+  };
+
 
   return (
     <SidebarProvider>
@@ -125,12 +154,12 @@ export default function ProfilePage() {
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
             <header className="flex items-center gap-8 md:gap-16 mb-8">
               <Avatar className="h-24 w-24 md:h-36 md:w-36 border-4 border-background ring-2 ring-primary">
-                <AvatarImage src={userProfile.profilePhoto} alt={userProfile.username} />
-                <AvatarFallback>{userProfile.username?.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarImage src={profile.profilePhoto} alt={profile.username} />
+                <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-light">{userProfile.username}</h1>
+                  <h1 className="text-2xl font-light">{profile.username}</h1>
                   <Button variant="secondary" size="sm" className="hidden md:inline-flex">
                     Edit Profile
                   </Button>
@@ -143,7 +172,7 @@ export default function ProfilePage() {
                   </Button>
                 <div className="flex items-center gap-6 text-sm">
                   <div>
-                    <span className="font-semibold">{postCount}</span> posts
+                    <span className="font-semibold">{posts?.length || 0}</span> posts
                   </div>
                   <div>
                     <span className="font-semibold">{followerCount}</span> followers
@@ -153,8 +182,8 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <h2 className="font-semibold">{userProfile.fullName}</h2>
-                  <p className="text-muted-foreground">{userProfile.bio}</p>
+                  <h2 className="font-semibold">{profile.fullName}</h2>
+                  <p className="text-muted-foreground">{profile.bio}</p>
                 </div>
               </div>
             </header>

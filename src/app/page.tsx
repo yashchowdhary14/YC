@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useTransition, useRef } from 'react';
@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { collection, serverTimestamp } from 'firebase/firestore';
 
 export default function Home() {
   const [isPending, startTransition] = useTransition();
@@ -48,6 +49,7 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
 
   useEffect(() => {
@@ -126,7 +128,7 @@ export default function Home() {
     });
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!imagePreview || !caption) {
       toast({
         variant: 'destructive',
@@ -136,10 +138,23 @@ export default function Home() {
       return;
     }
 
-    if(!user) return;
+    if (!user) return;
+
+    const newPostData = {
+      userId: user.uid,
+      imageUrl: imagePreview,
+      caption: caption,
+      createdAt: serverTimestamp(),
+      likes: [],
+      commentsCount: 0,
+    };
+    
+    // This is the correct reference to the user's posts subcollection.
+    const userPostsRef = collection(firestore, 'users', user.uid, 'posts');
+    const newPostRef = await addDocumentNonBlocking(userPostsRef, newPostData);
 
     const newPost: Post = {
-      id: `post-${Date.now()}`,
+      id: newPostRef.id,
       user: {
         id: user.uid,
         username: user.email?.split('@')[0] || 'anonymous',
