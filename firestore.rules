@@ -122,7 +122,7 @@ service cloud.firestore {
      * @path /users/{userId}
      * @allow (get) Any user, signed in or not, can view a user profile.
      * @allow (create) A new user can create their own profile document if their auth UID matches the document ID. `auth.uid: 'user_abc'`, `docId: 'user_abc'`.
-     * @deny (list) Listing all users is disabled to protect privacy and prevent user enumeration attacks.
+     * @deny (list) Listing all users is disabled to protect user privacy and prevent user enumeration attacks.
      * @deny (update) A user cannot update another user's profile. `auth.uid: 'user_xyz'`, `docId: 'user_abc'`.
      * @principle Enforces Self-Creation and Ownership. Validates relational integrity by ensuring the document ID in the path matches the `id` field within the data.
      */
@@ -143,12 +143,30 @@ service cloud.firestore {
        * @principle Path-based ownership provides fast, inherited security for a user's own data tree.
        */
       match /posts/{postId} {
-        allow get: if true;
-        allow list: if true;
+        allow read: if true;
         allow create: if isOwner(userId) && hasDataOwnershipMatchingPath(userId);
         allow update: if isExistingOwner(userId) && isUserIdImmutable();
         allow delete: if isExistingOwner(userId);
       }
+
+      /**
+       * @description Followers subcollection. Any signed-in user can read who follows whom. Only a user can add/remove themself as a follower of another user.
+       * @path /users/{userId}/followers/{followerId}
+       */
+      match /followers/{followerId} {
+        allow read: if isSignedIn();
+        allow write: if isOwner(followerId); // A user can only control their own follow action.
+      }
+      
+      /**
+       * @description Following subcollection. Any signed-in user can read who follows whom. Only a user can manage their own following list.
+       * @path /users/{userId}/following/{followingId}
+       */
+      match /following/{followingId} {
+        allow read: if isSignedIn();
+        allow write: if isOwner(userId); // Only the user can modify their own "following" list.
+      }
+
 
       /**
        * @description Stories created by a user. Like posts, they are publicly visible but can only be managed by their owner.
@@ -165,6 +183,17 @@ service cloud.firestore {
         allow update: if isExistingOwner(userId) && isUserIdImmutable();
         allow delete: if isExistingOwner(userId);
       }
+    }
+
+    /**
+     * @description Top-level posts collection for the main feed. All posts are public. Only the original author can modify or delete their post.
+     * @path /posts/{postId}
+     */
+    match /posts/{postId} {
+        allow read: if true;
+        allow create: if isSignedIn() && isCreator();
+        allow update: if isExistingResourceOwner(resource.data) && isUserIdImmutable();
+        allow delete: if isExistingResourceOwner(resource.data);
     }
 
     /**

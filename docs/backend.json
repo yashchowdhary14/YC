@@ -32,20 +32,6 @@
           "description": "URL of the user's profile photo.",
           "format": "uri"
         },
-        "followers": {
-          "type": "array",
-          "description": "List of user IDs who are following this user.",
-          "items": {
-            "type": "string"
-          }
-        },
-        "following": {
-          "type": "array",
-          "description": "List of user IDs this user is following.",
-          "items": {
-            "type": "string"
-          }
-        },
         "createdAt": {
           "type": "string",
           "description": "Timestamp of when the user was created.",
@@ -61,6 +47,27 @@
         "username",
         "email",
         "createdAt"
+      ]
+    },
+    "Follow": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Follow",
+      "type": "object",
+      "description": "Represents a follow relationship between users. Used in both followers and following subcollections.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who is being followed or is following."
+        },
+        "followedAt": {
+          "type": "string",
+          "description": "Timestamp of when the follow action occurred.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "userId",
+        "followedAt"
       ]
     },
     "Post": {
@@ -398,6 +405,46 @@
         }
       },
       {
+        "path": "/users/{userId}/followers/{followerId}",
+        "definition": {
+          "entityName": "Follow",
+          "schema": {
+            "$ref": "#/backend/entities/Follow"
+          },
+          "description": "Stores the followers of a specific user. The `followerId` is the user ID of the person who is following.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user being followed."
+            },
+            {
+              "name": "followerId",
+              "description": "The unique identifier of the follower."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/following/{followingId}",
+        "definition": {
+          "entityName": "Follow",
+          "schema": {
+            "$ref": "#/backend/entities/Follow"
+          },
+          "description": "Stores the users a specific user is following. The `followingId` is the user ID of the person being followed.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user who is following."
+            },
+            {
+              "name": "followingId",
+              "description": "The unique identifier of the user being followed."
+            }
+          ]
+        }
+      },
+      {
         "path": "/users/{userId}/stories/{storyId}",
         "definition": {
           "entityName": "Story",
@@ -413,6 +460,22 @@
             {
               "name": "storyId",
               "description": "The unique identifier for the story."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": {
+            "$ref": "#/backend/entities/Post"
+          },
+          "description": "A top-level collection of all posts for easy querying of a global feed. Data is duplicated here from `/users/{userId}/posts/{postId}` upon creation.",
+          "params": [
+            {
+              "name": "postId",
+              "description": "The unique identifier for the post."
             }
           ]
         }

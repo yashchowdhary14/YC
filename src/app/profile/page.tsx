@@ -55,7 +55,6 @@ export default function ProfilePage() {
   const userRef = useMemoFirebase(() => user ? doc(firestore, 'users', user.uid) : null, [firestore, user]);
   const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef);
 
-  // This is the correct reference to the user's posts subcollection.
   const postsQuery = useMemoFirebase(() => user ? collection(firestore, 'users', user.uid, 'posts') : null, [firestore, user]);
   const { data: posts, isLoading: arePostsLoading } = useCollection<Post>(postsQuery);
 
@@ -69,7 +68,6 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchCounts = async () => {
       if (user && firestore) {
-        // Correctly reference subcollections for counts
         const postsCol = collection(firestore, 'users', user.uid, 'posts');
         const followersCol = collection(firestore, 'users', user.uid, 'followers');
         const followingCol = collection(firestore, 'users', user.uid, 'following');
@@ -79,7 +77,7 @@ export default function ProfilePage() {
             setPostCount(postsSnapshot.data().count);
         } catch (error) {
             console.error("Error fetching post count:", error);
-            setPostCount(0);
+            setPostCount(posts?.length || 0);
         }
 
         try {
@@ -102,7 +100,7 @@ export default function ProfilePage() {
     if (user && firestore) {
         fetchCounts();
     }
-  }, [user, firestore]);
+  }, [user, firestore, posts]);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -154,7 +152,7 @@ export default function ProfilePage() {
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
             <header className="flex items-center gap-8 md:gap-16 mb-8">
               <Avatar className="h-24 w-24 md:h-36 md:w-36 border-4 border-background ring-2 ring-primary">
-                <AvatarImage src={profile.profilePhoto} alt={profile.username} />
+                <AvatarImage src={profile.profilePhoto || `https://picsum.photos/seed/${user.uid}/150/150`} alt={profile.username} />
                 <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-3">
@@ -172,7 +170,7 @@ export default function ProfilePage() {
                   </Button>
                 <div className="flex items-center gap-6 text-sm">
                   <div>
-                    <span className="font-semibold">{posts?.length || 0}</span> posts
+                    <span className="font-semibold">{postCount}</span> posts
                   </div>
                   <div>
                     <span className="font-semibold">{followerCount}</span> followers
@@ -183,7 +181,7 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <h2 className="font-semibold">{profile.fullName}</h2>
-                  <p className="text-muted-foreground">{profile.bio}</p>
+                  <p className="text-muted-foreground">{profile.bio || 'This is a sample bio. Go to Edit Profile to change it.'}</p>
                 </div>
               </div>
             </header>
