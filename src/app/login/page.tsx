@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
-import { Loader2, Sparkles } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc } from 'firebase/firestore';
 
@@ -112,10 +112,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
        <div className="absolute top-8 flex items-center gap-2 text-2xl font-semibold">
-          <div className="p-2 rounded-lg bg-primary">
-            <Sparkles className="h-7 w-7 text-primary-foreground" />
-          </div>
-          <h1>YC</h1>
+          <h1 className="text-3xl font-bold font-serif">Instagram</h1>
         </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

@@ -20,7 +20,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useHydratedPosts } from '@/firebase/firestore/use-hydrated-posts';
@@ -131,12 +130,7 @@ export default function Home() {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <div className="p-1.5 rounded-lg bg-primary">
-              <Sparkles className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-semibold">YC</h1>
-          </div>
+          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
         </SidebarHeader>
         <SidebarContent>
           <SidebarNav />

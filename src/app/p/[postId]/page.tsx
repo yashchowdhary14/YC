@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useFirestore, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { doc, collection, query, where, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, orderBy } from 'firebase/firestore';
 import { Loader2, Send } from 'lucide-react';
 import PostCard from '@/components/app/post-card';
 import AppHeader from '@/components/app/header';
@@ -16,7 +16,6 @@ import {
   SidebarContent,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { Sparkles } from 'lucide-react';
 import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -143,12 +142,7 @@ export default function PostPage() {
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
-          <div className="flex items-center gap-2 p-2">
-            <div className="p-1.5 rounded-lg bg-primary">
-              <Sparkles className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <h1 className="text-xl font-semibold">YC</h1>
-          </div>
+           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
         </SidebarHeader>
         <SidebarContent>
           <SidebarNav />

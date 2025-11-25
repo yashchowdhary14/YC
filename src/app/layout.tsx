@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'YC',
+  title: 'Instagram',
   description: 'A modern social media experience.',
 };
 
