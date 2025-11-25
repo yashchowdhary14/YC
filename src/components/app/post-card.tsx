@@ -1,5 +1,9 @@
+'use client';
+
+import { useMemo } from 'react';
 import Image from 'next/image';
-import { Heart, MessageCircle, Send } from 'lucide-react';
+import Link from 'next/link';
+import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
 import type { Post } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -10,21 +14,27 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
+import { doc } from 'firebase/firestore';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 
 interface PostCardProps {
   post: Post;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post: initialPost }: PostCardProps) {
+  const post = useHydratedPost(initialPost);
+  
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-none rounded-none">
+    <Card className="max-w-xl mx-auto w-full">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
-        <Avatar>
-          <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
-          <AvatarFallback>{post.user.username.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div className="grid gap-0.5 text-sm">
-          <span className="font-semibold">{post.user.username}</span>
+        <Link href={`/${post.user.username}`}>
+          <Avatar>
+            <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
+            <AvatarFallback>{post.user.username.charAt(0)}</AvatarFallback>
+          </Avatar>
+        </Link>
+        <div className="grid gap-0.5 text-sm flex-1">
+          <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
           <time
             dateTime={post.createdAt.toISOString()}
             className="text-muted-foreground"
@@ -32,21 +42,27 @@ export default function PostCard({ post }: PostCardProps) {
             {formatDistanceToNow(post.createdAt, { addSuffix: true })}
           </time>
         </div>
+         <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-5 w-5" />
+            <span className="sr-only">More options</span>
+        </Button>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="relative aspect-[4/5] lg:hidden">
-          <Image
-            src={post.imageUrl}
-            alt={post.imageHint}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            data-ai-hint={post.imageHint}
-          />
-        </div>
+        <Link href={`/p/${post.id}`}>
+          <div className="relative aspect-square">
+            <Image
+              src={post.imageUrl}
+              alt={post.imageHint}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              data-ai-hint={post.imageHint}
+            />
+          </div>
+        </Link>
       </CardContent>
       <CardFooter className="flex flex-col items-start gap-3 p-4">
-        <div className="flex w-full items-center gap-2">
+        <div className="flex w-full items-center gap-1">
           <Button variant="ghost" size="icon">
             <Heart className="h-6 w-6" />
             <span className="sr-only">Like</span>
@@ -64,13 +80,41 @@ export default function PostCard({ post }: PostCardProps) {
           {post.likes.toLocaleString()} likes
         </div>
         <p className="text-sm">
-          <span className="font-semibold">{post.user.username}</span>{' '}
+          <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>{' '}
           {post.caption}
         </p>
-        <div className="text-sm text-muted-foreground">
-          View all {post.commentsCount.toLocaleString()} comments
-        </div>
+        <Link href={`/p/${post.id}#comments`}>
+          <div className="text-sm text-muted-foreground">
+            View all {post.commentsCount.toLocaleString()} comments
+          </div>
+        </Link>
       </CardFooter>
     </Card>
   );
+}
+
+
+function useHydratedPost(initialPost: Post) {
+  const firestore = useFirestore();
+  
+  const userRef = useMemoFirebase(
+    () => (firestore && initialPost.user.id ? doc(firestore, 'users', initialPost.user.id) : null),
+    [firestore, initialPost.user.id]
+  );
+  const { data: userData } = useDoc(userRef);
+
+  return useMemo(() => {
+    if (userData) {
+      return {
+        ...initialPost,
+        user: {
+          id: initialPost.user.id,
+          username: userData.username || initialPost.user.username,
+          fullName: userData.fullName || initialPost.user.fullName,
+          avatarUrl: userData.profilePhoto || initialPost.user.avatarUrl
+        }
+      };
+    }
+    return initialPost;
+  }, [initialPost, userData]);
 }

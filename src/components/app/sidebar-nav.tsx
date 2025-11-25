@@ -21,7 +21,7 @@ const links = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
   { href: '/explore', label: 'Explore', icon: Compass },
-  { href: '/reels', label: 'Reels', icon: PlusSquare },
+  { href: '/create', label: 'Create', icon: PlusSquare },
   { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/notifications', label: 'Notifications', icon: Heart },
   { href: '/profile', label: 'Profile', icon: User },
