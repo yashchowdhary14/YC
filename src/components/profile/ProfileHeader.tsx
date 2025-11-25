@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,9 +32,9 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
     };
 
   return (
-    <header className="flex flex-col sm:flex-row gap-8 sm:gap-16 items-start sm:items-center w-full">
+    <header className="flex gap-8 md:gap-16 items-start w-full">
         {/* Profile Picture */}
-        <div className="flex-shrink-0 w-24 h-24 sm:w-36 sm:h-36 mx-auto sm:mx-0">
+        <div className="flex-shrink-0 w-24 h-24 md:w-36 md:h-36">
             <Avatar className="h-full w-full">
                 <AvatarImage src={user.profilePhoto} alt={user.username} />
                 <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
@@ -41,23 +42,23 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
         </div>
         
         {/* Profile Info */}
-        <div className="flex flex-col gap-4 w-full">
+        <div className="flex flex-col gap-4 flex-grow">
             {/* Username and Actions */}
-            <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
                 <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-light text-foreground">{user.username}</h1>
+                    <h1 className="text-xl font-normal text-foreground">{user.username}</h1>
                     {user.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />}
                 </div>
                  {isCurrentUser ? (
                     <div className="flex items-center gap-2">
-                         <Button onClick={onEditClick} variant="secondary" size="sm" className="bg-secondary hover:bg-zinc-700 text-white font-medium">
+                         <Button onClick={onEditClick} variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm">
                             Edit profile
                         </Button>
-                        <Button variant="secondary" size="sm" className="bg-secondary hover:bg-zinc-700 text-white font-medium">
+                        <Button variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm">
                             View archive
                         </Button>
                          <Button variant="ghost" size="icon">
-                            <Settings className="h-5 w-5 text-gray-400" />
+                            <Settings className="h-5 w-5" />
                         </Button>
                     </div>
                  ) : (

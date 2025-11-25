@@ -18,6 +18,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import SidebarNav from '@/components/app/sidebar-nav';
 
@@ -71,17 +72,21 @@ export default function ProfilePage() {
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
-      <Sidebar>
-        <SidebarHeader>
-           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-        <div className="flex h-screen items-center justify-center bg-background">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      </Sidebar>
+      <SidebarProvider>
+        <Sidebar>
+            <SidebarHeader>
+              <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarNav />
+            </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+            <div className="flex h-screen items-center justify-center bg-background">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        </SidebarInset>
+      </SidebarProvider>
     );
   }
   
@@ -97,7 +102,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -133,6 +138,6 @@ export default function ProfilePage() {
           userProfile={profileUser}
         />
       )}
-    </>
+    </SidebarProvider>
   );
 }

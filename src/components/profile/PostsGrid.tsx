@@ -1,10 +1,9 @@
+
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MessageCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Camera } from 'lucide-react';
+import { Heart, MessageCircle, Camera } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -21,12 +20,15 @@ interface PostsGridProps {
 export default function PostsGrid({ posts }: PostsGridProps) {
   if (!posts || posts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center">
+      <div className="flex flex-col items-center justify-center gap-4 p-12 text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-foreground">
           <Camera className="h-10 w-10 text-foreground" />
         </div>
-        <h2 className="mt-6 text-2xl font-semibold">No Posts Yet</h2>
-        <p className="text-muted-foreground mt-2">When you share photos, they will appear on your profile.</p>
+        <h2 className="mt-2 text-2xl font-semibold">Share Photos</h2>
+        <p className="text-muted-foreground text-sm">When you share photos, they will appear on your profile.</p>
+        <Link href="/create">
+          <span className="text-sm font-semibold text-primary hover:text-foreground">Share your first photo</span>
+        </Link>
       </div>
     );
   }
