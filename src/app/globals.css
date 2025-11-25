@@ -8,19 +8,19 @@ body {
 
 @layer base {
   :root {
-    --background: 260 63% 92%; /* Light Lavender */
+    --background: 260 100% 97%; /* Light Lavender */
     --foreground: 255 20% 15%;
     --card: 260 60% 98%;
     --card-foreground: 255 20% 15%;
     --popover: 260 60% 98%;
     --popover-foreground: 255 20% 15%;
-    --primary: 255 35% 48%; /* Deep Purple */
+    --primary: 261 51% 47%; /* Deep Purple */
     --primary-foreground: 255 35% 98%;
     --secondary: 255 30% 88%;
     --secondary-foreground: 255 30% 10%;
     --muted: 255 30% 94%;
     --muted-foreground: 255 30% 45%;
-    --accent: 328 47% 47%; /* Muted Rose */
+    --accent: 337 50% 66%; /* Muted Rose */
     --accent-foreground: 328 47% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -49,19 +49,19 @@ body {
     --card-foreground: 260 60% 92%;
     --popover: 255 20% 12%;
     --popover-foreground: 260 60% 92%;
-    --primary: 255 35% 48%; /* Deep Purple */
+    --primary: 261 51% 57%; /* Deep Purple */
     --primary-foreground: 255 35% 98%;
     --secondary: 255 20% 20%;
     --secondary-foreground: 260 60% 95%;
     --muted: 255 20% 18%;
     --muted-foreground: 260 20% 60%;
-    --accent: 328 47% 47%; /* Muted Rose */
-    --accent-foreground: 328 47% 98%;
+    --accent: 337 50% 76%; /* Muted Rose */
+    --accent-foreground: 328 47% 10%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 255 20% 25%;
     --input: 255 20% 22%;
-    --ring: 255 35% 48%;
+    --ring: 261 51% 57%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
