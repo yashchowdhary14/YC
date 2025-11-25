@@ -23,6 +23,8 @@ export interface Message {
   text: string;
   timestamp: Date;
   isRead: boolean;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
 }
 
 export interface Chat {

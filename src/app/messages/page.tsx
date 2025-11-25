@@ -72,6 +72,25 @@ const mockChats: Chat[] = [
       isRead: true,
     },
   },
+  {
+    id: 'chat-4',
+    users: [
+      {
+        id: 'user-5',
+        username: 'developer_dan',
+        avatarUrl: 'https://picsum.photos/seed/user5/100/100',
+        fullName: 'Dan Coder',
+      },
+    ],
+    lastMessage: {
+      id: 'msg-4-1',
+      text: 'Check out this cool video!',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48),
+      isRead: false,
+      mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      mediaType: 'video',
+    },
+  },
 ];
 
 const mockMessages: { [key: string]: Message[] } = {
@@ -100,6 +119,16 @@ const mockMessages: { [key: string]: Message[] } = {
       timestamp: new Date(Date.now() - 1000 * 60 * 5),
       isRead: false,
     },
+     {
+      id: 'msg-1-4',
+      chatId: 'chat-1',
+      senderId: 'user-2',
+      text: 'And here is that image you asked for.',
+      timestamp: new Date(Date.now() - 1000 * 60 * 4),
+      isRead: false,
+      mediaUrl: 'https://picsum.photos/seed/image1/400/300',
+      mediaType: 'image'
+    },
   ],
   'chat-2': [
     {
@@ -127,6 +156,18 @@ const mockMessages: { [key: string]: Message[] } = {
       text: "Let's try that new restaurant tomorrow.",
       timestamp: new Date(Date.now() - 1000 * 60 * 60 * 24),
       isRead: true,
+    },
+  ],
+  'chat-4': [
+    {
+      id: 'msg-4-1',
+      chatId: 'chat-4',
+      senderId: 'user-5',
+      text: 'Check out this cool video!',
+      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 48),
+      isRead: false,
+      mediaUrl: 'https://www.w3schools.com/html/mov_bbb.mp4',
+      mediaType: 'video',
     },
   ]
 };
