@@ -18,24 +18,28 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { signOut } from 'firebase/auth';
+import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Import the components for the profile page
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import StatsRow from '@/components/profile/StatsRow';
 import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import EditProfileDialog from '@/components/app/edit-profile';
 
 export default function ProfilePage() {
   const router = useRouter();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Placeholder state for user object and posts as per the plan
   const [profileUser] = useState({
     id: '1',
     username: 'ycombinator',
     fullName: 'YC User',
-    bio: 'Building the future. This is a sample bio.',
+    bio: 'Building the future. This is a sample bio with a link to my portfolio https://example.com and some #hashtags to check out. #innovation #tech',
     profilePhoto: `https://picsum.photos/seed/1/150/150`,
     postsCount: 12,
     followersCount: 1234,
@@ -72,6 +76,7 @@ export default function ProfilePage() {
   }
 
   return (
+    <>
     <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
@@ -100,7 +105,7 @@ export default function ProfilePage() {
           <main className="min-h-full bg-background">
             <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
               {/* Future Firestore hook will go here */}
-              <ProfileHeader user={profileUser} />
+              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
               <div className="my-8">
                 <StatsRow stats={profileUser} />
               </div>
@@ -115,5 +120,13 @@ export default function ProfilePage() {
         </ScrollArea>
       </SidebarInset>
     </SidebarProvider>
+    {user && profileUser && (
+      <EditProfileDialog 
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        userProfile={profileUser}
+      />
+    )}
+    </>
   );
 }
