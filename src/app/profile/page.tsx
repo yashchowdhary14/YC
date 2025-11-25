@@ -111,10 +111,14 @@ export default function ProfilePage() {
               <div className="my-8">
                 <StatsRow stats={mockUser} />
               </div>
-              <HighlightsCarousel />
-              <Separator className="my-8" />
+              <div className="mb-8">
+                <HighlightsCarousel />
+              </div>
+              <Separator className="my-8 md:hidden" />
               <TabSwitcher />
-              <PostsGrid posts={mockPosts} />
+              <div className="mt-4">
+                 <PostsGrid posts={mockPosts} />
+              </div>
             </div>
           </main>
         </SidebarInset>
