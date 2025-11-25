@@ -1,0 +1,507 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "username": {
+          "type": "string",
+          "description": "The user's username."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "bio": {
+          "type": "string",
+          "description": "The user's biography."
+        },
+        "profilePhoto": {
+          "type": "string",
+          "description": "URL of the user's profile photo.",
+          "format": "uri"
+        },
+        "followers": {
+          "type": "array",
+          "description": "List of user IDs who are following this user.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "following": {
+          "type": "array",
+          "description": "List of user IDs this user is following.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the user was created.",
+          "format": "date-time"
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Indicates if the user's account is verified."
+        }
+      },
+      "required": [
+        "id",
+        "username",
+        "email",
+        "createdAt"
+      ]
+    },
+    "Post": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Post",
+      "type": "object",
+      "description": "Represents a post in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the post."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Post)"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the post's image.",
+          "format": "uri"
+        },
+        "caption": {
+          "type": "string",
+          "description": "The post's caption."
+        },
+        "location": {
+          "type": "string",
+          "description": "Location where the post was created."
+        },
+        "likes": {
+          "type": "array",
+          "description": "List of user IDs who liked the post.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commentsCount": {
+          "type": "number",
+          "description": "Number of comments on the post."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the post was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "imageUrl",
+        "createdAt"
+      ]
+    },
+    "Story": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Story",
+      "type": "object",
+      "description": "Represents a story in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the story."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Story)"
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL of the story's media (image or video).",
+          "format": "uri"
+        },
+        "type": {
+          "type": "string",
+          "description": "Type of media: 'image' or 'video'."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the story was created.",
+          "format": "date-time"
+        },
+        "expiresAt": {
+          "type": "string",
+          "description": "Timestamp of when the story expires.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "mediaUrl",
+        "type",
+        "createdAt",
+        "expiresAt"
+      ]
+    },
+    "Reel": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Reel",
+      "type": "object",
+      "description": "Represents a reel in the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the reel."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Reel)"
+        },
+        "videoUrl": {
+          "type": "string",
+          "description": "URL of the reel's video.",
+          "format": "uri"
+        },
+        "thumbnailUrl": {
+          "type": "string",
+          "description": "URL of the reel's thumbnail image.",
+          "format": "uri"
+        },
+        "likes": {
+          "type": "array",
+          "description": "List of user IDs who liked the reel.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "commentsCount": {
+          "type": "number",
+          "description": "Number of comments on the reel."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the reel was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "videoUrl",
+        "thumbnailUrl",
+        "createdAt"
+      ]
+    },
+    "Comment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Comment",
+      "type": "object",
+      "description": "Represents a comment on a post or reel.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the comment."
+        },
+        "parentId": {
+          "type": "string",
+          "description": "Reference to the parent (Post or Reel) of the comment."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Comment)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The comment's text content."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp of when the comment was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "parentId",
+        "userId",
+        "text",
+        "createdAt"
+      ]
+    },
+    "Chat": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Chat",
+      "type": "object",
+      "description": "Represents a chat between two users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the chat."
+        },
+        "users": {
+          "type": "array",
+          "description": "Array of user IDs participating in the chat.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "users"
+      ]
+    },
+    "Message": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Message",
+      "type": "object",
+      "description": "Represents a message within a chat.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the message."
+        },
+        "chatId": {
+          "type": "string",
+          "description": "Reference to Chat. (Relationship: Chat 1:N Message)"
+        },
+        "senderId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Message)"
+        },
+        "text": {
+          "type": "string",
+          "description": "The message's text content."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "description": "URL of the message's media (optional).",
+          "format": "uri"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the message was sent.",
+          "format": "date-time"
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates if the message has been read."
+        }
+      },
+      "required": [
+        "id",
+        "chatId",
+        "senderId",
+        "timestamp"
+      ]
+    },
+    "Call": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Call",
+      "type": "object",
+      "description": "Represents a call between two users.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the call."
+        },
+        "callerId": {
+          "type": "string",
+          "description": "Reference to User who initiated the call."
+        },
+        "receiverId": {
+          "type": "string",
+          "description": "Reference to User who received the call."
+        },
+        "offer": {
+          "type": "string",
+          "description": "SDP offer for the call."
+        },
+        "answer": {
+          "type": "string",
+          "description": "SDP answer for the call."
+        },
+        "candidates": {
+          "type": "array",
+          "description": "Array of ICE candidates for the call.",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "id",
+        "callerId",
+        "receiverId",
+        "offer",
+        "answer",
+        "candidates"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Allows users to manage their profiles and related data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/posts/{postId}",
+        "definition": {
+          "entityName": "Post",
+          "schema": {
+            "$ref": "#/backend/entities/Post"
+          },
+          "description": "Stores posts created by a specific user. The userId parameter creates path-based ownership simplifying rules.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "postId",
+              "description": "The unique identifier for the post."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/stories/{storyId}",
+        "definition": {
+          "entityName": "Story",
+          "schema": {
+            "$ref": "#/backend/entities/Story"
+          },
+          "description": "Stores stories created by a specific user. This structure allows only the user to manage their stories.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "storyId",
+              "description": "The unique identifier for the story."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/reels/{reelId}",
+        "definition": {
+          "entityName": "Reel",
+          "schema": {
+            "$ref": "#/backend/entities/Reel"
+          },
+          "description": "Stores reels. No user context for global listing. This collection ensures uniform access rules for all reels.",
+          "params": [
+            {
+              "name": "reelId",
+              "description": "The unique identifier for the reel."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/comments/{commentId}",
+        "definition": {
+          "entityName": "Comment",
+          "schema": {
+            "$ref": "#/backend/entities/Comment"
+          },
+          "description": "Stores comments. The parentId parameter allows comments to be associated with either posts or reels. No user context for global listing.",
+          "params": [
+            {
+              "name": "commentId",
+              "description": "The unique identifier for the comment."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/chats/{chatId}",
+        "definition": {
+          "entityName": "Chat",
+          "schema": {
+            "$ref": "#/backend/entities/Chat"
+          },
+          "description": "Stores chat metadata, including the participating users (using a `Membership Map` approach in the `users` array).",
+          "params": [
+            {
+              "name": "chatId",
+              "description": "The unique identifier for the chat."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/chats/{chatId}/messages/{messageId}",
+        "definition": {
+          "entityName": "Message",
+          "schema": {
+            "$ref": "#/backend/entities/Message"
+          },
+          "description": "Stores messages within a specific chat. Security is inherited from the parent chat document. Only chat participants can view messages.",
+          "params": [
+            {
+              "name": "chatId",
+              "description": "The unique identifier for the chat."
+            },
+            {
+              "name": "messageId",
+              "description": "The unique identifier for the message."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/calls/{callId}",
+        "definition": {
+          "entityName": "Call",
+          "schema": {
+            "$ref": "#/backend/entities/Call"
+          },
+          "description": "Stores call data. This collection allows authorized users to manage call-related information.",
+          "params": [
+            {
+              "name": "callId",
+              "description": "The unique identifier for the call."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support an Instagram-like application with a focus on secure and scalable data management. It prioritizes authorization independence and clear security rules. Path-based ownership (`/users/{userId}/posts/{postId}`) is used extensively for user-owned data, simplifying security rules and improving query performance. Collaborative data, such as chats, leverages a `Membership Map` approach, denormalizing user roles into the document for efficient access control.\n\n**Authorization Independence (CRITICAL):** The design eliminates `get()` calls in security rules by denormalizing authorization data. For example, the `/users/{userId}/posts/{postId}` structure inherently grants the user with ID `{userId}` ownership over posts located at that path. For collaborative access, such as chats, the `users` array within the `chat` document acts as a membership map, allowing direct authorization checks without requiring additional database reads.\n\n**QAPs (Rules are not Filters):** The segregation of data into collections with homogeneous security needs allows for secure `list` operations. For example, listing posts is performed within the `/posts/{postId}` collection, where all documents share the same access control requirements, preventing unintended data exposure.\n\n*   `/users/{userId}`: Stores user profiles. This collection enables users to manage their profiles and related data.\n*   `/users/{userId}/posts/{postId}`:  Stores posts created by a specific user. The userId parameter creates path-based ownership simplifying rules.\n*   `/users/{userId}/stories/{storyId}`: Stores stories created by a specific user. This structure allows only the user to manage their stories.\n*   `/reels/{reelId}`: Stores reels. No user context for global listing. This collection ensures uniform access rules for all reels.\n*   `/comments/{commentId}`: Stores comments. The parentId parameter allows comments to be associated with either posts or reels. No user context for global listing.\n*   `/chats/{chatId}`: Stores chat metadata, including the participating users (using a `Membership Map` approach in the `users` array). \n*   `/chats/{chatId}/messages/{messageId}`: Stores messages within a specific chat. Security is inherited from the parent chat document. Only chat participants can view messages.\n*   `/calls/{callId}`: Stores call data. This collection allows authorized users to manage call-related information."
+  }
+}

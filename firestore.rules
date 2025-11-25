@@ -1,0 +1,253 @@
+/**
+ * Core Philosophy: This ruleset enforces a security model that balances public content discoverability with strict user data privacy, typical of a social media application. It uses a hybrid approach: user-owned data is secured by path, collaborative data is secured by membership lists, and public content is readable by all but writable only by the owner.
+ *
+ * Data Structure:
+ * - /users/{userId}: Root documents for user profiles.
+ * - /users/{userId}/posts/{postId}: User-specific content, nested for clear ownership.
+ * - /users/{userId}/stories/{storyId}: User-specific ephemeral content.
+ * - /reels/{reelId}: Top-level collection for publicly discoverable video content.
+ * - /comments/{commentId}: Top-level collection for comments on posts or reels.
+ * - /chats/{chatId}: Top-level collection for private conversations.
+ * - /chats/{chatId}/messages/{messageId}: Nested messages, inheriting security from the parent chat.
+ * - /calls/{callId}: Top-level collection for real-time communication records.
+ *
+ * Key Security Decisions:
+ * - User Enumeration is Disallowed: Listing the top-level /users collection is forbidden to protect user privacy.
+ * - Strict Ownership: All content created by a user (profiles, posts, stories, reels, comments) can only be modified or deleted by that user.
+ * - Path-Based Security: For data in `/users/{userId}/...`, ownership is inferred directly from the document path, creating fast and simple rules.
+ * - Collaborative Access: Chat and call access is restricted to the participants listed within the document itself, avoiding complex lookups.
+ * - Public by Default, Private by Exception: Content like profiles, posts, stories, and reels are publicly readable to support social discovery, while private data like chats and calls are strictly locked down.
+ * - No `get()` in Rules (Except for Subcollections): To ensure performance and scalability, authorization data is denormalized onto documents. The only exception is securing a subcollection (e.g., messages) based on its parent document (e.g., chat), which is a secure and standard practice.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Authenticated User Checks
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Ownership Checks
+     * - isOwner: Checks if the currently signed-in user's UID matches the provided userId.
+     * - isResourceOwner: Checks if the signed-in user's UID matches the 'userId' field on an existing document.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isResourceOwner(doc) {
+      return isSignedIn() && request.auth.uid == doc.userId;
+    }
+
+    /**
+     * Existence Checks for State-Changing Operations
+     * - isExistingDoc: Ensures a document exists before an update or delete.
+     * - isExistingOwner: Combines owner and existence checks for concise update/delete rules.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDoc();
+    }
+
+    function isExistingResourceOwner(doc) {
+      return isResourceOwner(doc) && isExistingDoc();
+    }
+
+    /**
+     * Relational Integrity & Data Validation
+     * These functions ensure that relationship fields are correctly set and immutable.
+     * We do NOT validate the overall data shape, only authorization-critical fields.
+     */
+    // On Create: Ensures the new user document's ID field matches the path UID.
+    function hasValidUserIdOnProfileCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    // On Create: Ensures a new document's internal `userId` field matches the path UID.
+    function hasDataOwnershipMatchingPath(userId) {
+      return request.resource.data.userId == userId;
+    }
+    
+    // On Create: Ensures a new document's creator is the authenticated user.
+    function isCreator() {
+      return request.resource.data.userId == request.auth.uid;
+    }
+
+    // On Update: Ensures a document's internal `id` or `userId` cannot be changed.
+    function isIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    function isUserIdImmutable() {
+      return request.resource.data.userId == resource.data.userId;
+    }
+    
+    /**
+     * Collaborative Access Checks
+     */
+    // For reads/writes on a /chats/{chatId} document itself.
+    function isChatMember() {
+      return isSignedIn() && request.auth.uid in resource.data.users;
+    }
+
+    // For subcollections like /messages, which must check the parent /chats document.
+    function isChatParticipant(chatId) {
+      let chat = get(/databases/$(database)/documents/chats/$(chatId));
+      return isSignedIn() && request.auth.uid in chat.data.users;
+    }
+
+    // For /calls/{callId} documents.
+    function isCallParticipant() {
+        return isSignedIn() && (request.auth.uid == resource.data.callerId || request.auth.uid == resource.data.receiverId);
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description User profile documents. Users can create their own profile, and only they can modify or delete it. Profiles are publicly visible.
+     * @path /users/{userId}
+     * @allow (get) Any user, signed in or not, can view a user profile.
+     * @allow (create) A new user can create their own profile document if their auth UID matches the document ID. `auth.uid: 'user_abc'`, `docId: 'user_abc'`.
+     * @deny (list) Listing all users is disabled to protect privacy and prevent user enumeration attacks.
+     * @deny (update) A user cannot update another user's profile. `auth.uid: 'user_xyz'`, `docId: 'user_abc'`.
+     * @principle Enforces Self-Creation and Ownership. Validates relational integrity by ensuring the document ID in the path matches the `id` field within the data.
+     */
+    match /users/{userId} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isOwner(userId) && hasValidUserIdOnProfileCreate(userId);
+      allow update: if isExistingOwner(userId) && isIdImmutable();
+      allow delete: if isExistingOwner(userId);
+
+      /**
+       * @description Posts created by a user. They are nested for clear ownership. Posts are public, but only the owner can manage them.
+       * @path /users/{userId}/posts/{postId}
+       * @allow (get, list) Any user can read any post.
+       * @allow (create) A user can create a post under their own user path. `auth.uid: 'user_abc'`, `path: /users/user_abc/posts/post_123`.
+       * @deny (create) A user cannot create a post under another user's path. `auth.uid: 'user_xyz'`, `path: /users/user_abc/posts/post_123`.
+       * @deny (delete) A user cannot delete someone else's post.
+       * @principle Path-based ownership provides fast, inherited security for a user's own data tree.
+       */
+      match /posts/{postId} {
+        allow get: if true;
+        allow list: if true;
+        allow create: if isOwner(userId) && hasDataOwnershipMatchingPath(userId);
+        allow update: if isExistingOwner(userId) && isUserIdImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+
+      /**
+       * @description Stories created by a user. Like posts, they are publicly visible but can only be managed by their owner.
+       * @path /users/{userId}/stories/{storyId}
+       * @allow (get, list) Any user can view stories.
+       * @allow (create) A user can create a story under their own user path. `auth.uid: 'user_abc'`, `path: /users/user_abc/stories/story_123`.
+       * @deny (update) A user cannot update someone else's story.
+       * @principle Path-based ownership provides fast, inherited security for a user's own data tree.
+       */
+      match /stories/{storyId} {
+        allow get: if true;
+        allow list: if true;
+        allow create: if isOwner(userId) && hasDataOwnershipMatchingPath(userId);
+        allow update: if isExistingOwner(userId) && isUserIdImmutable();
+        allow delete: if isExistingOwner(userId);
+      }
+    }
+
+    /**
+     * @description Publicly discoverable Reels. Anyone can view them, but writes are restricted to the original author.
+     * @path /reels/{reelId}
+     * @allow (get, list) Anyone, including unauthenticated users, can view and list reels.
+     * @allow (create) Any signed-in user can create a reel, provided they set their own UID in the 'userId' field.
+     * @deny (create) A user cannot create a reel and attribute it to another user. `auth.uid: 'user_abc'`, `request.resource.data.userId: 'user_xyz'`.
+     * @deny (delete) A user cannot delete a reel they did not create.
+     * @principle Implements Public Read with Owner-Only Writes. Relies on a denormalized `userId` field on the document for write authorization.
+     */
+    match /reels/{reelId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isCreator();
+      allow update: if isExistingResourceOwner(resource.data) && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner(resource.data);
+    }
+
+    /**
+     * @description Comments on Posts or Reels. Anyone can view comments. Signed-in users can create them, but only the author can edit or delete their own.
+     * @path /comments/{commentId}
+     * @allow (get, list) All comments are public.
+     * @allow (create) A signed-in user can create a comment and must set themself as the author.
+     * @deny (update) A user cannot edit a comment left by someone else.
+     * @principle Implements Public Read with Owner-Only Writes. Relies on a denormalized `userId` field for write authorization.
+     */
+    match /comments/{commentId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isCreator();
+      allow update: if isExistingResourceOwner(resource.data) && isUserIdImmutable();
+      allow delete: if isExistingResourceOwner(resource.data);
+    }
+    
+    /**
+     * @description Chat documents containing metadata and participant lists. Access is strictly limited to users in the `users` array.
+     * @path /chats/{chatId}
+     * @allow (get) A user can get a chat document if their UID is in the `users` array.
+     * @allow (update) A participant can update a chat (e.g., to add/remove users, if logic allows).
+     * @deny (list) Listing all chats is forbidden to prevent leaking information about private conversations.
+     * @deny (get) A user cannot read a chat they are not a part of.
+     * @principle Enforces Closed Collaborator access based on a denormalized list of member UIDs (`users` array) on the document itself.
+     */
+    match /chats/{chatId} {
+      allow get: if isChatMember();
+      allow list: if false;
+      allow create: if isSignedIn(); // Flexible create, assuming client sets 'users' array correctly including creator.
+      allow update: if isChatMember() && isExistingDoc();
+      allow delete: if isChatMember() && isExistingDoc();
+
+      /**
+       * @description Messages within a chat. Security is inherited from the parent chat document.
+       * @path /chats/{chatId}/messages/{messageId}
+       * @allow (get, list) A user can read messages only if they are a participant in the parent chat.
+       * @allow (create) A participant can create a new message in the chat.
+       * @deny (list) A non-participant cannot list messages in a private chat.
+       * @principle Inherited Access Control. Uses a `get()` call to the parent document to check membership, securing the entire subcollection.
+       */
+      match /messages/{messageId} {
+        allow get: if isChatParticipant(chatId);
+        allow list: if isChatParticipant(chatId);
+        allow create: if isChatParticipant(chatId) && request.resource.data.senderId == request.auth.uid;
+        allow update: if isChatParticipant(chatId) && isExistingResourceOwner(resource.data);
+        allow delete: if isChatParticipant(chatId) && isExistingResourceOwner(resource.data);
+      }
+    }
+    
+    /**
+     * @description Real-time call data. Access is strictly limited to the caller and receiver.
+     * @path /calls/{callId}
+     * @allow (get) The caller or receiver can read the call document.
+     * @allow (create) The user initiating the call (callerId) can create the document.
+     * @deny (list) Listing all ongoing or past calls is forbidden.
+     * @deny (update) A user not involved in the call cannot modify it.
+     * @principle Enforces Closed Collaborator access based on specific `callerId` and `receiverId` fields.
+     */
+    match /calls/{callId} {
+      allow get: if isCallParticipant();
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.callerId == request.auth.uid;
+      allow update: if isCallParticipant() && isExistingDoc();
+      allow delete: if isExistingDoc() && request.auth.uid == resource.data.callerId;
+    }
+  }
+}
