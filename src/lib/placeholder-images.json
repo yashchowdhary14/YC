@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "1",
+      "description": "Just another day at the office. Loving the hustle and the view from my desk. #worklife #motivation",
+      "imageUrl": "https://images.unsplash.com/photo-1535957998253-26ae1ef29506?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxsYXB0b3AlMjBkZXNrfGVufDB8fHx8MTc2Mzk5MjgxN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "laptop desk"
+    },
+    {
+      "id": "2",
+      "description": "Exploring the great outdoors. There's nothing like a breath of fresh mountain air. #nature #hiking",
+      "imageUrl": "https://images.unsplash.com/photo-1668900053088-c379837cdc5c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtb3VudGFpbnMlMjBsYW5kc2NhcGV8ZW58MHx8fHwxNzY0MDExOTA0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "mountains landscape"
+    },
+    {
+      "id": "3",
+      "description": "Morning coffee, the best way to start the day. ☕️ #coffee #morningroutine",
+      "imageUrl": "https://images.unsplash.com/photo-1610632380989-680fe40816c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjb2ZmZWUlMjBjdXB8ZW58MHx8fHwxNzYzOTk0NDU3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "coffee cup"
+    },
+    {
+      "id": "4",
+      "description": "Lost in the city lights. The urban jungle has its own kind of beauty. #cityscape #nightlife",
+      "imageUrl": "https://images.unsplash.com/photo-1708474660686-7a00a0ffe4ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2l0eSUyMG5pZ2h0fGVufDB8fHx8MTc2NDAzMDA2Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "city night"
+    },
+    {
+      "id": "5",
+      "description": "A good book and a cozy corner. My kind of perfect evening. #reading #books",
+      "imageUrl": "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxib29rJTIwcmVhZGluZ3xlbnwwfHx8fDE3NjM5NjIwMDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "book reading"
+    },
+    {
+      "id": "6",
+      "description": "On the road again! Adventure awaits. #travel #roadtrip",
+      "imageUrl": "https://images.unsplash.com/photo-1558980395-2f289089d3ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxyb2FkJTIwdHJpcHxlbnwwfHx8fDE3NjQwNjg1MDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "road trip"
+    },
+    {
+      "id": "7",
+      "description": "Delicious and healthy! Fueling my body with the good stuff. #healthyfood #foodie",
+      "imageUrl": "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoZWFsdGh5JTIwZm9vZHxlbnwwfHx8fDE3NjQwMjE3MDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "healthy food"
+    },
+    {
+      "id": "8",
+      "description": "Beach vibes only. Soaking up the sun and the salty air. ☀️ #beach #summer",
+      "imageUrl": "https://images.unsplash.com/photo-1534171472159-edb6d1e0b63c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxiZWFjaCUyMHNhbmR8ZW58MHx8fHwxNzY0MDI4MzYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "beach sand"
+    },
+    {
+      "id": "9",
+      "description": "Caught a beautiful sunset today. Nature's artistry is breathtaking. #sunset #goldenhour",
+      "imageUrl": "https://images.unsplash.com/photo-1569879925512-85ee9bf5c538?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdW5zZXQlMjBza3l8ZW58MHx8fHwxNzY0MDY5MjE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sunset sky"
+    }
+  ]
 }
