@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useOptimistic } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -25,29 +25,73 @@ import { Button } from '@/components/ui/button';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useHydratedPosts } from '@/firebase/firestore/use-hydrated-posts';
 import { signOut } from 'firebase/auth';
+import { followUser, unfollowUser } from './actions';
+import { useToast } from '@/hooks/use-toast';
 
 const suggestions = [
   {
+    id: 'user_suggestion_1',
     username: 'coffee_lover',
     reason: 'Followed by user4',
     avatarUrl: 'https://picsum.photos/seed/suggestion1/100/100',
   },
   {
+    id: 'user_suggestion_2',
     username: 'travel_bug',
     reason: 'New to YC',
     avatarUrl: 'https://picsum.photos/seed/suggestion2/100/100',
   },
   {
+    id: 'user_suggestion_3',
     username: 'code_wizard',
     reason: 'Followed by user2',
     avatarUrl: 'https://picsum.photos/seed/suggestion3/100/100',
   },
   {
+    id: 'user_suggestion_4',
     username: 'art_enthusiast',
     reason: 'Popular on YC',
     avatarUrl: 'https://picsum.photos/seed/suggestion4/100/100',
   },
 ];
+
+function SuggestionCard({ suggestion, currentUserId }: { suggestion: typeof suggestions[0], currentUserId: string }) {
+    const [optimisticFollowing, toggleOptimisticFollowing] = useOptimistic(
+        false,
+        (state) => !state
+    );
+    const { toast } = useToast();
+
+    const handleFollowToggle = async () => {
+        toggleOptimisticFollowing(null);
+        const action = optimisticFollowing ? unfollowUser : followUser;
+        const result = await action(currentUserId, suggestion.id);
+        if (!result.success) {
+            toast({
+                variant: 'destructive',
+                title: `Failed to ${optimisticFollowing ? 'unfollow' : 'follow'}`,
+                description: result.error,
+            });
+            toggleOptimisticFollowing(null); // Revert on failure
+        }
+    };
+    
+    return (
+        <div key={suggestion.username} className="flex items-center gap-3">
+            <Avatar>
+            <AvatarImage src={suggestion.avatarUrl} alt={suggestion.username} />
+            <AvatarFallback>{suggestion.username.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+            <p className="font-semibold text-sm">{suggestion.username}</p>
+            <p className="text-xs text-muted-foreground">{suggestion.reason}</p>
+            </div>
+            <Button variant="link" size="sm" className="p-0 h-auto text-primary" onClick={handleFollowToggle}>
+                {optimisticFollowing ? 'Following' : 'Follow'}
+            </Button>
+        </div>
+    )
+}
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -75,16 +119,12 @@ export default function Home() {
     }
   };
 
-  if (isUserLoading) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
-  }
-  
-  if (!user) {
-      return null; // or a login page redirect
   }
 
   return (
@@ -142,17 +182,7 @@ export default function Home() {
                    </div>
                    <div className="flex flex-col gap-4">
                     {suggestions.map((s) => (
-                      <div key={s.username} className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={s.avatarUrl} alt={s.username} />
-                          <AvatarFallback>{s.username.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                           <p className="font-semibold text-sm">{s.username}</p>
-                           <p className="text-xs text-muted-foreground">{s.reason}</p>
-                        </div>
-                        <Button variant="link" size="sm" className="p-0 h-auto text-primary">Follow</Button>
-                      </div>
+                        <SuggestionCard key={s.id} suggestion={s} currentUserId={user.uid} />
                     ))}
                   </div>
                  </div>
@@ -164,3 +194,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    

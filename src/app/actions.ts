@@ -2,7 +2,7 @@
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove, increment, writeBatch, deleteDoc } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -163,3 +163,74 @@ export async function addComment(postId: string, userId: string, text: string) {
     return { success: false, error: error.message || "Could not post comment." };
   }
 }
+
+
+export async function followUser(currentUserId: string, targetUserId: string) {
+    if (currentUserId === targetUserId) {
+        return { success: false, error: 'Users cannot follow themselves.' };
+    }
+    const { firestore } = initializeFirebase();
+    const batch = writeBatch(firestore);
+
+    // 1. Add target user to current user's 'following' subcollection
+    const followingRef = doc(firestore, 'users', currentUserId, 'following', targetUserId);
+    batch.set(followingRef, { userId: targetUserId, followedAt: serverTimestamp() });
+
+    // 2. Add current user to target user's 'followers' subcollection
+    const followerRef = doc(firestore, 'users', targetUserId, 'followers', currentUserId);
+    batch.set(followerRef, { userId: currentUserId, followedAt: serverTimestamp() });
+
+    // 3. Increment current user's 'followingCount'
+    const currentUserRef = doc(firestore, 'users', currentUserId);
+    batch.update(currentUserRef, { followingCount: increment(1) });
+
+    // 4. Increment target user's 'followersCount'
+    const targetUserRef = doc(firestore, 'users', targetUserId);
+    batch.update(targetUserRef, { followersCount: increment(1) });
+
+    try {
+        await batch.commit();
+        revalidatePath('/');
+        revalidatePath('/profile');
+        revalidatePath(`/${targetUserId}`); // Assuming a dynamic profile page route
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error following user:", error);
+        return { success: false, error: error.message || "Could not follow user." };
+    }
+}
+
+
+export async function unfollowUser(currentUserId: string, targetUserId: string) {
+    const { firestore } = initializeFirebase();
+    const batch = writeBatch(firestore);
+
+    // 1. Remove target user from current user's 'following' subcollection
+    const followingRef = doc(firestore, 'users', currentUserId, 'following', targetUserId);
+    batch.delete(followingRef);
+
+    // 2. Remove current user from target user's 'followers' subcollection
+    const followerRef = doc(firestore, 'users', targetUserId, 'followers', currentUserId);
+    batch.delete(followerRef);
+
+    // 3. Decrement current user's 'followingCount'
+    const currentUserRef = doc(firestore, 'users', currentUserId);
+    batch.update(currentUserRef, { followingCount: increment(-1) });
+
+    // 4. Decrement target user's 'followersCount'
+    const targetUserRef = doc(firestore, 'users', targetUserId);
+    batch.update(targetUserRef, { followersCount: increment(-1) });
+
+    try {
+        await batch.commit();
+        revalidatePath('/');
+        revalidatePath('/profile');
+        revalidatePath(`/${targetUserId}`);
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error unfollowing user:", error);
+        return { success: false, error: error.message || "Could not unfollow user." };
+    }
+}
+
+    

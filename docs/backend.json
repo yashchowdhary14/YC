@@ -40,6 +40,14 @@
         "verified": {
           "type": "boolean",
           "description": "Indicates if the user's account is verified."
+        },
+        "followersCount": {
+            "type": "number",
+            "description": "The number of followers the user has."
+        },
+        "followingCount": {
+            "type": "number",
+            "description": "The number of users this user is following."
         }
       },
       "required": [
@@ -580,3 +588,5 @@
     "reasoning": "This Firestore structure is designed to support an Instagram-like application with a focus on secure and scalable data management. It prioritizes authorization independence and clear security rules. Path-based ownership (`/users/{userId}/posts/{postId}`) is used extensively for user-owned data, simplifying security rules and improving query performance. Collaborative data, such as chats, leverages a `Membership Map` approach, denormalizing user roles into the document for efficient access control.\n\n**Authorization Independence (CRITICAL):** The design eliminates `get()` calls in security rules by denormalizing authorization data. For example, the `/users/{userId}/posts/{postId}` structure inherently grants the user with ID `{userId}` ownership over posts located at that path. For collaborative access, such as chats, the `users` array within the `chat` document acts as a membership map, allowing direct authorization checks without requiring additional database reads.\n\n**QAPs (Rules are not Filters):** The segregation of data into collections with homogeneous security needs allows for secure `list` operations. For example, listing posts is performed within the `/posts/{postId}` collection, where all documents share the same access control requirements, preventing unintended data exposure.\n\n*   `/users/{userId}`: Stores user profiles. This collection enables users to manage their profiles and related data.\n*   `/users/{userId}/posts/{postId}`:  Stores posts created by a specific user. The userId parameter creates path-based ownership simplifying rules.\n*   `/users/{userId}/followers/{followerId}`: Stores a user's followers. Simplifies follower lookups.\n*   `/users/{userId}/following/{followingId}`: Stores who a user follows. Simplifies following lookups.\n*   `/users/{userId}/stories/{storyId}`: Stores stories created by a specific user. This structure allows only the user to manage their stories.\n*   `/reels/{reelId}`: Stores reels. No user context for global listing. This collection ensures uniform access rules for all reels.\n*   `/comments/{commentId}`: Stores comments. The parentId parameter allows comments to be associated with either posts or reels. No user context for global listing.\n*   `/chats/{chatId}`: Stores chat metadata, including the participating users (using a `Membership Map` approach in the `users` array). \n*   `/chats/{chatId}/messages/{messageId}`: Stores messages within a specific chat. Security is inherited from the parent chat document. Only chat participants can view messages.\n*   `/calls/{callId}`: Stores call data. This collection allows authorized users to manage call-related information."
   }
 }
+
+    
