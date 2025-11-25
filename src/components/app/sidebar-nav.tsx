@@ -9,6 +9,7 @@ import {
   Search,
   User,
 } from 'lucide-react';
+import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   SidebarMenu,
@@ -35,17 +36,14 @@ export default function SidebarNav() {
         <SidebarMenuItem key={link.href}>
           <SidebarMenuButton
             asChild
-            // A real app would use Next's Link component
-            // For this demo, we use anchors and check isActive
-            // eslint-disable-next-line @next/next/no-html-link-for-pages
             href={link.href}
             isActive={pathname === link.href}
             tooltip={link.label}
           >
-            <a href="#">
+            <NextLink href={link.href}>
               <link.icon />
               <span>{link.label}</span>
-            </a>
+            </NextLink>
           </SidebarMenuButton>
         </SidebarMenuItem>
       ))}

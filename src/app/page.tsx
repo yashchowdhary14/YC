@@ -1,15 +1,18 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { useState, useTransition, useRef, useEffect } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import {
   ImageIcon,
-  Loader2,
   Share2,
   Sparkles,
   UploadCloud,
 } from 'lucide-react';
-import type { Post, User } from '@/lib/types';
+import type { Post } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { handleCaptionGeneration } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -35,13 +38,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 
-const currentUser: User = {
-  id: 'user-1',
-  username: 'ycombinator',
-  fullName: 'Y Combinator',
-  avatarUrl: 'https://picsum.photos/seed/user1/100/100',
-};
-
 export default function Home() {
   const [isPending, startTransition] = useTransition();
   const [posts, setPosts] = useState<Post[]>([]);
@@ -51,6 +47,14 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
 
   useEffect(() => {
     const initialPosts = PlaceHolderImages.map((p, index) => ({
@@ -70,6 +74,14 @@ export default function Home() {
     }));
     setPosts(initialPosts);
   }, []);
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -124,9 +136,16 @@ export default function Home() {
       return;
     }
 
+    if(!user) return;
+
     const newPost: Post = {
       id: `post-${Date.now()}`,
-      user: currentUser,
+      user: {
+        id: user.uid,
+        username: user.email?.split('@')[0] || 'anonymous',
+        fullName: user.displayName || 'Anonymous User',
+        avatarUrl: user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`,
+      },
       imageUrl: imagePreview,
       imageHint: 'user uploaded',
       caption: caption,
@@ -164,17 +183,17 @@ export default function Home() {
             <Button variant="outline" className="w-full justify-start">
               <Avatar className="mr-2 h-8 w-8">
                 <AvatarImage
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.username}
+                  src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`}
+                  alt={user.displayName || ''}
                 />
                 <AvatarFallback>
-                  {currentUser.fullName.charAt(0)}
+                  {user.email?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col items-start">
-                <span className="font-medium">{currentUser.fullName}</span>
+                <span className="font-medium">{user.displayName || user.email}</span>
                 <span className="text-xs text-muted-foreground">
-                  @{currentUser.username}
+                  @{user.email?.split('@')[0]}
                 </span>
               </div>
             </Button>
