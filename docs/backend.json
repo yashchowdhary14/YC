@@ -12,25 +12,39 @@
         },
         "username": {
           "type": "string",
-          "description": "The user's username."
+          "description": "User's username."
         },
         "fullName": {
           "type": "string",
-          "description": "The user's full name."
+          "description": "User's full name."
         },
         "email": {
           "type": "string",
-          "description": "The user's email address.",
+          "description": "User's email address.",
           "format": "email"
         },
         "bio": {
           "type": "string",
-          "description": "The user's biography."
+          "description": "User's biography."
         },
         "profilePhoto": {
           "type": "string",
           "description": "URL of the user's profile photo.",
           "format": "uri"
+        },
+        "followers": {
+          "type": "array",
+          "description": "References to Users who are following this user. (Relationship: User N:N User)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "following": {
+          "type": "array",
+          "description": "References to Users who this user is following. (Relationship: User N:N User)",
+          "items": {
+            "type": "string"
+          }
         },
         "createdAt": {
           "type": "string",
@@ -40,14 +54,6 @@
         "verified": {
           "type": "boolean",
           "description": "Indicates if the user's account is verified."
-        },
-        "followersCount": {
-            "type": "number",
-            "description": "The number of followers the user has."
-        },
-        "followingCount": {
-            "type": "number",
-            "description": "The number of users this user is following."
         }
       },
       "required": [
@@ -55,27 +61,6 @@
         "username",
         "email",
         "createdAt"
-      ]
-    },
-    "Follow": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Follow",
-      "type": "object",
-      "description": "Represents a follow relationship between users. Used in both followers and following subcollections.",
-      "properties": {
-        "userId": {
-          "type": "string",
-          "description": "The ID of the user who is being followed or is following."
-        },
-        "followedAt": {
-          "type": "string",
-          "description": "Timestamp of when the follow action occurred.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "userId",
-        "followedAt"
       ]
     },
     "Post": {
@@ -99,15 +84,15 @@
         },
         "caption": {
           "type": "string",
-          "description": "The post's caption."
+          "description": "Caption for the post."
         },
         "location": {
           "type": "string",
-          "description": "Location where the post was created."
+          "description": "Location where the post was taken."
         },
         "likes": {
           "type": "array",
-          "description": "List of user IDs who liked the post.",
+          "description": "References to Users who liked this post. (Relationship: User N:N Post)",
           "items": {
             "type": "string"
           }
@@ -120,18 +105,6 @@
           "type": "string",
           "description": "Timestamp of when the post was created.",
           "format": "date-time"
-        },
-        "altText": {
-          "type": "string",
-          "description": "Alternative text for the post's image for accessibility."
-        },
-        "hideLikes": {
-          "type": "boolean",
-          "description": "If true, the like and view counts are hidden."
-        },
-        "commentsOff": {
-          "type": "boolean",
-          "description": "If true, commenting is disabled for the post."
         }
       },
       "required": [
@@ -162,7 +135,7 @@
         },
         "type": {
           "type": "string",
-          "description": "Type of media: 'image' or 'video'."
+          "description": "Type of the story media (image or video)."
         },
         "createdAt": {
           "type": "string",
@@ -205,12 +178,12 @@
         },
         "thumbnailUrl": {
           "type": "string",
-          "description": "URL of the reel's thumbnail image.",
+          "description": "URL of the reel's thumbnail.",
           "format": "uri"
         },
         "likes": {
           "type": "array",
-          "description": "List of user IDs who liked the reel.",
+          "description": "References to Users who liked this reel. (Relationship: User N:N Reel)",
           "items": {
             "type": "string"
           }
@@ -245,15 +218,15 @@
         },
         "parentId": {
           "type": "string",
-          "description": "Reference to the parent (Post or Reel) of the comment."
+          "description": "Reference to Post or Reel to which the comment belongs."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Comment)"
+          "description": "Reference to User who wrote the comment. (Relationship: User 1:N Comment)"
         },
         "text": {
           "type": "string",
-          "description": "The comment's text content."
+          "description": "Text content of the comment."
         },
         "createdAt": {
           "type": "string",
@@ -281,7 +254,7 @@
         },
         "users": {
           "type": "array",
-          "description": "Array of user IDs participating in the chat.",
+          "description": "References to Users participating in the chat. (Relationship: User N:N Chat)",
           "items": {
             "type": "string"
           }
@@ -304,19 +277,19 @@
         },
         "chatId": {
           "type": "string",
-          "description": "Reference to Chat. (Relationship: Chat 1:N Message)"
+          "description": "Reference to Chat to which the message belongs. (Relationship: Chat 1:N Message)"
         },
         "senderId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Message)"
+          "description": "Reference to User who sent the message. (Relationship: User 1:N Message)"
         },
         "text": {
           "type": "string",
-          "description": "The message's text content."
+          "description": "Text content of the message.  If mediaUrl is populated, this will contain the AI generated caption."
         },
         "mediaUrl": {
           "type": "string",
-          "description": "URL of the message's media (optional).",
+          "description": "URL of the message's media (image or video), can be null.",
           "format": "uri"
         },
         "timestamp": {
@@ -333,7 +306,8 @@
         "id",
         "chatId",
         "senderId",
-        "timestamp"
+        "timestamp",
+        "isRead"
       ]
     },
     "Call": {
@@ -348,11 +322,11 @@
         },
         "callerId": {
           "type": "string",
-          "description": "Reference to User who initiated the call."
+          "description": "Reference to User who initiated the call. (Relationship: User 1:N Call)"
         },
         "receiverId": {
           "type": "string",
-          "description": "Reference to User who received the call."
+          "description": "Reference to User who received the call. (Relationship: User 1:N Call)"
         },
         "offer": {
           "type": "string",
@@ -364,7 +338,7 @@
         },
         "candidates": {
           "type": "array",
-          "description": "Array of ICE candidates for the call.",
+          "description": "ICE candidates for the call.",
           "items": {
             "type": "string"
           }
@@ -389,204 +363,138 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
+        "path": "users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles. Allows users to manage their profiles and related data.",
+          "description": "Stores user profile information. Path-based ownership ensures only the user can modify their profile.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier for the user."
+              "description": "The unique identifier of the user."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/posts/{postId}",
+        "path": "posts/{postId}",
         "definition": {
           "entityName": "Post",
           "schema": {
             "$ref": "#/backend/entities/Post"
           },
-          "description": "Stores posts created by a specific user. The userId parameter creates path-based ownership simplifying rules.",
+          "description": "Stores posts. Includes userId for ownership and supports listing all posts.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
             {
               "name": "postId",
-              "description": "The unique identifier for the post."
+              "description": "The unique identifier of the post."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/followers/{followerId}",
-        "definition": {
-          "entityName": "Follow",
-          "schema": {
-            "$ref": "#/backend/entities/Follow"
-          },
-          "description": "Stores the followers of a specific user. The `followerId` is the user ID of the person who is following.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user being followed."
-            },
-            {
-              "name": "followerId",
-              "description": "The unique identifier of the follower."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/following/{followingId}",
-        "definition": {
-          "entityName": "Follow",
-          "schema": {
-            "$ref": "#/backend/entities/Follow"
-          },
-          "description": "Stores the users a specific user is following. The `followingId` is the user ID of the person being followed.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user who is following."
-            },
-            {
-              "name": "followingId",
-              "description": "The unique identifier of the user being followed."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/stories/{storyId}",
+        "path": "stories/{storyId}",
         "definition": {
           "entityName": "Story",
           "schema": {
             "$ref": "#/backend/entities/Story"
           },
-          "description": "Stores stories created by a specific user. This structure allows only the user to manage their stories.",
+          "description": "Stores stories with userId for ownership and supports listing stories based on expiration.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
             {
               "name": "storyId",
-              "description": "The unique identifier for the story."
+              "description": "The unique identifier of the story."
             }
           ]
         }
       },
       {
-        "path": "/posts/{postId}",
-        "definition": {
-          "entityName": "Post",
-          "schema": {
-            "$ref": "#/backend/entities/Post"
-          },
-          "description": "A top-level collection of all posts for easy querying of a global feed. Data is duplicated here from `/users/{userId}/posts/{postId}` upon creation.",
-          "params": [
-            {
-              "name": "postId",
-              "description": "The unique identifier for the post."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/reels/{reelId}",
+        "path": "reels/{reelId}",
         "definition": {
           "entityName": "Reel",
           "schema": {
             "$ref": "#/backend/entities/Reel"
           },
-          "description": "Stores reels. No user context for global listing. This collection ensures uniform access rules for all reels.",
+          "description": "Stores reels with userId for ownership and supports listing reels.",
           "params": [
             {
               "name": "reelId",
-              "description": "The unique identifier for the reel."
+              "description": "The unique identifier of the reel."
             }
           ]
         }
       },
       {
-        "path": "/comments/{commentId}",
+        "path": "comments/{commentId}",
         "definition": {
           "entityName": "Comment",
           "schema": {
             "$ref": "#/backend/entities/Comment"
           },
-          "description": "Stores comments. The parentId parameter allows comments to be associated with either posts or reels. No user context for global listing.",
+          "description": "Stores comments with parentId referencing the post or reel and userId indicating the author.",
           "params": [
             {
               "name": "commentId",
-              "description": "The unique identifier for the comment."
+              "description": "The unique identifier of the comment."
             }
           ]
         }
       },
       {
-        "path": "/chats/{chatId}",
+        "path": "chats/{chatId}",
         "definition": {
           "entityName": "Chat",
           "schema": {
             "$ref": "#/backend/entities/Chat"
           },
-          "description": "Stores chat metadata, including the participating users (using a `Membership Map` approach in the `users` array).",
+          "description": "Stores chat metadata, including the users array for authorization.",
           "params": [
             {
               "name": "chatId",
-              "description": "The unique identifier for the chat."
+              "description": "The unique identifier of the chat."
             }
           ]
         }
       },
       {
-        "path": "/chats/{chatId}/messages/{messageId}",
+        "path": "chats/{chatId}/messages/{messageId}",
         "definition": {
           "entityName": "Message",
           "schema": {
             "$ref": "#/backend/entities/Message"
           },
-          "description": "Stores messages within a specific chat. Security is inherited from the parent chat document. Only chat participants can view messages.",
+          "description": "Stores messages within a chat. Authorization is based on chat membership.",
           "params": [
             {
               "name": "chatId",
-              "description": "The unique identifier for the chat."
+              "description": "The unique identifier of the chat."
             },
             {
               "name": "messageId",
-              "description": "The unique identifier for the message."
+              "description": "The unique identifier of the message."
             }
           ]
         }
       },
       {
-        "path": "/calls/{callId}",
+        "path": "calls/{callId}",
         "definition": {
           "entityName": "Call",
           "schema": {
             "$ref": "#/backend/entities/Call"
           },
-          "description": "Stores call data. This collection allows authorized users to manage call-related information.",
+          "description": "Stores call metadata. Security rules can restrict access based on caller and receiver.",
           "params": [
             {
               "name": "callId",
-              "description": "The unique identifier for the call."
+              "description": "The unique identifier of the call."
             }
           ]
         }
       }
     ],
-    "reasoning": "This Firestore structure is designed to support an Instagram-like application with a focus on secure and scalable data management. It prioritizes authorization independence and clear security rules. Path-based ownership (`/users/{userId}/posts/{postId}`) is used extensively for user-owned data, simplifying security rules and improving query performance. Collaborative data, such as chats, leverages a `Membership Map` approach, denormalizing user roles into the document for efficient access control.\n\n**Authorization Independence (CRITICAL):** The design eliminates `get()` calls in security rules by denormalizing authorization data. For example, the `/users/{userId}/posts/{postId}` structure inherently grants the user with ID `{userId}` ownership over posts located at that path. For collaborative access, such as chats, the `users` array within the `chat` document acts as a membership map, allowing direct authorization checks without requiring additional database reads.\n\n**QAPs (Rules are not Filters):** The segregation of data into collections with homogeneous security needs allows for secure `list` operations. For example, listing posts is performed within the `/posts/{postId}` collection, where all documents share the same access control requirements, preventing unintended data exposure.\n\n*   `/users/{userId}`: Stores user profiles. This collection enables users to manage their profiles and related data.\n*   `/users/{userId}/posts/{postId}`:  Stores posts created by a specific user. The userId parameter creates path-based ownership simplifying rules.\n*   `/users/{userId}/followers/{followerId}`: Stores a user's followers. Simplifies follower lookups.\n*   `/users/{userId}/following/{followingId}`: Stores who a user follows. Simplifies following lookups.\n*   `/users/{userId}/stories/{storyId}`: Stores stories created by a specific user. This structure allows only the user to manage their stories.\n*   `/reels/{reelId}`: Stores reels. No user context for global listing. This collection ensures uniform access rules for all reels.\n*   `/comments/{commentId}`: Stores comments. The parentId parameter allows comments to be associated with either posts or reels. No user context for global listing.\n*   `/chats/{chatId}`: Stores chat metadata, including the participating users (using a `Membership Map` approach in the `users` array). \n*   `/chats/{chatId}/messages/{messageId}`: Stores messages within a specific chat. Security is inherited from the parent chat document. Only chat participants can view messages.\n*   `/calls/{callId}`: Stores call data. This collection allows authorized users to manage call-related information."
+    "reasoning": "The Firestore data structure is designed to create a scalable and secure Instagram-like application, named YC, prioritizing authorization independence, clarity, and ease of maintenance. The structure segregates data based on access patterns and uses denormalization to avoid complex security rules using `get()` calls. \n\n*   **users/{userId}:**  Path-based ownership ensures only the user can modify their profile. Includes core profile information (username, email, bio, profilePhoto, followers, following, createdAt, verified).\n*   **posts/{postId}:**  Each post is stored in a top-level collection. `userId` indicates ownership. This approach facilitates listing all posts, potentially filtered by user. Includes: userId, imageUrl, caption, location, likes(array), commentsCount, createdAt.  Security rules will enforce that a user can only write posts with their own `userId`.\n*   **stories/{storyId}:**  Each story is stored in a top-level collection to facilitate listing and querying based on expiration (`expiresAt`). The `userId` field denotes ownership. Includes userId, mediaUrl, type(image/video), createdAt, expiresAt.\n*   **reels/{reelId}:** Each reel is stored in a top-level collection to facilitate listing and querying. `userId` indicates ownership. Includes userId, videoUrl, thumbnailUrl, likes(array), commentsCount, createdAt. Security rules will enforce that a user can only write reels with their own `userId`.\n*   **comments/{commentId}:** Each comment is stored in a top-level collection, simplifying queries across posts and reels. `parentId` references either a `postId` or `reelId`.  The `userId` field indicates the comment's author. Includes parentId(postId or reelId), userId, text, createdAt.\n*   **chats/{chatId}:** Represents a chat between two users. The `users` array contains the UIDs of the participants. Includes users: [userId1, userId2].\n*   **chats/{chatId}/messages/{messageId}:** Subcollection of `chats`. Each message contains `senderId`, `text` or `mediaUrl`, `timestamp`, and `isRead`.  Authorization rules will ensure only participants can read messages.\n*   **calls/{callId}:**  Each document stores call metadata, including `callerId`, `receiverId`, `offer`, `answer`, and `candidates`.  Security rules can restrict access based on caller and receiver.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids `get()` calls in security rules by denormalizing authorization data.  For example, the `posts`, `stories`, `reels`, and `comments` collections all include the `userId` which allow rules to authorize create/update operations based on `request.auth.uid == resource.data.userId`. For chats, a user must be in the `users` array to read/write messages in that chat.\n\n**Query and List Security (QAPs):**\n\n*   The segregation of data into distinct collections (e.g., separating posts and reels) allows for simple `list` operations with straightforward security rules (e.g., `allow read: if request.auth != null`).\n*   The `users` array in `chats` enables secure listing of chats for a specific user (rule: `request.auth.uid in resource.data.users`).\n\nThis structure adheres to the core design principles by:\n\n*   Enabling authorization independence through denormalization.\n*   Providing clarity of intent through a well-defined, predictable schema.\n*   Avoiding custom claims (DBAC) and relying on `request.auth.uid`.\n*   Supporting secure `list` operations (QAPs) via structural segregation and membership maps.\n*   Facilitating the enforcement of data invariants such as ownership and timestamps."
   }
 }
-
-    

@@ -2,15 +2,9 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarInset,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Instagram',
@@ -34,20 +28,20 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <SidebarProvider>
-            <Sidebar>
-              <SidebarHeader>
-                <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-              </SidebarHeader>
-              <SidebarContent>
+          <div className="flex min-h-screen">
+            <aside className="fixed left-0 top-0 z-10 hidden h-full w-[260px] flex-col border-r border-zinc-800 p-4 md:flex">
+              <h1 className="text-2xl font-bold p-2 px-4 font-serif mb-8">Instagram</h1>
+              <div className="flex-1">
                 <SidebarNav />
-              </SidebarContent>
-            </Sidebar>
-            <SidebarInset>
-              <AppHeader />
+              </div>
+              <div>
+                 <p className="px-4 text-xs text-zinc-500">Also from Meta</p>
+              </div>
+            </aside>
+            <main className="flex-1 md:ml-[260px]">
               {children}
-            </SidebarInset>
-          </SidebarProvider>
+            </main>
+          </div>
         </FirebaseClientProvider>
         <Toaster />
       </body>

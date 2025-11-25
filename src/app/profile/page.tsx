@@ -72,28 +72,17 @@ export default function ProfilePage() {
 
   return (
     <>
-        <main className="min-h-screen bg-background text-foreground">
-             <div className="container mx-auto max-w-5xl py-8">
-                {profileUser ? (
-                    <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
-                ) : (
-                    <div className="flex justify-center items-center h-48">
-                        <Loader2 className="h-8 w-8 animate-spin" />
-                    </div>
-                )}
-                 <div className="px-4 mt-8">
-                    <HighlightsCarousel />
-                 </div>
-
-                 <Separator className="my-8" />
-                 
-                 <TabSwitcher 
-                    postsContent={arePostsLoading ? <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div> : <PostsGrid posts={posts || []} />}
-                    reelsContent={emptyState}
-                    taggedContent={emptyState}
-                 />
-            </div>
-        </main>
+      <main className="flex h-screen flex-col items-center justify-center bg-black text-white">
+        <div className="w-full max-w-lg">
+          {profileUser ? (
+              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
+          ) : (
+              <div className="flex justify-center items-center h-48">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+          )}
+        </div>
+      </main>
       {user && profileUser && (
         <EditProfileDialog 
           open={isEditDialogOpen}
