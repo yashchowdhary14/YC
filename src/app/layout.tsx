@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 export const metadata: Metadata = {
   title: 'Instagram',
@@ -25,11 +26,13 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <div className="flex min-h-screen">
-            <main className="flex-1">
-              {children}
-            </main>
-          </div>
+          <SidebarProvider>
+            <div className="flex min-h-screen">
+              <main className="flex-1">
+                {children}
+              </main>
+            </div>
+          </SidebarProvider>
         </FirebaseClientProvider>
         <Toaster />
       </body>

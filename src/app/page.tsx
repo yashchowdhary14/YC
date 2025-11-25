@@ -11,7 +11,6 @@ import SidebarNav from '@/components/app/sidebar-nav';
 import AppHeader from '@/components/app/header';
 import StoriesCarousel from '@/components/app/stories-carousel';
 import {
-  SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -127,7 +126,7 @@ export default function Home() {
   }
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -185,6 +184,6 @@ export default function Home() {
           </div>
         </main>
       </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

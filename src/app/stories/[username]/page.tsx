@@ -7,7 +7,6 @@ import { Loader2 } from 'lucide-react';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
-  SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -28,7 +27,7 @@ export default function StoryPage() {
   }, []);
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -54,6 +53,6 @@ export default function StoryPage() {
           </Card>
         </main>
       </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

@@ -13,7 +13,6 @@ import PostsGrid from '@/components/profile/PostsGrid';
 import { Separator } from '@/components/ui/separator';
 import AppHeader from '@/components/app/header';
 import {
-  SidebarProvider,
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -81,7 +80,6 @@ export default function ProfilePage() {
 
   return (
     <>
-    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -107,7 +105,6 @@ export default function ProfilePage() {
           </div>
         </main>
       </SidebarInset>
-    </SidebarProvider>
       {user && profileUser && (
         <EditProfileDialog 
           open={isEditDialogOpen}
