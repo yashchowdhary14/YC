@@ -2,9 +2,6 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase';
-import SidebarNav from '@/components/app/sidebar-nav';
-import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
   title: 'Instagram',
