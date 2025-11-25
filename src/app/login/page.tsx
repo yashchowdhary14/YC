@@ -23,9 +23,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { Loader2, Sparkles } from 'lucide-react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { doc } from 'firebase/firestore';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -39,6 +40,7 @@ export default function LoginPage() {
   const [isSigningUp, setIsSigningUp] = useState(false);
   const router = useRouter();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
 
@@ -60,13 +62,30 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       if (isSigningUp) {
-        await createUserWithEmailAndPassword(auth, values.email, values.password);
+        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+        const newUser = userCredential.user;
+        
+        // Create user document in Firestore
+        const userDocRef = doc(firestore, 'users', newUser.uid);
+        const newUserProfile = {
+            id: newUser.uid,
+            email: newUser.email,
+            username: newUser.email?.split('@')[0],
+            fullName: newUser.displayName || '',
+            bio: '',
+            profilePhoto: newUser.photoURL || `https://picsum.photos/seed/${newUser.uid}/150/150`,
+            createdAt: new Date().toISOString(),
+            verified: false,
+            followersCount: 0,
+            followingCount: 0,
+        };
+        setDocumentNonBlocking(userDocRef, newUserProfile, { merge: true });
+
         toast({
           title: 'Account Created',
           description: "We've created your account. Please sign in.",
         });
         setIsSigningUp(false); // Switch back to sign in view
-        // Don't reset the form, so the user can just click "Sign In"
       } else {
         await signInWithEmailAndPassword(auth, values.email, values.password);
         // The onAuthStateChanged listener in FirebaseProvider will handle the redirect
