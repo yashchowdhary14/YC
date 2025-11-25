@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   useAuth,
   useUser,
@@ -91,7 +92,8 @@ export default function ProfilePage() {
         try {
             const followingSnapshot = await getCountFromServer(followingCol);
             setFollowingCount(followingSnapshot.data().count);
-        } catch (error) {
+        } catch (error)
+        {
             console.error("Error fetching following count:", error);
             setFollowingCount(0);
         }
@@ -205,14 +207,14 @@ export default function ProfilePage() {
               ) : posts && posts.length > 0 ? (
                 <div className="grid grid-cols-3 gap-1 md:gap-4">
                   {posts.map((post) => (
-                    <div key={post.id} className="aspect-square overflow-hidden relative group rounded-md">
+                    <Link href={`/p/${post.id}`} key={post.id} className="aspect-square overflow-hidden relative group rounded-md">
                       <Image
                         src={post.imageUrl}
                         alt={post.imageHint || 'User post'}
                         fill
                         className="object-cover transition-transform group-hover:scale-105"
                       />
-                    </div>
+                    </Link>
                   ))}
                 </div>
               ) : (

@@ -17,7 +17,7 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-lg">
+    <Card className="overflow-hidden transition-all hover:shadow-lg border-0 shadow-none rounded-none">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
         <Avatar>
           <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
@@ -34,7 +34,7 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="relative aspect-[4/5]">
+        <div className="relative aspect-[4/5] lg:hidden">
           <Image
             src={post.imageUrl}
             alt={post.imageHint}
