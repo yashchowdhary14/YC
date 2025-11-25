@@ -55,7 +55,7 @@ export default function ProfilePage() {
       fullName: userProfileData.fullName || user.displayName || 'User',
       bio: userProfileData.bio || "Welcome to my profile!",
       profilePhoto: userProfileData.profilePhoto || user.photoURL || `https://picsum.photos/seed/${user.uid}/150/150`,
-      postsCount: postsData?.length ?? userProfileData.postsCount ?? 0,
+      postsCount: postsData?.length ?? 0,
       followersCount: userProfileData.followersCount ?? 0,
       followingCount: userProfileData.followingCount ?? 0,
       verified: userProfileData.verified ?? false,
@@ -91,7 +91,12 @@ export default function ProfilePage() {
   }
   
   if (!user || !profileUser) {
-      return null;
+      // This can happen briefly while user signs out or if profile data is missing
+      return (
+        <div className="flex h-screen items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      );
   }
   
   const emptyState = (
