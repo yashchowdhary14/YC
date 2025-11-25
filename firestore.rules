@@ -64,20 +64,6 @@ service cloud.firestore {
       return isResourceOwner(doc) && isExistingDoc();
     }
     
-    function isLikingOrUnliking() {
-      // Check if the only field being changed is 'likes'
-      let isChangingLikesOnly = request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']);
-      
-      // Check if the change is either adding or removing one element
-      let incomingLikes = request.resource.data.likes;
-      let existingLikes = resource.data.likes;
-      let isAddingLike = incomingLikes.size() == existingLikes.size() + 1 && request.auth.uid in incomingLikes;
-      let isRemovingLike = incomingLikes.size() == existingLikes.size() - 1 && !(request.auth.uid in incomingLikes);
-
-      return isChangingLikesOnly && (isAddingLike || isRemovingLike);
-    }
-
-
     /**
      * Relational Integrity & Data Validation
      * These functions ensure that relationship fields are correctly set and immutable.
@@ -105,6 +91,13 @@ service cloud.firestore {
 
     function isUserIdImmutable() {
       return request.resource.data.userId == resource.data.userId;
+    }
+
+    // On Update: Ensures only specific, non-critical fields can be changed.
+    function isUpdatingOnlySafePostFields() {
+      // Allow only the 'likes' field to be updated by non-owners.
+      let otherFields = request.resource.data.keys().diff(resource.data.keys());
+      return otherFields.hasOnly(['likes']);
     }
     
     /**
@@ -159,7 +152,7 @@ service cloud.firestore {
       match /posts/{postId} {
         allow read: if true;
         allow create: if isOwner(userId) && hasDataOwnershipMatchingPath(userId);
-        allow update: if (isExistingOwner(userId) && isUserIdImmutable()) || (isSignedIn() && isLikingOrUnliking());
+        allow update: if isExistingOwner(userId) && isUserIdImmutable();
         allow delete: if isExistingOwner(userId);
       }
 
@@ -206,7 +199,9 @@ service cloud.firestore {
     match /posts/{postId} {
         allow read: if true;
         allow create: if isSignedIn() && isCreator();
-        allow update: if (isExistingResourceOwner(resource.data) && isUserIdImmutable()) || (isSignedIn() && isLikingOrUnliking());
+        // Allow owner to update their own post, OR any signed-in user to update ONLY the likes field.
+        allow update: if (isExistingResourceOwner(resource.data) && isUserIdImmutable()) || 
+                       (isSignedIn() && isExistingDoc() && isUpdatingOnlySafePostFields());
         allow delete: if isExistingResourceOwner(resource.data);
     }
 

@@ -2,7 +2,7 @@
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
 
@@ -81,38 +81,41 @@ export async function handleCreatePost(formData: FormData) {
     }
 }
 
+
 export async function toggleLike(postId: string, userId: string) {
   const { firestore } = initializeFirebase();
   const postRef = doc(firestore, 'posts', postId);
-  const userPostRef = doc(firestore, 'users', userId, 'posts', postId);
 
   try {
-    const postDoc = await getDoc(postRef);
-    if (!postDoc.exists()) {
-      throw new Error('Post not found');
-    }
+    await runTransaction(firestore, async (transaction) => {
+      const postDoc = await transaction.get(postRef);
+      if (!postDoc.exists()) {
+        throw "Document does not exist!";
+      }
 
-    const postData = postDoc.data();
-    const isLiked = postData.likes?.includes(userId);
+      const postData = postDoc.data();
+      const likes: string[] = postData.likes || [];
+      
+      const isLiked = likes.includes(userId);
 
-    const mainUpdate = updateDoc(postRef, {
-      likes: isLiked ? arrayRemove(userId) : arrayUnion(userId),
+      if (isLiked) {
+        // User has already liked the post, so we unlike it.
+        transaction.update(postRef, {
+          likes: arrayRemove(userId)
+        });
+      } else {
+        // User has not liked the post, so we like it.
+        transaction.update(postRef, {
+          likes: arrayUnion(userId)
+        });
+      }
     });
 
-    // Also update the user's subcollection post if it exists
-    const userPostUpdate = updateDoc(userPostRef, {
-        likes: isLiked ? arrayRemove(userId) : arrayUnion(userId),
-    }).catch(err => console.log("User's own post copy not found, skipping update.")); // Don't block if this fails
-
-    await Promise.all([mainUpdate, userPostUpdate]);
-    
     revalidatePath('/');
     revalidatePath(`/p/${postId}`);
-    revalidatePath('/profile');
-
-    return { success: true, isLiked: !isLiked };
+    return { success: true };
   } catch (error: any) {
     console.error('Error toggling like:', error);
-    return { success: false, error: error.message };
+    return { success: false, error: error.message || 'Failed to update like status.' };
   }
 }
