@@ -27,6 +27,7 @@ import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import EditProfileDialog from '@/components/app/edit-profile';
+import { Card } from '@/components/ui/card';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -119,9 +120,19 @@ export default function ProfilePage() {
               <div className="mb-8">
                 <HighlightsCarousel />
               </div>
-              <TabSwitcher>
-                <PostsGrid posts={posts} />
-              </TabSwitcher>
+              <TabSwitcher 
+                postsContent={<PostsGrid posts={posts} />}
+                reelsContent={
+                  <Card className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground">Reels will be displayed here.</p>
+                  </Card>
+                }
+                taggedContent={
+                  <Card className="flex items-center justify-center h-64">
+                    <p className="text-muted-foreground">Tagged posts will be displayed here.</p>
+                  </Card>
+                }
+              />
             </div>
           </main>
         </ScrollArea>
