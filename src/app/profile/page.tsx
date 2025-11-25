@@ -11,6 +11,15 @@ import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import { Separator } from '@/components/ui/separator';
+import AppHeader from '@/components/app/header';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import SidebarNav from '@/components/app/sidebar-nav';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -59,7 +68,7 @@ export default function ProfilePage() {
     );
   }
   
-  if (!user) {
+  if (!user || !profileUser) {
       return null;
   }
   
@@ -72,17 +81,33 @@ export default function ProfilePage() {
 
   return (
     <>
-      <main className="flex h-screen flex-col items-center justify-center bg-black text-white">
-        <div className="w-full max-w-lg">
-          {profileUser ? (
-              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
-          ) : (
-              <div className="flex justify-center items-center h-48">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-              </div>
-          )}
-        </div>
-      </main>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarNav />
+        </SidebarContent>
+      </Sidebar>
+      <SidebarInset>
+        <AppHeader />
+        <main className="bg-background">
+          <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+             <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} isCurrentUser={true} />
+             <div className="my-8">
+                <HighlightsCarousel />
+             </div>
+             <Separator />
+             <TabSwitcher 
+                postsContent={<PostsGrid posts={posts || []} />}
+                reelsContent={emptyState}
+                taggedContent={emptyState}
+             />
+          </div>
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
       {user && profileUser && (
         <EditProfileDialog 
           open={isEditDialogOpen}

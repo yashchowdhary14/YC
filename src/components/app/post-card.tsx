@@ -75,7 +75,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   };
   
   return (
-    <Wrapper className="max-w-xl mx-auto w-full">
+    <Wrapper className="max-w-xl mx-auto w-full border-0 sm:border">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
         <Link href={`/${post.user.username}`}>
           <Avatar>
@@ -119,9 +119,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
              <Heart className={cn("h-6 w-6", optimisticLiked.isLiked && "fill-red-500 text-red-500")}/>
             <span className="sr-only">Like</span>
           </Button>
-          <Button variant="ghost" size="icon">
-            <MessageCircle className="h-6 w-6" />
-            <span className="sr-only">Comment</span>
+          <Button variant="ghost" size="icon" asChild>
+            <Link href={`/p/${post.id}#comments`}>
+              <MessageCircle className="h-6 w-6" />
+              <span className="sr-only">Comment</span>
+            </Link>
           </Button>
           <Button variant="ghost" size="icon">
             <Send className="h-6 w-6" />
@@ -135,11 +137,13 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>{' '}
           {post.caption}
         </p>
-        <Link href={`/p/${post.id}#comments`}>
-          <div className="text-sm text-muted-foreground">
-            View all {post.commentsCount.toLocaleString()} comments
-          </div>
-        </Link>
+        {post.commentsCount > 0 && (
+          <Link href={`/p/${post.id}#comments`}>
+            <div className="text-sm text-muted-foreground">
+              View all {post.commentsCount.toLocaleString()} comments
+            </div>
+          </Link>
+        )}
       </CardFooter>
     </Wrapper>
   );

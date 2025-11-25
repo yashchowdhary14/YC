@@ -63,7 +63,7 @@ export default function EditProfileDialog({ open, onOpenChange, userProfile }: E
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user) {
+    if (!user || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Error',

@@ -3,6 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings, AtSign } from 'lucide-react';
+import Link from 'next/link';
 
 interface ProfileHeaderProps {
   user: {
@@ -19,48 +20,64 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ user, onEditClick, isCurrentUser = true }: ProfileHeaderProps) {
+    const renderBio = (bio: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = bio.split(urlRegex);
+        return parts.map((part, index) => 
+            urlRegex.test(part) 
+            ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{part}</a> 
+            : part
+        );
+    };
+
   return (
-    <div className="flex flex-col items-center text-center p-4">
-      {/* Profile Picture */}
-      <div className="relative mb-4">
-        <Avatar className="h-36 w-36">
-          <AvatarImage src={user.profilePhoto} alt={user.username} />
-          <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="absolute top-0 right-0 -mt-1 -mr-1 bg-black rounded-full p-1">
-             <p className="text-xs rounded-full bg-white text-black px-2 py-1">Note...</p>
+    <header className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full">
+        {/* Profile Picture */}
+        <div className="shrink-0">
+            <Avatar className="h-24 w-24 md:h-36 md:w-36">
+                <AvatarImage src={user.profilePhoto} alt={user.username} />
+                <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
         </div>
-      </div>
+        
+        {/* Profile Info */}
+        <div className="flex flex-col gap-4 w-full text-center md:text-left">
+            {/* Username and Actions */}
+            <div className="flex flex-col md:flex-row items-center gap-4">
+                <h1 className="text-xl font-light text-foreground">{user.username}</h1>
+                 {isCurrentUser ? (
+                    <div className="flex items-center gap-2">
+                         <Button onClick={onEditClick} variant="secondary" size="sm" className="bg-secondary hover:bg-zinc-700 text-white font-medium">
+                            Edit profile
+                        </Button>
+                        <Button variant="secondary" size="sm" className="bg-secondary hover:bg-zinc-700 text-white font-medium">
+                            View archive
+                        </Button>
+                         <Button variant="ghost" size="icon">
+                            <Settings className="h-5 w-5 text-gray-400" />
+                        </Button>
+                    </div>
+                 ) : (
+                    <div className="flex items-center gap-2">
+                        <Button size="sm">Follow</Button>
+                        <Button size="sm" variant="secondary">Message</Button>
+                    </div>
+                 )}
+            </div>
 
-      {/* Profile Info */}
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-white">{user.username}</h1>
-            <Settings className="h-5 w-5 text-gray-400" />
-        </div>
-        <p className="text-sm text-gray-300">{user.fullName}</p>
-        <div className="flex items-center gap-4 text-sm text-gray-300">
-          <span><span className="font-semibold text-white">{user.postsCount}</span> posts</span>
-          <span><span className="font-semibold text-white">{user.followersCount}</span> followers</span>
-          <span><span className="font-semibold text-white">{user.followingCount}</span> following</span>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-gray-500">
-            <AtSign className="h-3 w-3" />
-            <span>{user.username}</span>
-        </div>
-      </div>
+            {/* Stats */}
+            <div className="flex items-center justify-center md:justify-start gap-6 text-sm text-foreground">
+                <span><span className="font-semibold">{user.postsCount}</span> posts</span>
+                <span><span className="font-semibold">{user.followersCount}</span> followers</span>
+                <span><span className="font-semibold">{user.followingCount}</span> following</span>
+            </div>
 
-       {/* Buttons */}
-      {isCurrentUser && (
-        <div className="flex w-full gap-2 mt-6">
-          <Button onClick={onEditClick} variant="secondary" className="flex-1 rounded-xl bg-[#26272b] hover:bg-zinc-700 text-white font-medium">
-            Edit profile
-          </Button>
-          <Button variant="secondary" className="flex-1 rounded-xl bg-[#26272b] hover:bg-zinc-700 text-white font-medium">
-            View archive
-          </Button>
+            {/* Bio */}
+            <div className="text-sm">
+                <p className="font-semibold">{user.fullName}</p>
+                <p className="whitespace-pre-wrap">{renderBio(user.bio)}</p>
+            </div>
         </div>
-      )}
-    </div>
+    </header>
   );
 }

@@ -181,8 +181,10 @@ export default function PostPage() {
                       />
                     </div>
                     <div className="flex flex-col">
-                        <PostCard post={post} isCard={false} />
-                        <ScrollArea className="flex-1 px-4 py-2 border-t">
+                        <div className="border-b">
+                            <PostCard post={post} isCard={false} />
+                        </div>
+                        <ScrollArea className="flex-1 px-4 py-2">
                             {isLoadingComments ? (
                                 <div className="flex items-center justify-center py-8">
                                     <Loader2 className="h-6 w-6 animate-spin" />

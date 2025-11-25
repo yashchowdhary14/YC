@@ -29,16 +29,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <FirebaseClientProvider>
           <div className="flex min-h-screen">
-            <aside className="fixed left-0 top-0 z-10 hidden h-full w-[260px] flex-col border-r border-zinc-800 p-4 md:flex">
-              <h1 className="text-2xl font-bold p-2 px-4 font-serif mb-8">Instagram</h1>
-              <div className="flex-1">
-                <SidebarNav />
-              </div>
-              <div>
-                 <p className="px-4 text-xs text-zinc-500">Also from Meta</p>
-              </div>
-            </aside>
-            <main className="flex-1 md:ml-[260px]">
+            <main className="flex-1">
               {children}
             </main>
           </div>
