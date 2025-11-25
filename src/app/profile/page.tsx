@@ -103,10 +103,27 @@ export default function ProfilePage() {
         <main className="bg-background">
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
              <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} isCurrentUser={true} />
+             
+             {/* Bio for mobile */}
+            <div className="text-sm mt-4 sm:hidden">
+                <p className="font-semibold">{profileUser.fullName}</p>
+                <p className="whitespace-pre-wrap">{profileUser.bio}</p>
+            </div>
+            
+            {/* Stats for mobile */}
+            <Separator className="my-4 sm:hidden" />
+             <div className="flex sm:hidden items-center justify-around text-center text-sm">
+                <div><span className="font-semibold">{profileUser.postsCount}</span><br/>posts</div>
+                <div><span className="font-semibold">{profileUser.followersCount}</span><br/>followers</div>
+                <div><span className="font-semibold">{profileUser.followingCount}</span><br/>following</div>
+            </div>
+             <Separator className="my-4 sm:hidden" />
+
+
              <div className="my-8">
                 <HighlightsCarousel />
              </div>
-             <Separator />
+
              <TabSwitcher 
                 postsContent={<PostsGrid posts={posts} />}
                 reelsContent={emptyState}

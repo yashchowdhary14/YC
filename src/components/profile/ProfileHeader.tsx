@@ -2,8 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, AtSign } from 'lucide-react';
-import Link from 'next/link';
+import { Settings } from 'lucide-react';
 
 interface ProfileHeaderProps {
   user: {
@@ -31,19 +30,19 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
     };
 
   return (
-    <header className="flex flex-col md:flex-row gap-8 md:gap-16 items-center md:items-start w-full">
+    <header className="flex flex-col sm:flex-row gap-8 sm:gap-16 items-center w-full">
         {/* Profile Picture */}
-        <div className="shrink-0">
-            <Avatar className="h-24 w-24 md:h-36 md:w-36">
+        <div className="flex-shrink-0 w-24 h-24 sm:w-36 sm:h-36">
+            <Avatar className="h-full w-full">
                 <AvatarImage src={user.profilePhoto} alt={user.username} />
                 <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
         </div>
         
         {/* Profile Info */}
-        <div className="flex flex-col gap-4 w-full text-center md:text-left">
+        <div className="flex flex-col gap-4 w-full">
             {/* Username and Actions */}
-            <div className="flex flex-col md:flex-row items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
                 <h1 className="text-xl font-light text-foreground">{user.username}</h1>
                  {isCurrentUser ? (
                     <div className="flex items-center gap-2">
@@ -66,14 +65,14 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
             </div>
 
             {/* Stats */}
-            <div className="flex items-center justify-center md:justify-start gap-6 text-sm text-foreground">
+            <div className="hidden sm:flex items-center gap-6 text-base text-foreground">
                 <span><span className="font-semibold">{user.postsCount}</span> posts</span>
                 <span><span className="font-semibold">{user.followersCount}</span> followers</span>
                 <span><span className="font-semibold">{user.followingCount}</span> following</span>
             </div>
 
             {/* Bio */}
-            <div className="text-sm">
+            <div className="hidden sm:block text-sm">
                 <p className="font-semibold">{user.fullName}</p>
                 <p className="whitespace-pre-wrap">{renderBio(user.bio)}</p>
             </div>

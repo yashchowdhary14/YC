@@ -21,17 +21,13 @@ interface PostsGridProps {
 export default function PostsGrid({ posts }: PostsGridProps) {
   if (!posts || posts.length === 0) {
     return (
-      <Card className="flex flex-col items-center justify-center p-12 text-center bg-transparent border-none shadow-none">
-        <CardHeader>
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-dashed border-zinc-700">
-            <Camera className="h-10 w-10 text-muted-foreground" />
-          </div>
-          <CardTitle className="mt-4">No Posts Yet</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">When you share photos, they will appear on your profile.</p>
-        </CardContent>
-      </Card>
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-foreground">
+          <Camera className="h-10 w-10 text-foreground" />
+        </div>
+        <h2 className="mt-6 text-2xl font-semibold">No Posts Yet</h2>
+        <p className="text-muted-foreground mt-2">When you share photos, they will appear on your profile.</p>
+      </div>
     );
   }
 
