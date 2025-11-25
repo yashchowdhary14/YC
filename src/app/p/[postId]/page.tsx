@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { useFirestore, useDoc } from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import PostCard from '@/components/app/post-card';
@@ -108,7 +108,7 @@ export default function PostPage() {
                       />
                     </div>
                     <div className="flex flex-col">
-                        <PostCard post={post} />
+                        <PostCard post={post} isCard={false} />
                     </div>
                   </Card>
                 </div>

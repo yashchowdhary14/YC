@@ -19,13 +19,16 @@ import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 
 interface PostCardProps {
   post: Post;
+  isCard?: boolean;
 }
 
-export default function PostCard({ post: initialPost }: PostCardProps) {
+export default function PostCard({ post: initialPost, isCard = true }: PostCardProps) {
   const post = useHydratedPost(initialPost);
+
+  const Wrapper = isCard ? Card : 'div';
   
   return (
-    <Card className="max-w-xl mx-auto w-full">
+    <Wrapper className="max-w-xl mx-auto w-full">
       <CardHeader className="flex flex-row items-center gap-3 p-4">
         <Link href={`/${post.user.username}`}>
           <Avatar>
@@ -47,20 +50,22 @@ export default function PostCard({ post: initialPost }: PostCardProps) {
             <span className="sr-only">More options</span>
         </Button>
       </CardHeader>
-      <CardContent className="p-0">
-        <Link href={`/p/${post.id}`}>
-          <div className="relative aspect-square">
-            <Image
-              src={post.imageUrl}
-              alt={post.imageHint}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              data-ai-hint={post.imageHint}
-            />
-          </div>
-        </Link>
-      </CardContent>
+      { isCard && (
+          <CardContent className="p-0">
+            <Link href={`/p/${post.id}`}>
+              <div className="relative aspect-square">
+                <Image
+                  src={post.imageUrl}
+                  alt={post.imageHint}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                  data-ai-hint={post.imageHint}
+                />
+              </div>
+            </Link>
+          </CardContent>
+      )}
       <CardFooter className="flex flex-col items-start gap-3 p-4">
         <div className="flex w-full items-center gap-1">
           <Button variant="ghost" size="icon">
@@ -89,7 +94,7 @@ export default function PostCard({ post: initialPost }: PostCardProps) {
           </div>
         </Link>
       </CardFooter>
-    </Card>
+    </Wrapper>
   );
 }
 

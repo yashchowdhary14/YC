@@ -5,19 +5,20 @@ import type { Chat } from '@/lib/types';
 import ChatListItem from './chat-list-item';
 import { Input } from '../ui/input';
 import { Search } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ChatListProps {
   chats: Chat[];
   selectedChat: Chat | null;
   onSelectChat: (chat: Chat) => void;
+  isMobile?: boolean;
 }
 
-export default function ChatList({ chats, selectedChat, onSelectChat }: ChatListProps) {
+export default function ChatList({ chats, selectedChat, onSelectChat, isMobile }: ChatListProps) {
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b">
-        <h2 className="text-xl font-semibold">Messages</h2>
-        <div className="relative mt-4">
+      <div className={cn('p-4 border-b', isMobile && 'border-none')}>
+        <div className={cn('relative', !isMobile && 'mt-4')}>
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search messages..." className="pl-8" />
         </div>

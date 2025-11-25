@@ -190,10 +190,13 @@ export default function MessagesPage() {
       <SidebarProvider>
         <main className="min-h-svh bg-background">
           <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
-              <div className="p-4 border-b">
+              <div className="p-4 border-b flex items-center gap-4">
+                  <Sidebar anInset>
+                    <AppHeader/>
+                  </Sidebar>
                   <h1 className="text-xl font-semibold">Messages</h1>
               </div>
-              <ChatList chats={mockChats} selectedChat={selectedChat} onSelectChat={handleSelectChat} />
+              <ChatList chats={mockChats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
           </div>
            <div className={cn('h-svh flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
             {selectedChat ? (
