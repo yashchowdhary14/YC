@@ -2,28 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
-import {
-  useAuth,
-  useUser,
-  useFirestore,
-  useDoc,
-  useCollection,
-  useMemoFirebase,
-} from '@/firebase';
-import {
-  collection,
-  doc,
-  query,
-  where,
-  getCountFromServer,
-} from 'firebase/firestore';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, Settings, Image as ImageIcon } from 'lucide-react';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { Loader2 } from 'lucide-react';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -35,97 +16,66 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { signOut } from 'firebase/auth';
-import EditProfileDialog from '@/components/app/edit-profile';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import type { Post } from '@/lib/types';
-
+import ProfileHeader from '@/components/profile/ProfileHeader';
+import StatsRow from '@/components/profile/StatsRow';
+import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
+import TabSwitcher from '@/components/profile/TabSwitcher';
+import PostsGrid from '@/components/profile/PostsGrid';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const auth = useAuth();
-  const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const firestore = useFirestore();
 
-  const [postCount, setPostCount] = useState(0);
-  const [followerCount, setFollowerCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
+  // Mock data as requested for the skeleton
+  const mockUser = {
+    id: user?.uid || '1',
+    username: user?.email?.split('@')[0] || 'ycombinator',
+    fullName: user?.displayName || 'YC User',
+    bio: 'Building the future. This is a sample bio. Go to Edit Profile to change it.',
+    profilePhoto: user?.photoURL || `https://picsum.photos/seed/${user?.uid || '1'}/150/150`,
+    posts: 12,
+    followers: 1234,
+    following: 123,
+  };
+
+  const mockPosts = Array.from({ length: 12 }, (_, i) => ({
+    id: `post-${i}`,
+    imageUrl: `https://picsum.photos/seed/post${i}/400/400`,
+    imageHint: 'user post',
+    // Add other Post properties if needed by PostsGrid
+    user: { id: '', username: '', avatarUrl: '', fullName: '' },
+    caption: '',
+    createdAt: new Date(),
+    likes: 0,
+    commentsCount: 0,
+  }));
   
-  const userRef = useMemoFirebase(() => user ? doc(firestore, 'users', user.uid) : null, [firestore, user]);
-  const { data: userProfile, isLoading: isProfileLoading } = useDoc(userRef);
-
-  const postsQuery = useMemoFirebase(() => user ? collection(firestore, 'users', user.uid, 'posts') : null, [firestore, user]);
-  const { data: posts, isLoading: arePostsLoading } = useCollection<Post>(postsQuery);
-
-
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-
-  useEffect(() => {
-    const fetchCounts = async () => {
-      if (user && firestore) {
-        const postsCol = collection(firestore, 'users', user.uid, 'posts');
-        const followersCol = collection(firestore, 'users', user.uid, 'followers');
-        const followingCol = collection(firestore, 'users', user.uid, 'following');
-        
-        try {
-            const postsSnapshot = await getCountFromServer(postsCol);
-            setPostCount(postsSnapshot.data().count);
-        } catch (error) {
-            console.error("Error fetching post count:", error);
-            // Fallback for emulators or environments where getCountFromServer might fail
-            setPostCount(posts?.length || 0);
-        }
-
-        try {
-            const followersSnapshot = await getCountFromServer(followersCol);
-            setFollowerCount(followersSnapshot.data().count);
-        } catch (error) {
-            console.error("Error fetching followers count:", error);
-            setFollowerCount(0);
-        }
-
-        try {
-            const followingSnapshot = await getCountFromServer(followingCol);
-            setFollowingCount(followingSnapshot.data().count);
-        } catch (error)
-        {
-            console.error("Error fetching following count:", error);
-            setFollowingCount(0);
-        }
-      }
-    };
-    if (user && firestore) {
-        fetchCounts();
-    }
-  // We only want to refetch counts when the user or posts array changes.
-  }, [user, firestore, posts?.length]);
-
+  
   const handleSignOut = async () => {
-    await signOut(auth);
-    router.push('/login');
+    // This functionality will be moved into a dropdown in the ProfileHeader later
+    if (user) {
+      await signOut(user.auth);
+      router.push('/login');
+    }
   };
 
-  if (isUserLoading || isProfileLoading || !user) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
-  
-  const profile = userProfile || {
-      id: user.uid,
-      username: user.email?.split('@')[0],
-      fullName: user.displayName,
-      bio: '',
-      profilePhoto: user.photoURL
-  };
-
 
   return (
     <SidebarProvider>
@@ -154,79 +104,14 @@ export default function ProfilePage() {
         <AppHeader />
         <main className="min-h-[calc(100vh-4rem)] bg-background">
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-            <header className="flex items-center gap-8 md:gap-16 mb-8">
-              <Avatar className="h-24 w-24 md:h-36 md:w-36 border-4 border-background ring-2 ring-primary">
-                <AvatarImage src={profile.profilePhoto || `https://picsum.photos/seed/${user.uid}/150/150`} alt={profile.username || 'user'} />
-                <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-3">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-2xl font-light">{profile.username}</h1>
-                  <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="secondary" size="sm" className="hidden md:inline-flex">
-                        Edit Profile
-                      </Button>
-                    </DialogTrigger>
-                    <EditProfileDialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen} userProfile={profile} />
-                  </Dialog>
-                   <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsEditProfileOpen(true)}>
-                    <Settings className="h-5 w-5" />
-                  </Button>
-                </div>
-                 <Button variant="secondary" size="sm" className="w-full md:hidden" onClick={() => setIsEditProfileOpen(true)}>
-                    Edit Profile
-                  </Button>
-                <div className="flex items-center gap-6 text-sm">
-                  <div>
-                    <span className="font-semibold">{postCount}</span> posts
-                  </div>
-                  <div>
-                    <span className="font-semibold">{followerCount}</span> followers
-                  </div>
-                  <div>
-                    <span className="font-semibold">{followingCount}</span> following
-                  </div>
-                </div>
-                <div>
-                  <h2 className="font-semibold">{profile.fullName}</h2>
-                  <p className="text-muted-foreground">{profile.bio || 'This is a sample bio. Go to Edit Profile to change it.'}</p>
-                </div>
-              </div>
-            </header>
-
-            <Separator />
-
-            <div className="mt-8">
-              {arePostsLoading ? (
-                <div className="grid grid-cols-3 gap-1 md:gap-4">
-                  {[...Array(6)].map((_, i) => (
-                    <div key={i} className="aspect-square animate-pulse bg-muted rounded-md"></div>
-                  ))}
-                </div>
-              ) : posts && posts.length > 0 ? (
-                <div className="grid grid-cols-3 gap-1 md:gap-4">
-                  {posts.map((post) => (
-                    <Link href={`/p/${post.id}`} key={post.id} className="aspect-square overflow-hidden relative group rounded-md">
-                      <Image
-                        src={post.imageUrl}
-                        alt={post.imageHint || 'User post'}
-                        fill
-                        className="object-cover transition-transform group-hover:scale-105"
-                      />
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                 <div className="flex flex-col items-center justify-center py-20 text-center rounded-md border-2 border-dashed">
-                    <div className="w-24 h-24 rounded-full border-2 border-primary/20 flex items-center justify-center mb-4 bg-primary/5">
-                        <ImageIcon className="w-10 h-10 text-primary/50" />
-                    </div>
-                    <h2 className="text-2xl font-bold mb-2">No Posts Yet</h2>
-                    <p className="text-muted-foreground">Go to the homepage to share your first photo!</p>
-                </div>
-              )}
+            <ProfileHeader user={mockUser} />
+            <div className="my-8">
+              <StatsRow stats={mockUser} />
             </div>
+            <HighlightsCarousel />
+            <Separator className="my-8" />
+            <TabSwitcher />
+            <PostsGrid posts={mockPosts} />
           </div>
         </main>
       </SidebarInset>
