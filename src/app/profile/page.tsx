@@ -50,18 +50,18 @@ export default function ProfilePage() {
   const { data: postsData, isLoading: arePostsLoading } = useCollection(postsCollectionRef);
 
   const profileUser = useMemo(() => {
-    if (!userProfileData) return null;
+    if (!user || !userProfileData) return null;
     return {
       id: userProfileData.id,
-      username: userProfileData.username || user?.email?.split('@')[0] || 'user',
-      fullName: userProfileData.fullName || user?.displayName || 'YC User',
+      username: userProfileData.username || user.email?.split('@')[0] || 'user',
+      fullName: userProfileData.fullName || user.displayName || 'YC User',
       bio: userProfileData.bio || 'Edit your profile to add a bio.',
-      profilePhoto: userProfileData.profilePhoto || user?.photoURL || `https://picsum.photos/seed/${user?.uid}/150/150`,
+      profilePhoto: userProfileData.profilePhoto || user.photoURL || `https://picsum.photos/seed/${user.uid}/150/150`,
       postsCount: postsData?.length || 0,
       followersCount: userProfileData.followersCount || 0, // Assuming these fields exist
       followingCount: userProfileData.followingCount || 0,
     };
-  }, [userProfileData, postsData, user]);
+  }, [user, userProfileData, postsData]);
 
   const posts = useMemo(() => {
     if (!postsData) return [];
