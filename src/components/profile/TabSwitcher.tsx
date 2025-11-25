@@ -1,10 +1,9 @@
 'use client';
 
 import { Grid3x3, Clapperboard, UserSquare2 } from 'lucide-react';
-
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function TabSwitcher() {
+export default function TabSwitcher({ children }: { children: React.ReactNode }) {
   return (
     <Tabs defaultValue="posts" className="w-full">
       <TabsList className="grid w-full grid-cols-3 h-12">
@@ -21,11 +20,9 @@ export default function TabSwitcher() {
           <span className="hidden sm:inline">TAGGED</span>
         </TabsTrigger>
       </TabsList>
-      {/* 
-        The TabsContent components will be added later. 
-        For now, the PostsGrid component is displayed directly below this TabSwitcher.
-        We will later move PostsGrid inside a TabsContent.
-      */}
+      <div className="mt-4">
+        {children}
+      </div>
     </Tabs>
   );
 }

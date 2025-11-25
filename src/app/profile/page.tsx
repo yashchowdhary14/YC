@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -19,18 +18,20 @@ import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { signOut } from 'firebase/auth';
-import type { Post } from '@/lib/types';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import StatsRow from '@/components/profile/StatsRow';
 import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import EditProfileDialog from '@/components/app/edit-profile';
+import { TabsContent } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
+import { Clapperboard, UserSquare2 } from 'lucide-react';
+
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   // Mock data as requested for the skeleton
@@ -53,8 +54,8 @@ export default function ProfilePage() {
     user: { id: '', username: '', avatarUrl: '', fullName: '' },
     caption: '',
     createdAt: new Date(),
-    likes: 0,
-    commentsCount: 0,
+    likes: Math.floor(Math.random() * 50) + 10,
+    commentsCount: Math.floor(Math.random() * 20),
   }));
   
   useEffect(() => {
@@ -115,10 +116,25 @@ export default function ProfilePage() {
                 <HighlightsCarousel />
               </div>
               <Separator className="my-8 md:hidden" />
-              <TabSwitcher />
-              <div className="mt-4">
-                 <PostsGrid posts={mockPosts} />
-              </div>
+              <TabSwitcher>
+                <TabsContent value="posts">
+                  <PostsGrid posts={mockPosts} />
+                </TabsContent>
+                <TabsContent value="reels">
+                  <Card className="flex flex-col items-center justify-center p-12 text-center">
+                    <Clapperboard className="h-16 w-16 text-muted-foreground" />
+                    <h3 className="mt-4 text-xl font-semibold">No Reels Yet</h3>
+                    <p className="mt-2 text-muted-foreground">When this user creates a reel, it will appear here.</p>
+                  </Card>
+                </TabsContent>
+                <TabsContent value="tagged">
+                  <Card className="flex flex-col items-center justify-center p-12 text-center">
+                    <UserSquare2 className="h-16 w-16 text-muted-foreground" />
+                    <h3 className="mt-4 text-xl font-semibold">No Tagged Posts</h3>
+                    <p className="mt-2 text-muted-foreground">When this user is tagged in a post, it will appear here.</p>
+                  </Card>
+                </TabsContent>
+              </TabSwitcher>
             </div>
           </main>
         </SidebarInset>
