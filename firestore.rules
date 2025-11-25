@@ -107,6 +107,33 @@ service cloud.firestore {
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId) && resource != null && request.resource.data.id == resource.data.id;
       allow delete: if false; // Users should not be able to delete their own profiles.
+
+      /**
+       * @description Manages the posts subcollection within a user's document.
+       * Only the owner of the profile can read or write to this subcollection.
+       * This is used for displaying posts on a user's own profile page.
+       */
+      match /posts/{postId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      /**
+       * @description Manages the followers subcollection.
+       * Anyone can read who follows a user, but only the follower can add/remove themselves.
+       */
+      match /followers/{followerId} {
+        allow read: if true;
+        allow write: if isOwner(followerId);
+      }
+
+      /**
+       * @description Manages the following subcollection.
+       * Anyone can read who a user is following, but only the user can modify their own following list.
+       */
+      match /following/{followingId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
     }
 
     /**
