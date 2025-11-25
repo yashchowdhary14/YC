@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Chat, Message } from '@/lib/types';
-import { Send, Phone, Video, Info, ArrowLeft, Paperclip, X, Image as ImageIcon } from 'lucide-react';
+import { Send, Info, ArrowLeft, Paperclip, X, Image as ImageIcon, Video } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -93,14 +93,6 @@ export default function ChatDisplay({ chat, messages: initialMessages, onBack }:
           <p className="text-sm text-muted-foreground">@{partner.username}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <Phone className="h-5 w-5" />
-            <span className="sr-only">Call</span>
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Video className="h-5 w-5" />
-            <span className="sr-only">Video Call</span>
-          </Button>
           <Button variant="ghost" size="icon">
             <Info className="h-5 w-5" />
             <span className="sr-only">Details</span>
