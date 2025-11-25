@@ -24,11 +24,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useUser } from '@/firebase';
-import {
-  initiateEmailSignIn,
-  initiateEmailSignUp,
-} from '@/firebase/non-blocking-login';
 import { Loader2, Sparkles } from 'lucide-react';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -63,15 +60,15 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       if (isSigningUp) {
-        initiateEmailSignUp(auth, values.email, values.password);
+        await createUserWithEmailAndPassword(auth, values.email, values.password);
         toast({
           title: 'Account Created',
           description: "We've created your account. Please sign in.",
         });
         setIsSigningUp(false); // Switch back to sign in view
-        form.reset();
+        // Don't reset the form, so the user can just click "Sign In"
       } else {
-        initiateEmailSignIn(auth, values.email, values.password);
+        await signInWithEmailAndPassword(auth, values.email, values.password);
         // The onAuthStateChanged listener in FirebaseProvider will handle the redirect
       }
     } catch (error: any) {
