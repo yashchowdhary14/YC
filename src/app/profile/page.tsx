@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -43,7 +44,7 @@ export default function ProfilePage() {
     () => (firestore && user ? query(collection(firestore, 'users', user.uid, 'posts'), orderBy('createdAt', 'desc')) : null),
     [firestore, user]
   );
-  const { data: posts, isLoading: arePostsLoading } = useCollection(postsQuery);
+  const { data: postsData, isLoading: arePostsLoading } = useCollection(postsQuery);
 
 
   const profileUser = useMemo(() => {
@@ -54,11 +55,19 @@ export default function ProfilePage() {
       fullName: userProfileData.fullName || user.displayName || 'User',
       bio: userProfileData.bio || "Welcome to my profile!",
       profilePhoto: userProfileData.profilePhoto || user.photoURL || `https://picsum.photos/seed/${user.uid}/150/150`,
-      postsCount: posts?.length ?? userProfileData.postsCount ?? 0,
+      postsCount: postsData?.length ?? userProfileData.postsCount ?? 0,
       followersCount: userProfileData.followersCount ?? 0,
       followingCount: userProfileData.followingCount ?? 0,
     };
-  }, [user, userProfileData, posts]);
+  }, [user, userProfileData, postsData]);
+
+  const posts = useMemo(() => {
+    if (!postsData) return [];
+    return postsData.map(post => ({
+        ...post,
+        likes: post.likes || [],
+    }));
+  }, [postsData]);
 
   if (isUserLoading || (user && isProfileLoading)) {
     return (
@@ -99,7 +108,7 @@ export default function ProfilePage() {
              </div>
              <Separator />
              <TabSwitcher 
-                postsContent={<PostsGrid posts={posts || []} />}
+                postsContent={<PostsGrid posts={posts} />}
                 reelsContent={emptyState}
                 taggedContent={emptyState}
              />
