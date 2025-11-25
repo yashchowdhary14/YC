@@ -112,6 +112,18 @@
           "type": "string",
           "description": "Timestamp of when the post was created.",
           "format": "date-time"
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the post's image for accessibility."
+        },
+        "hideLikes": {
+          "type": "boolean",
+          "description": "If true, the like and view counts are hidden."
+        },
+        "commentsOff": {
+          "type": "boolean",
+          "description": "If true, commenting is disabled for the post."
         }
       },
       "required": [

@@ -36,6 +36,9 @@ export async function handleCreatePost(formData: FormData) {
     const caption = formData.get('caption') as string;
     const location = formData.get('location') as string;
     const userId = formData.get('userId') as string;
+    const altText = formData.get('altText') as string;
+    const hideLikes = formData.get('hideLikes') === 'true';
+    const commentsOff = formData.get('commentsOff') === 'true';
 
     if (!imageFile || !userId) {
         throw new Error('Image and user ID are required to create a post.');
@@ -53,6 +56,9 @@ export async function handleCreatePost(formData: FormData) {
             caption,
             location,
             imageUrl,
+            altText,
+            hideLikes,
+            commentsOff,
             likes: [],
             commentsCount: 0,
             createdAt: serverTimestamp(),

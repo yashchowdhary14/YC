@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { handleCaptionGeneration, handleCreatePost } from '@/app/actions';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
@@ -25,10 +25,17 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { doc } from 'firebase/firestore';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+
 
 const createPostSchema = z.object({
   caption: z.string().max(2200, 'Caption is too long.'),
   location: z.string().max(100, 'Location is too long.').optional(),
+  altText: z.string().max(250, 'Alt text is too long.').optional(),
+  hideLikes: z.boolean().default(false),
+  commentsOff: z.boolean().default(false),
 });
 
 type CreatePostFormValues = z.infer<typeof createPostSchema>;
@@ -54,6 +61,9 @@ export default function CreatePage() {
     defaultValues: {
       caption: '',
       location: '',
+      altText: '',
+      hideLikes: false,
+      commentsOff: false,
     },
   });
 
@@ -113,6 +123,9 @@ export default function CreatePage() {
       formData.append('caption', data.caption);
       formData.append('location', data.location || '');
       formData.append('userId', user.uid);
+      formData.append('altText', data.altText || '');
+      formData.append('hideLikes', String(data.hideLikes));
+      formData.append('commentsOff', String(data.commentsOff));
 
       await handleCreatePost(formData);
       
@@ -212,7 +225,7 @@ export default function CreatePage() {
                   <p className="font-semibold">{profile?.username}</p>
                 </div>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1">
-                    <div className="relative flex-1">
+                    <div className="flex-1">
                         <Controller
                             name="caption"
                             control={form.control}
@@ -220,26 +233,26 @@ export default function CreatePage() {
                                 <Textarea
                                 {...field}
                                 placeholder="Write a caption..."
-                                className="resize-none h-full border-0 focus-visible:ring-0 p-0"
+                                className="resize-none h-32 border-0 focus-visible:ring-0 p-0"
                                 />
                             )}
                         />
                     </div>
 
-                    <div className="space-y-4 mt-4">
+                    <div className="space-y-2 mt-4">
                         <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleGenerateCaption}
-                        disabled={!image || isGenerating || isSubmitting}
-                        className="w-full"
-                        >
-                        {isGenerating ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                            <Sparkles className="mr-2 h-4 w-4" />
-                        )}
-                        Generate with AI
+                            type="button"
+                            variant="outline"
+                            onClick={handleGenerateCaption}
+                            disabled={!image || isGenerating || isSubmitting}
+                            className="w-full justify-start text-muted-foreground hover:text-foreground"
+                            >
+                            {isGenerating ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Sparkles className="mr-2 h-4 w-4" />
+                            )}
+                            Generate with AI
                         </Button>
                         <Controller
                             name="location"
@@ -248,10 +261,57 @@ export default function CreatePage() {
                                 <Input
                                 {...field}
                                 placeholder="Add location"
-                                className="bg-muted"
+                                className="bg-transparent border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
                                 />
                             )}
                         />
+                        <Accordion type="single" collapsible className="w-full">
+                           <AccordionItem value="alt-text">
+                               <AccordionTrigger className="p-0 hover:no-underline text-base">Accessibility</AccordionTrigger>
+                               <AccordionContent className="space-y-2 pt-2">
+                                   <p className="text-xs text-muted-foreground">Alt text describes your photos for people with visual impairments.</p>
+                                    <Controller
+                                        name="altText"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <Input
+                                            {...field}
+                                            placeholder="Write alt text..."
+                                            className="bg-muted"
+                                            />
+                                        )}
+                                    />
+                               </AccordionContent>
+                           </AccordionItem>
+                           <AccordionItem value="advanced-settings" className="border-b-0">
+                               <AccordionTrigger className="p-0 hover:no-underline text-base">Advanced Settings</AccordionTrigger>
+                               <AccordionContent className="space-y-4 pt-2">
+                                   <Controller
+                                        name="hideLikes"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="hide-likes" className="text-sm">Hide like and view counts on this post</Label>
+                                                <Switch id="hide-likes" checked={field.value} onCheckedChange={field.onChange} />
+                                            </div>
+                                        )}
+                                    />
+                                    <Controller
+                                        name="commentsOff"
+                                        control={form.control}
+                                        render={({ field }) => (
+                                            <div className="flex items-center justify-between">
+                                                <Label htmlFor="comments-off" className="text-sm">Turn off commenting</Label>
+                                                <Switch id="comments-off" checked={field.value} onCheckedChange={field.onChange} />
+                                            </div>
+                                        )}
+                                    />
+                               </AccordionContent>
+                           </AccordionItem>
+                        </Accordion>
+                    </div>
+
+                    <div className="mt-4">
                         <Button
                         type="submit"
                         disabled={!image || isSubmitting}
