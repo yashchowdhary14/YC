@@ -12,11 +12,12 @@ import {
 
 import {cn} from '@/lib/utils';
 import {Button} from './button';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const SidebarContext = React.createContext<{
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  inset?: boolean;
 }>({
   open: false,
   setOpen: () => {},
@@ -28,26 +29,29 @@ export function SidebarProvider({
   children,
   open: controlledOpen,
   onOpenChange: setControlledOpen,
-  inset = false,
 }: {
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: React.Dispatch<React.SetStateAction<boolean>>;
-  inset?: boolean;
 }) {
   const [internalOpen, setInternalOpen] = React.useState(false);
+  const isMobile = useIsMobile();
 
-  // If the 'open' and 'onOpenChange' props are provided, the component is controlled.
-  // Otherwise, it is uncontrolled and manages its own state.
   const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? setControlledOpen : setInternalOpen;
+  
+  const value = {open, setOpen};
 
-  const value = {open, setOpen, inset};
+  if (!isMobile) {
+    return <>{children}</>;
+  }
 
   return (
     <SidebarContext.Provider value={value}>
-      {children}
+        <Sheet open={open} onOpenChange={setOpen}>
+            {children}
+        </Sheet>
     </SidebarContext.Provider>
   );
 }
@@ -56,20 +60,16 @@ export function Sidebar({
   children,
   className,
   side = 'left',
-  anInset,
   ...props
 }: {
   children: React.ReactNode;
   className?: string;
   side?: 'left' | 'right';
-  anInset?: boolean;
 }) {
-  const {open, setOpen, inset} = useSidebar();
-  const isActuallyInset = inset !== undefined ? inset : anInset;
+  const isMobile = useIsMobile();
 
-  if (isActuallyInset) {
+  if (isMobile) {
     return (
-      <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side={side}
           className={cn(
@@ -80,7 +80,6 @@ export function Sidebar({
         >
           {children}
         </SheetContent>
-      </Sheet>
     );
   }
 
@@ -105,6 +104,10 @@ export function SidebarInset({
   children: React.ReactNode;
   className?: string;
 }) {
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return <>{children}</>;
+  }
   return (
     <div className={cn('md:ml-[260px]', className)} {...props}>
       {children}
@@ -119,11 +122,13 @@ export function SidebarTrigger({
   children?: React.ReactNode;
   className?: string;
 }) {
-  const {open, setOpen} = useSidebar();
+  const isMobile = useIsMobile();
+
+  if (!isMobile) return null;
 
   if (children) {
     return (
-      <SheetTrigger asChild onClick={() => setOpen(!open)}>
+      <SheetTrigger asChild>
         {children}
       </SheetTrigger>
     );
@@ -133,7 +138,6 @@ export function SidebarTrigger({
       <Button
         variant="secondary"
         className={cn('h-8 w-8 p-0', className)}
-        onClick={() => setOpen(!open)}
       >
         <span className="sr-only">Open sidebar</span>
       </Button>
@@ -148,9 +152,9 @@ export function SidebarHeader({
   children?: React.ReactNode;
   className?: string;
 }) {
-  const {inset} = useSidebar();
+  const isMobile = useIsMobile();
 
-  if (inset) {
+  if (isMobile) {
     return (
       <SheetHeader className="border-b px-4 py-2">
         <SheetTitle className="text-lg">{children}</SheetTitle>

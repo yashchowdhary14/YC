@@ -22,6 +22,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { doc } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -155,7 +156,7 @@ export default function CreatePage() {
 
 
   return (
-    <>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -295,8 +296,7 @@ export default function CreatePage() {
                                         control={form.control}
                                         render={({ field }) => (
                                             <div className="flex items-center justify-between">
-                                                <Label htmlFor="comments-off" className="text-sm">Turn off commenting</Label>
-                                                <Switch id="comments-off" checked={field.value} onCheckedChange={field.onChange} />
+                                                <Label htmlFor="comments-off" className="text-sm">Turn off commenting</Label>												<Switch id="comments-off" checked={field.value} onCheckedChange={field.onChange} />
                                             </div>
                                         )}
                                     />
@@ -321,6 +321,6 @@ export default function CreatePage() {
           </Card>
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }

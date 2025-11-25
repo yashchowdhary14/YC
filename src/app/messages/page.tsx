@@ -10,6 +10,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 import ChatList from '@/components/messages/chat-list';
@@ -62,49 +63,51 @@ export default function MessagesPage() {
 
   if (isMobile) {
     return (
-      <main className="min-h-svh bg-background">
-        <Sidebar anInset>
-            <SidebarHeader>
-            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarNav />
-          </SidebarContent>
-        </Sidebar>
+      <SidebarProvider>
+        <main className="min-h-svh bg-background">
+          <Sidebar>
+              <SidebarHeader>
+              <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarNav />
+            </SidebarContent>
+          </Sidebar>
 
-        <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
-          <AppHeader />
-          <div className="p-4 border-b">
-            <h1 className="text-xl font-semibold">Messages</h1>
+          <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
+            <AppHeader />
+            <div className="p-4 border-b">
+              <h1 className="text-xl font-semibold">Messages</h1>
+            </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center flex-1">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : (
+              <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
+            )}
           </div>
-          {isLoading ? (
-            <div className="flex items-center justify-center flex-1">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
-          )}
-        </div>
-        <div className={cn('h-svh flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
-          {selectedChat ? (
-            <ChatDisplay
-              chat={selectedChat}
-              messages={messages || []}
-              isLoadingMessages={isLoadingMessages}
-              onBack={() => setSelectedChat(null)}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <p>Select a chat to start messaging</p>
-            </div>
-          )}
-        </div>
-      </main>
+          <div className={cn('h-svh flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
+            {selectedChat ? (
+              <ChatDisplay
+                chat={selectedChat}
+                messages={messages || []}
+                isLoadingMessages={isLoadingMessages}
+                onBack={() => setSelectedChat(null)}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                <p>Select a chat to start messaging</p>
+              </div>
+            )}
+          </div>
+        </main>
+      </SidebarProvider>
     );
   }
 
   return (
-    <>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -138,6 +141,6 @@ export default function MessagesPage() {
           </div>
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }

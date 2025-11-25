@@ -11,6 +11,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { useEffect, useState } from 'react';
 
@@ -27,7 +28,7 @@ export default function StoryPage() {
   }, []);
 
   return (
-    <>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -53,6 +54,6 @@ export default function StoryPage() {
           </Card>
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }
