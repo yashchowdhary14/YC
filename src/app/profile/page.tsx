@@ -37,12 +37,8 @@ import { Sparkles } from 'lucide-react';
 import { signOut } from 'firebase/auth';
 import EditProfileDialog from '@/components/app/edit-profile';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import type { Post } from '@/lib/types';
 
-type Post = {
-  id: string;
-  imageUrl: string;
-  imageHint: string;
-};
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -80,6 +76,7 @@ export default function ProfilePage() {
             setPostCount(postsSnapshot.data().count);
         } catch (error) {
             console.error("Error fetching post count:", error);
+            // Fallback for emulators or environments where getCountFromServer might fail
             setPostCount(posts?.length || 0);
         }
 
@@ -103,7 +100,8 @@ export default function ProfilePage() {
     if (user && firestore) {
         fetchCounts();
     }
-  }, [user, firestore, posts]);
+  // We only want to refetch counts when the user or posts array changes.
+  }, [user, firestore, posts?.length]);
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -156,7 +154,7 @@ export default function ProfilePage() {
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
             <header className="flex items-center gap-8 md:gap-16 mb-8">
               <Avatar className="h-24 w-24 md:h-36 md:w-36 border-4 border-background ring-2 ring-primary">
-                <AvatarImage src={profile.profilePhoto || `https://picsum.photos/seed/${user.uid}/150/150`} alt={profile.username} />
+                <AvatarImage src={profile.profilePhoto || `https://picsum.photos/seed/${user.uid}/150/150`} alt={profile.username || 'user'} />
                 <AvatarFallback>{profile.username?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-3">
@@ -201,29 +199,29 @@ export default function ProfilePage() {
               {arePostsLoading ? (
                 <div className="grid grid-cols-3 gap-1 md:gap-4">
                   {[...Array(6)].map((_, i) => (
-                    <Card key={i} className="aspect-square animate-pulse bg-muted"></Card>
+                    <div key={i} className="aspect-square animate-pulse bg-muted rounded-md"></div>
                   ))}
                 </div>
               ) : posts && posts.length > 0 ? (
                 <div className="grid grid-cols-3 gap-1 md:gap-4">
                   {posts.map((post) => (
-                    <Card key={post.id} className="aspect-square overflow-hidden relative group">
+                    <div key={post.id} className="aspect-square overflow-hidden relative group rounded-md">
                       <Image
                         src={post.imageUrl}
                         alt={post.imageHint || 'User post'}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform group-hover:scale-105"
                       />
-                    </Card>
+                    </div>
                   ))}
                 </div>
               ) : (
-                 <div className="flex flex-col items-center justify-center py-20 text-center">
-                    <div className="w-24 h-24 rounded-full border-2 border-primary flex items-center justify-center mb-4">
-                        <ImageIcon className="w-10 h-10 text-primary" />
+                 <div className="flex flex-col items-center justify-center py-20 text-center rounded-md border-2 border-dashed">
+                    <div className="w-24 h-24 rounded-full border-2 border-primary/20 flex items-center justify-center mb-4 bg-primary/5">
+                        <ImageIcon className="w-10 h-10 text-primary/50" />
                     </div>
                     <h2 className="text-2xl font-bold mb-2">No Posts Yet</h2>
-                    <p className="text-muted-foreground">When you share photos, they will appear on your profile.</p>
+                    <p className="text-muted-foreground">Go to the homepage to share your first photo!</p>
                 </div>
               )}
             </div>
