@@ -8,8 +8,14 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Chat, Message } from '@/lib/types';
-import { Send, Phone, Video, Info, ArrowLeft, Paperclip, X } from 'lucide-react';
-import { Card, CardContent } from '../ui/card';
+import { Send, Phone, Video, Info, ArrowLeft, Paperclip, X, Image as ImageIcon } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 interface ChatDisplayProps {
   chat: Chat;
@@ -60,6 +66,13 @@ export default function ChatDisplay({ chat, messages: initialMessages, onBack }:
       reader.readAsDataURL(file);
     }
   };
+  
+  const handleMediaSelect = (type: 'image' | 'video') => {
+    if (fileInputRef.current) {
+      fileInputRef.current.accept = type === 'image' ? 'image/*' : 'video/*';
+      fileInputRef.current.click();
+    }
+  }
 
 
   return (
@@ -157,14 +170,27 @@ export default function ChatDisplay({ chat, messages: initialMessages, onBack }:
           </div>
         )}
         <div className="relative flex items-center gap-2">
-           <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full" onClick={() => fileInputRef.current?.click()}>
-            <Paperclip className="h-5 w-5" />
-            <span className="sr-only">Attach media</span>
-          </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full">
+                  <Paperclip className="h-5 w-5" />
+                  <span className="sr-only">Attach media</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleMediaSelect('image')}>
+                  <ImageIcon className="mr-2 h-4 w-4" />
+                  <span>Image</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleMediaSelect('video')}>
+                  <Video className="mr-2 h-4 w-4" />
+                  <span>Video</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
            <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,video/*"
             className="hidden"
             onChange={handleFileChange}
           />
