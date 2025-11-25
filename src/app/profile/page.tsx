@@ -35,6 +35,8 @@ import {
 } from '@/components/ui/sidebar';
 import { Sparkles } from 'lucide-react';
 import { signOut } from 'firebase/auth';
+import EditProfileDialog from '@/components/app/edit-profile';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 
 type Post = {
   id: string;
@@ -47,6 +49,7 @@ export default function ProfilePage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const [postCount, setPostCount] = useState(0);
   const [followerCount, setFollowerCount] = useState(0);
@@ -116,6 +119,7 @@ export default function ProfilePage() {
   }
   
   const profile = userProfile || {
+      id: user.uid,
       username: user.email?.split('@')[0],
       fullName: user.displayName,
       bio: '',
@@ -158,14 +162,19 @@ export default function ProfilePage() {
               <div className="flex-1 space-y-3">
                 <div className="flex items-center gap-4">
                   <h1 className="text-2xl font-light">{profile.username}</h1>
-                  <Button variant="secondary" size="sm" className="hidden md:inline-flex">
-                    Edit Profile
-                  </Button>
-                   <Button variant="ghost" size="icon" className="md:hidden">
+                  <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="secondary" size="sm" className="hidden md:inline-flex">
+                        Edit Profile
+                      </Button>
+                    </DialogTrigger>
+                    <EditProfileDialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen} userProfile={profile} />
+                  </Dialog>
+                   <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsEditProfileOpen(true)}>
                     <Settings className="h-5 w-5" />
                   </Button>
                 </div>
-                 <Button variant="secondary" size="sm" className="w-full md:hidden">
+                 <Button variant="secondary" size="sm" className="w-full md:hidden" onClick={() => setIsEditProfileOpen(true)}>
                     Edit Profile
                   </Button>
                 <div className="flex items-center gap-6 text-sm">
