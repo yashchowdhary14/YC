@@ -17,6 +17,9 @@ interface ProfileHeaderProps {
     fullName: string;
     bio: string;
     profilePhoto: string;
+    postsCount: number;
+    followersCount: number;
+    followingCount: number;
   };
   onEditClick: () => void;
   isCurrentUser?: boolean;
@@ -95,13 +98,10 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
           </div>
         </div>
 
-        <div className="hidden sm:block mb-4">
-            {/* This is visible only on larger screens, stats row handles mobile */}
-            <div className="flex gap-8">
-                <div><span className="font-semibold">12</span> posts</div>
-                <div><span className="font-semibold">1,234</span> followers</div>
-                <div><span className="font-semibold">123</span> following</div>
-            </div>
+        <div className="hidden sm:flex gap-8 mb-4">
+            <button className="text-sm"><span className="font-semibold">{user.postsCount.toLocaleString()}</span> posts</button>
+            <button className="text-sm"><span className="font-semibold">{user.followersCount.toLocaleString()}</span> followers</button>
+            <button className="text-sm"><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</button>
         </div>
 
         <div>
