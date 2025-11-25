@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const links = [
   { href: '/', label: 'Home', icon: Home },
@@ -34,17 +35,16 @@ export default function SidebarNav() {
     <SidebarMenu>
       {links.map((link) => (
         <SidebarMenuItem key={link.href}>
-          <SidebarMenuButton
-            asChild
-            href={link.href}
-            isActive={pathname === link.href}
-            tooltip={link.label}
-          >
-            <NextLink href={link.href}>
+          <NextLink href={link.href} passHref legacyBehavior>
+            <SidebarMenuButton
+              as="a"
+              isActive={pathname === link.href}
+              tooltip={link.label}
+            >
               <link.icon />
               <span>{link.label}</span>
-            </NextLink>
-          </SidebarMenuButton>
+            </SidebarMenuButton>
+          </NextLink>
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
