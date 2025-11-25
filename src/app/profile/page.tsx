@@ -122,15 +122,20 @@ export default function ProfilePage() {
         <ScrollArea className="h-[calc(100vh-4rem)]">
           <main className="min-h-full bg-background">
             <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-              {profileUser && <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />}
+              {profileUser ? (
+                <ProfileHeader user={profileUser} onEditClick={() => setIsEditDialogOpen(true)} />
+              ) : (
+                <div className="flex justify-center items-center h-48">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              )}
 
               <div className="my-8">
-                 {/* This space is occupied by stats in the header on desktop */}
-              </div>
-
-              <div className="mb-8">
                 <HighlightsCarousel />
               </div>
+
+              <Separator className="my-8" />
+              
               <TabSwitcher 
                 postsContent={arePostsLoading ? <div className="flex justify-center items-center h-64"><Loader2 className="h-8 w-8 animate-spin" /></div> : <PostsGrid posts={posts} />}
                 reelsContent={
