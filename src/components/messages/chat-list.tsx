@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, limit, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
@@ -25,6 +25,7 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
     const { user: currentUser } = useUser();
 
     const handleSearch = async (term: string) => {
+        if (!firestore || !currentUser) return;
         setSearchTerm(term);
         if (term.trim().length < 2) {
             setSearchResults([]);
@@ -35,13 +36,13 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
         // Simple search - in a real app, use a dedicated search service like Algolia
         const q = query(usersRef, where('username', '>=', term), where('username', '<=', term + '\uf8ff'), limit(10));
         const querySnapshot = await getDocs(q);
-        const users = querySnapshot.docs.map(doc => doc.data() as User).filter(u => u.id !== currentUser?.uid);
+        const users = querySnapshot.docs.map(doc => doc.data() as User).filter(u => u.id !== currentUser.uid);
         setSearchResults(users);
         setIsSearching(false);
     };
 
     const handleSelectUser = async (targetUser: User) => {
-        if (!currentUser) return;
+        if (!currentUser || !firestore) return;
         setIsCreatingChat(true);
 
         const sortedIds = [currentUser.uid, targetUser.id].sort();
@@ -55,15 +56,52 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
         let selectedChat: Chat;
 
         if (chatSnapshot.empty) {
-            // Create a new chat
-            const newChat = {
+            // Create a new chat and add sample messages
+            const batch = writeBatch(firestore);
+
+            const newChatData = {
                 id: chatId,
                 users: sortedIds,
                 lastUpdated: serverTimestamp(),
-                userDetails: [], // This will be hydrated by the useHydratedChats hook
+                // userDetails will be hydrated by the useHydratedChats hook
             };
-            await setDoc(chatRef, newChat);
-            selectedChat = { ...newChat, userDetails: [targetUser] } as Chat;
+            batch.set(chatRef, newChatData);
+
+            // Add a few sample messages to make the chat feel alive
+            const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+            
+            const firstMessageRef = doc(messagesRef);
+            batch.set(firstMessageRef, {
+                id: firstMessageRef.id,
+                chatId: chatId,
+                senderId: targetUser.id, // From the other user
+                text: "Hey! 👋",
+                timestamp: serverTimestamp(),
+                isRead: false,
+            });
+
+            const secondMessageRef = doc(messagesRef);
+            batch.set(secondMessageRef, {
+                id: secondMessageRef.id,
+                chatId: chatId,
+                senderId: currentUser.uid, // From the current user
+                text: "How's it going?",
+                timestamp: serverTimestamp(),
+                isRead: true, // Mark our own message as read
+            });
+
+            // Update last message on the chat document
+            batch.update(chatRef, {
+                lastMessage: {
+                    text: "How's it going?",
+                    timestamp: serverTimestamp(),
+                    senderId: currentUser.uid,
+                }
+            });
+            
+            await batch.commit();
+
+            selectedChat = { ...newChatData, userDetails: [targetUser] } as Chat;
         } else {
              // Chat already exists
             selectedChat = chatSnapshot.docs[0].data() as Chat;
