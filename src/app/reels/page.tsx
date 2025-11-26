@@ -116,10 +116,10 @@ export default function ReelsPage() {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="h-[calc(100vh-4rem)] bg-black flex justify-center">
+        <main className="h-[calc(100vh-4rem)] bg-black flex justify-center items-center overflow-hidden">
             <div
               ref={containerRef}
-              className="relative h-full w-full max-w-md snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
+              className="relative h-full w-full max-w-[450px] snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
             >
               {reels.map((reel) => (
                 <div key={reel.id} className="reel-card-container h-full w-full snap-start flex items-center justify-center">

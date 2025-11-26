@@ -68,13 +68,13 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     };
 
     return (
-        <div className="relative h-full w-full rounded-lg overflow-hidden" onDoubleClick={handleDoubleClick}>
+        <div className="relative h-full w-full bg-black" onDoubleClick={handleDoubleClick}>
             <video
                 ref={videoRef}
                 src={reel.videoUrl}
                 loop
                 muted={isMuted}
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
                 playsInline
                 onClick={handleToggleMute}
             />
@@ -99,7 +99,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                      </Link>
                      <Link href={`/${reel.user.username}`} className="font-semibold text-sm pointer-events-auto">{reel.user.username}</Link>
                     <Button 
-                        variant={isFollowing ? 'secondary' : 'outline'} 
+                        variant={isFollowing ? 'secondary' : 'default'} 
                         size="sm" 
                         className={cn(
                             "h-7 text-xs px-3 py-1 rounded-md pointer-events-auto",
