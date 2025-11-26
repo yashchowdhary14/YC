@@ -26,7 +26,8 @@ export interface Reel {
     videoUrl: string;
     user: User;
     caption: string;
-    likes: string[];
+    likes: number;
+    isLiked: boolean;
     commentsCount: number;
 }
 

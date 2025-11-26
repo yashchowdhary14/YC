@@ -37,7 +37,8 @@ export const dummyReels: Reel[] = [
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
         user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` },
         caption: 'Living my best life in the mountains! 🏔️',
-        likes: ['user_ethan_bytes', 'user_maya_creates'],
+        likes: 1234,
+        isLiked: false,
         commentsCount: 42,
     },
     {
@@ -45,7 +46,8 @@ export const dummyReels: Reel[] = [
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
         user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
         caption: 'City lights and late nights ✨',
-        likes: ['user_wanderlust_lila'],
+        likes: 567,
+        isLiked: true,
         commentsCount: 18,
     },
     {
@@ -53,7 +55,8 @@ export const dummyReels: Reel[] = [
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
         user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
         caption: 'The art of filmmaking.',
-        likes: ['user_wanderlust_lila', 'user_maya_creates', 'user_sachin'],
+        likes: 8910,
+        isLiked: false,
         commentsCount: 98,
     },
     {
@@ -61,7 +64,8 @@ export const dummyReels: Reel[] = [
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
         user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
         caption: 'Just another unboxing. You HAVE to see this!',
-        likes: ['user_ethan_bytes'],
+        likes: 11200,
+        isLiked: false,
         commentsCount: 150,
     },
     {
@@ -69,7 +73,8 @@ export const dummyReels: Reel[] = [
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
         user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
         caption: 'Best tacos I have ever had. Period. 🌮',
-        likes: [],
+        likes: 432,
+        isLiked: true,
         commentsCount: 77,
     }
 ];

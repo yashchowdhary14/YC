@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useOptimistic } from 'react';
+import { useState, useRef, useOptimistic, useCallback, useEffect } from 'react';
 import { Heart, MessageCircle, Send, MoreHorizontal, Music, Volume2, VolumeX } from 'lucide-react';
 import type { Reel } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
@@ -13,32 +13,34 @@ import Link from 'next/link';
 
 interface ReelCardProps {
     reel: Reel;
+    onUpdateReel: (updatedReel: Reel) => void;
 }
 
-export default function ReelCard({ reel }: ReelCardProps) {
+export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
     const { user } = useUser();
     const { toast } = useToast();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
+    const [showBigHeart, setShowBigHeart] = useState(false);
 
-    const [optimisticReel, toggleOptimisticLike] = useOptimistic(
-        reel,
-        (state, _) => {
-            if (!user) return state;
-            const isLiked = state.likes.includes(user.uid);
-            const newLikes = isLiked
-                ? state.likes.filter(id => id !== user.uid)
-                : [...state.likes, user.uid];
-            return { ...state, likes: newLikes };
+    const handleLikeToggle = useCallback(() => {
+        const newLikedState = !reel.isLiked;
+        const newLikesCount = newLikedState ? reel.likes + 1 : reel.likes - 1;
+        onUpdateReel({ ...reel, isLiked: newLikedState, likes: newLikesCount });
+        
+        if(newLikedState) {
+            setShowBigHeart(true);
+            setTimeout(() => setShowBigHeart(false), 800);
         }
-    );
 
-    const handleLike = () => {
-        if (!user) {
-            toast({ variant: 'destructive', title: 'Login Required', description: 'You must be logged in to like a reel.' });
-            return;
+    }, [reel, onUpdateReel]);
+
+    const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        // This is a simple double-click detection.
+        // For more robust detection, you might use a custom hook.
+        if (e.detail === 2) {
+            handleLikeToggle();
         }
-        toggleOptimisticLike(null);
     };
     
     const handleToggleMute = () => {
@@ -47,11 +49,9 @@ export default function ReelCard({ reel }: ReelCardProps) {
             setIsMuted(videoRef.current.muted);
         }
     };
-    
-    const isLiked = user ? optimisticReel.likes.includes(user.uid) : false;
 
     return (
-        <div className="relative h-full w-full rounded-lg overflow-hidden">
+        <div className="relative h-full w-full rounded-lg overflow-hidden" onClick={handleDoubleClick}>
             <video
                 ref={videoRef}
                 src={reel.videoUrl}
@@ -59,25 +59,28 @@ export default function ReelCard({ reel }: ReelCardProps) {
                 muted={isMuted}
                 className="h-full w-full object-cover"
                 playsInline
-                onClick={handleToggleMute}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+
+            {showBigHeart && (
+                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-white/90 fill-white/90 animate-heart-pop" />
+            )}
             
-            <div onClick={handleToggleMute} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
+            <div onClick={(e) => { e.stopPropagation(); handleToggleMute(); }} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
                 {isMuted ? <VolumeX className="h-5 w-5 text-white" /> : <Volume2 className="h-5 w-5 text-white" />}
             </div>
 
-            <div className="absolute bottom-0 left-0 p-4 text-white w-full">
+            <div className="absolute bottom-0 left-0 p-4 text-white w-full pointer-events-none">
                 <div className="flex items-center gap-3">
-                     <Link href={`/${reel.user.username}`}>
+                     <Link href={`/${reel.user.username}`} className="pointer-events-auto">
                         <Avatar>
                             <AvatarImage src={reel.user.avatarUrl} />
                             <AvatarFallback>{reel.user.username.charAt(0)}</AvatarFallback>
                         </Avatar>
                      </Link>
-                     <Link href={`/${reel.user.username}`} className="font-semibold text-sm">{reel.user.username}</Link>
-                    <Button variant="outline" size="sm" className="h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white">Follow</Button>
+                     <Link href={`/${reel.user.username}`} className="font-semibold text-sm pointer-events-auto">{reel.user.username}</Link>
+                    <Button variant="outline" size="sm" className="h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto">Follow</Button>
                 </div>
                 <p className="text-sm mt-2 truncate">{reel.caption}</p>
                  <div className="flex items-center gap-2 mt-2">
@@ -92,9 +95,9 @@ export default function ReelCard({ reel }: ReelCardProps) {
             </div>
 
             <div className="absolute bottom-4 right-2 flex flex-col items-center gap-4 text-white">
-                <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={handleLike}>
-                    <Heart className={cn("h-7 w-7", isLiked && "fill-red-500 text-red-500")} />
-                    <span className="text-xs font-semibold">{optimisticReel.likes.length.toLocaleString()}</span>
+                <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); handleLikeToggle(); }}>
+                    <Heart className={cn("h-7 w-7", reel.isLiked && "fill-red-500 text-red-500")} />
+                    <span className="text-xs font-semibold">{reel.likes.toLocaleString()}</span>
                 </Button>
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent">
                     <MessageCircle className="h-7 w-7" />
@@ -113,10 +116,3 @@ export default function ReelCard({ reel }: ReelCardProps) {
         </div>
     );
 }
-
-// Add to tailwind.config.ts if not present
-// extend: {
-//   animation: {
-//     'spin-slow': 'spin 3s linear infinite',
-//   },
-// },

@@ -31,6 +31,14 @@ export default function ReelsPage() {
         }
     }, [isUserLoading, user, router]);
 
+    const handleUpdateReel = (updatedReel: Reel) => {
+      setReels(currentReels => 
+        currentReels.map(reel => 
+          reel.id === updatedReel.id ? updatedReel : reel
+        )
+      );
+    };
+
     useEffect(() => {
         const options = {
             root: null,
@@ -92,7 +100,7 @@ export default function ReelsPage() {
             >
               {reels.map((reel) => (
                 <div key={reel.id} className="reel-card-container h-full w-full snap-start flex items-center justify-center">
-                   <ReelCard reel={reel} />
+                   <ReelCard reel={reel} onUpdateReel={handleUpdateReel} />
                 </div>
               ))}
             </div>
@@ -101,12 +109,3 @@ export default function ReelsPage() {
     </SidebarProvider>
   );
 }
-
-// Add this to your globals.css or a relevant CSS file
-// .scrollbar-hide::-webkit-scrollbar {
-//     display: none;
-// }
-// .scrollbar-hide {
-//     -ms-overflow-style: none;
-//     scrollbar-width: none;
-// }
