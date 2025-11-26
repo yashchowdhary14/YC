@@ -21,7 +21,7 @@ export default function StreamCard({ stream }: StreamCardProps) {
   return (
     <Link href={`/live/${stream.streamerName}`} className="group">
       <div className="relative mb-3 overflow-hidden rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
-        <AspectRatio ratio={16 / 9} className="bg-zinc-800 rounded-lg overflow-hidden">
+        <AspectRatio ratio={16 / 9} className="bg-muted rounded-lg overflow-hidden">
             <Image
                 src={stream.liveThumbnail}
                 alt={stream.title}
@@ -48,11 +48,11 @@ export default function StreamCard({ stream }: StreamCardProps) {
           <AvatarFallback>{stream.user.username.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="overflow-hidden">
-          <h3 className="font-bold text-white truncate group-hover:text-primary text-base">
+          <h3 className="font-bold text-foreground truncate group-hover:text-primary text-base">
             {stream.title}
           </h3>
-          <p className="text-sm text-zinc-400 truncate">{stream.user.username}</p>
-          <p className="text-sm text-zinc-400 truncate">{stream.category}</p>
+          <p className="text-sm text-muted-foreground truncate">{stream.user.username}</p>
+          <p className="text-sm text-muted-foreground truncate">{stream.category}</p>
         </div>
       </div>
     </Link>

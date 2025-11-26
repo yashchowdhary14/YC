@@ -27,7 +27,7 @@ function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0 md:gap-0.5">
-        <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-zinc-800 rounded-t-lg md:rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
+        <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-muted rounded-t-lg md:rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
              <Image 
                 src={stream.liveThumbnail} 
                 alt={stream.title} 
@@ -44,7 +44,7 @@ function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
                 <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-sm h-6 px-3">Live</Badge>
              </div>
         </div>
-        <div className="md:col-span-2 lg:col-span-1 bg-zinc-800 p-4 rounded-b-lg md:rounded-lg flex flex-col justify-between">
+        <div className="md:col-span-2 lg:col-span-1 bg-muted/50 p-4 rounded-b-lg md:rounded-lg flex flex-col justify-between">
             <div>
                  <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
@@ -52,13 +52,13 @@ function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
                         <AvatarFallback>{stream.user.username.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <p className="font-bold text-white text-lg">{stream.user.username}</p>
-                        <p className="text-base text-zinc-300">{stream.category}</p>
-                        <p className="text-sm text-zinc-400">{formatCompactNumber(stream.viewerCount)} viewers</p>
+                        <p className="font-bold text-foreground text-lg">{stream.user.username}</p>
+                        <p className="text-base text-muted-foreground">{stream.category}</p>
+                        <p className="text-sm text-muted-foreground">{formatCompactNumber(stream.viewerCount)} viewers</p>
                     </div>
                 </div>
             </div>
-            <p className="text-zinc-200 text-base mt-4 line-clamp-2">{stream.title}</p>
+            <p className="text-foreground text-base mt-4 line-clamp-2">{stream.title}</p>
         </div>
     </div>
   )
@@ -83,8 +83,8 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="left-2 bg-zinc-700 border-none hover:bg-zinc-600 text-white hidden md:flex" />
-        <CarouselNext className="right-2 bg-zinc-700 border-none hover:bg-zinc-600 text-white hidden md:flex" />
+        <CarouselPrevious className="left-2 bg-secondary border-none hover:bg-accent text-foreground hidden md:flex" />
+        <CarouselNext className="right-2 bg-secondary border-none hover:bg-accent text-foreground hidden md:flex" />
       </Carousel>
   );
 }

@@ -51,21 +51,21 @@ export default function LivePage() {
 
   if (isLoading && !isPageLoaded) {
      return (
-      <div className="flex h-screen items-center justify-center bg-zinc-900">
+      <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-zinc-900 text-white overscroll-contain">
+    <div className="flex min-h-screen bg-background text-foreground overscroll-contain">
         {/* Desktop Sidebar - Will be hidden on mobile by its own internal logic */}
         <LiveSidebar 
           recommendedChannels={recommendedChannels} 
           recommendedCategories={(categories?.slice(0,6) || [])} 
         />
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col overscroll-contain pt-14 md:ml-60">
+        <div className="flex-1 flex flex-col overscroll-contain md:pl-60 pt-14">
           <main className={cn(
               "flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain transition-opacity duration-500 ease-in-out",
               isPageLoaded ? "opacity-100" : "opacity-0"
@@ -86,13 +86,13 @@ export default function LivePage() {
                           <StreamGrid streams={liveStreams.filter(s => s.isLive).slice(0,12)} />
                       </div>
                       ) : (
-                      <div className="text-center py-24 bg-zinc-800/50 rounded-lg">
+                      <div className="text-center py-24 bg-muted/50 rounded-lg">
                           <h2 className="text-2xl font-bold">No Channels are Live</h2>
                           <p className="text-muted-foreground mt-2">Check back later to see who is streaming.</p>
                       </div>
                       )}
 
-                      <Separator className="bg-zinc-700" />
+                      <Separator className="bg-border" />
 
                       {categories && categories.length > 0 && (
                       <div>
