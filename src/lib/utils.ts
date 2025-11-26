@@ -17,3 +17,16 @@ export function formatCompactNumber(number: number) {
     }
     return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
 }
+
+export function fileToDataUri(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      resolve(reader.result as string);
+    };
+    reader.onerror = (error) => {
+      reject(error);
+    };
+    reader.readAsDataURL(file);
+  });
+}
