@@ -1,135 +1,104 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Video, Loader2 } from 'lucide-react';
+import { X, Loader2, CameraOff, Video } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-export default function UploadVideoPage() {
+export default function CreateReelPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleVideoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit for videos
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Please upload a video smaller than 50MB.',
-        });
-        return;
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser to create a Reel.',
+          });
+        }
+      } else {
+         setHasCameraPermission(false);
+         toast({
+            variant: 'destructive',
+            title: 'Media Devices Not Supported',
+            description: 'Your browser does not support camera access.',
+         });
       }
-      setVideoFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setVideoPreview(previewUrl);
-    }
-  };
+    };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!videoFile || !title.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing information',
-        description: 'Please upload a video and provide a title.',
-      });
-      return;
+    getCameraPermission();
+    
+    return () => {
+        if (videoRef.current && videoRef.current.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+        }
     }
-    
-    setIsSubmitting(true);
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate longer upload
-    
-    toast({
-      title: 'Video Uploaded! (Simulation)',
-      description: `Your video "${title}" is now processing.`,
-    });
-    
-    router.push('/videos');
-  };
+  }, [toast]);
+
 
   return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-background pt-14">
-      <div className="w-full max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft />
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight">Upload Video</h1>
+    <div className="w-full h-screen bg-black text-white flex flex-col items-center justify-center">
+        {/* Header */}
+        <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-gradient-to-b from-black/50 to-transparent">
+             <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-auto p-2">
+                <X className="h-7 w-7" />
+             </Button>
+            {/* Other controls like Flash, Flip Camera will go here */}
+        </header>
+
+        {/* Camera Preview */}
+        <div className="relative w-full h-full flex items-center justify-center">
+             {hasCameraPermission === null && (
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p>Starting camera...</p>
+                </div>
+            )}
+             {hasCameraPermission === false && (
+                 <div className="p-8">
+                    <Alert variant="destructive">
+                        <CameraOff className="h-4 w-4"/>
+                        <AlertTitle>Camera Access Required</AlertTitle>
+                        <AlertDescription>
+                            Please allow camera access in your browser to use this feature.
+                        </AlertDescription>
+                    </Alert>
+                 </div>
+            )}
+            <video 
+                ref={videoRef} 
+                className="w-full h-full object-cover" 
+                autoPlay 
+                muted 
+                playsInline 
+                style={{ display: hasCameraPermission ? 'block' : 'none'}}
+            />
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-                <CardTitle>Video Details</CardTitle>
-                <CardDescription>Provide information about your video and upload the file.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div 
-                    className="relative aspect-video w-full bg-muted/40 rounded-lg flex items-center justify-center border-2 border-dashed cursor-pointer"
-                    onClick={() => fileInputRef.current?.click()}
-                >
-                    {videoPreview ? (
-                        <video src={videoPreview} controls className="w-full h-full object-contain rounded-lg" />
-                    ) : (
-                        <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground p-8 text-center">
-                            <Video className="h-12 w-12" />
-                            <h3 className="font-semibold text-lg">Click to upload a video</h3>
-                            <p className="text-sm">MP4, MOV, or AVI (max 50MB)</p>
-                        </div>
-                    )}
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="video/mp4,video/quicktime,video/x-msvideo"
-                        className="hidden"
-                        onChange={handleVideoChange}
-                    />
-                </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input 
-                    id="title" 
-                    placeholder="Your awesome video title" 
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Tell viewers about your video"
-                  className="resize-y min-h-[100px]"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-
-              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || !videoFile || !title.trim()}>
-                {isSubmitting ? <Loader2 className="animate-spin mr-2" /> : null}
-                {isSubmitting ? 'Uploading...' : 'Upload Video'}
-              </Button>
-            </CardContent>
-          </Card>
-        </form>
-      </div>
+        {/* Footer */}
+        <footer className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center p-8 bg-gradient-to-t from-black/50 to-transparent">
+            {/* Record Button */}
+            <div className="w-20 h-20 rounded-full bg-transparent border-4 border-white flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full bg-destructive/90 transition-transform active:scale-90"></div>
+            </div>
+        </footer>
     </div>
   );
 }
