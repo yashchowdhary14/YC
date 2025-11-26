@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth, useFirestore } from '@/firebase/provider';
-import { User } from 'firebase/auth';
+import { User, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, onSnapshot, DocumentData, deleteDoc, setDoc } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -98,8 +99,6 @@ export const useUser = (): UseUserHookResult => {
             // Let's assume for now we can't follow users not already known.
             // A better approach would be to look up the user ID from the username.
             // This is a placeholder for that logic.
-            // For now, we will simulate this by assuming a simple structure.
-            // This part of the logic needs to be built out more robustly.
             
             // This is a HACK to get the user ID from the username for dummy data.
             // In a real app, you would query the 'users' collection where 'username' == username.
