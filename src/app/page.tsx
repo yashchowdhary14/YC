@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Loader2, ArrowUp } from 'lucide-react';
 import type { Post, User } from '@/lib/types';
-import PostTile from '@/components/app/post-tile'; // Changed from PostCard
 import StoriesCarousel from '@/components/app/stories-carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-import { motion } from 'framer-motion';
+import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc, startAfter, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import ExploreGrid from '@/components/explore/ExploreGrid';
+import { useIntersection } from '@/hooks/use-intersection';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -39,14 +39,23 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
   )
 }
 
+const POSTS_PER_PAGE = 12;
+
 export default function Home() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   
-  const [displayedPosts, setDisplayedPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [suggestions, setSuggestions] = useState<User[]>([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
+
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -61,28 +70,59 @@ export default function Home() {
   }, [user, firestore]);
   const { data: followingList, isLoading: followingLoading } = useCollection<{id: string}>(followingQuery);
   const followingIds = useMemo(() => followingList?.map(f => f.id) || [], [followingList]);
-
-  // Fetch posts from users you follow
-  const postsQuery = useMemoFirebase(() => {
-    if (!user || followingIds.length === 0) return null;
-    // Firestore 'in' queries are limited to 10 elements.
-    // For a real app, you'd need a more complex feed generation system.
-    return query(collection(firestore, 'posts'), where('uploaderId', 'in', followingIds.slice(0, 10)));
-  }, [user, firestore, followingIds]);
-  const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
   
+  const fetchPosts = useCallback(async (lastVisible: QueryDocumentSnapshot<DocumentData> | null = null) => {
+    if (!user || followingIds.length === 0 || isLoadingMore) return;
+    setIsLoadingMore(true);
+
+    const postCollection = collection(firestore, 'posts');
+    const constraints = [
+        where('uploaderId', 'in', followingIds.slice(0, 10)),
+        orderBy('createdAt', 'desc'),
+        limit(POSTS_PER_PAGE)
+    ];
+
+    if (lastVisible) {
+        constraints.push(startAfter(lastVisible));
+    }
+    
+    const q = query(postCollection, ...constraints);
+    const postSnapshot = await getDocs(q);
+
+    const newPosts = postSnapshot.docs.map(doc => doc.data() as Post);
+    const lastVisibleDoc = postSnapshot.docs[postSnapshot.docs.length - 1];
+    
+    setPosts(prev => lastVisible ? [...prev, ...newPosts] : newPosts);
+    setLastDoc(lastVisibleDoc || null);
+    setHasMore(newPosts.length === POSTS_PER_PAGE);
+    setIsLoadingMore(false);
+  }, [user, firestore, followingIds, isLoadingMore]);
+
+
+  // Initial post fetch
+  useEffect(() => {
+    if (user && followingIds.length > 0 && posts.length === 0) {
+      fetchPosts();
+    }
+  }, [user, followingIds, fetchPosts, posts.length]);
+  
+  // Infinite scroll
+  useEffect(() => {
+    if (isLoaderVisible && hasMore && !isLoadingMore) {
+        fetchPosts(lastDoc);
+    }
+  }, [isLoaderVisible, hasMore, isLoadingMore, fetchPosts, lastDoc]);
+
   // Fetch suggestions for you
   useEffect(() => {
     if (user && firestore && !followingLoading) {
       const fetchSuggestions = async () => {
-        // IDs to exclude: current user + users they already follow
-        const excludedIds = [user.uid, ...followingIds].slice(0, 10); // Firestore 'not-in' has a limit of 10
-        
+        const excludedIds = [user.uid, ...followingIds].slice(0, 10);
         let q;
         if (excludedIds.length > 0) {
             q = query(collection(firestore, 'users'), where('id', 'not-in', excludedIds), limit(5));
         } else {
-            q = query(collection(firestore, 'users'), limit(6)); // Fetch 6 if following no one, to filter self out
+            q = query(collection(firestore, 'users'), limit(6));
         }
         
         const snapshot = await getDocs(q);
@@ -95,12 +135,6 @@ export default function Home() {
       fetchSuggestions();
     }
   }, [user, firestore, followingIds, followingLoading]);
-
-  useEffect(() => {
-    if (posts) {
-      setDisplayedPosts(posts);
-    }
-  }, [posts]);
 
   
   useEffect(() => {
@@ -120,7 +154,7 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || postsLoading || followingLoading) {
+  if (isUserLoading || followingLoading && posts.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -135,13 +169,10 @@ export default function Home() {
     const followRef = doc(firestore, `users/${user.uid}/following`, targetUser.id);
 
     if (isCurrentlyFollowing) {
-        // Unfollow
         await deleteDoc(followRef);
     } else {
-        // Follow
         await setDoc(followRef, { id: targetUser.id });
     }
-    // The useCollection hook will automatically update the UI
   };
 
   return (
@@ -153,23 +184,17 @@ export default function Home() {
                 <div className="md:border-b md:border-border md:pb-4">
                   <StoriesCarousel />
                 </div>
-                {displayedPosts.length > 0 ? (
-                  <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                        visible: {
-                            transition: {
-                                staggerChildren: 0.05,
-                            },
-                        },
-                    }}
-                    className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-0"
-                  >
-                    {displayedPosts.map((post) => (
-                      <PostTile key={post.id} post={post} />
-                    ))}
-                  </motion.div>
+                {posts.length > 0 ? (
+                    <>
+                        <div className="mt-4 md:mt-0">
+                            <ExploreGrid items={posts} />
+                        </div>
+                        {hasMore && (
+                            <div ref={loaderRef} className="flex justify-center items-center py-10">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                        )}
+                    </>
                 ) : (
                   <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
                     <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
