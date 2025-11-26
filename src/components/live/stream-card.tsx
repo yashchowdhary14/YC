@@ -10,10 +10,9 @@ import { formatCompactNumber } from '@/lib/utils';
 import { AspectRatio } from '../ui/aspect-ratio';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { WithId } from '@/firebase';
 
 interface StreamCardProps {
-  stream: WithId<LiveBroadcast>;
+  stream: LiveBroadcast;
 }
 
 export default function StreamCard({ stream }: StreamCardProps) {

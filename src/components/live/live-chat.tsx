@@ -2,8 +2,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,8 +10,6 @@ import { Send, Crown, Bot, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import type { LiveBroadcast, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { WithId } from '@/firebase/firestore/use-collection';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const userColors = [
   'text-red-400', 'text-green-400', 'text-blue-400', 
@@ -27,9 +24,8 @@ const getUserColor = (userId: string) => {
     return assignedColors[userId];
 };
 
-export default function LiveChat({ stream, messages, setMessages }: { stream: WithId<LiveBroadcast>, messages: WithId<LiveChatMessage>[], setMessages?: (messages: WithId<LiveChatMessage>[]) => void }) {
+export default function LiveChat({ stream, messages, setMessages }: { stream: LiveBroadcast, messages: LiveChatMessage[], setMessages: (messages: LiveChatMessage[]) => void }) {
   const { user: currentUser } = useUser();
-  const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
@@ -64,16 +60,18 @@ export default function LiveChat({ stream, messages, setMessages }: { stream: Wi
     
     setIsSending(true);
 
-    const messageData: Omit<LiveChatMessage, 'id'> = {
+    const messageData: LiveChatMessage = {
+      id: `msg-${Date.now()}`,
       userId: currentUser.uid,
       username: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
       text: newMessage,
-      timestamp: serverTimestamp(),
+      timestamp: new Date(),
     };
+    
+    // Simulate network delay and update local state
+    await new Promise(r => setTimeout(r, 200));
 
-    const messagesCol = collection(firestore, 'streams', stream.id, 'live-chat-messages');
-    addDocumentNonBlocking(messagesCol, messageData);
-
+    setMessages([...messages, messageData]);
     setNewMessage('');
     setIsSending(false);
   };

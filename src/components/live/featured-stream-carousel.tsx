@@ -16,14 +16,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { WithId } from '@/firebase';
 
 
 interface FeaturedStreamCarouselProps {
-    streams: WithId<LiveBroadcast>[];
+    streams: LiveBroadcast[];
 }
 
-function FeaturedStreamCard({ stream }: { stream: WithId<LiveBroadcast> }) {
+function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (

@@ -3,10 +3,9 @@
 
 import type { Category } from '@/lib/types';
 import CategoryCard from './category-card';
-import { WithId } from '@/firebase';
 
 interface CategoryGridProps {
-  categories: WithId<Category>[];
+  categories: Category[];
 }
 
 export default function CategoryGrid({ categories }: CategoryGridProps) {

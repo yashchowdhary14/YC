@@ -7,10 +7,9 @@ import type { Category } from '@/lib/types';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
-import { WithId } from '@/firebase';
 
 interface CategoryCardProps {
-  category: WithId<Category>;
+  category: Category;
 }
 
 export default function CategoryCard({ category }: CategoryCardProps) {

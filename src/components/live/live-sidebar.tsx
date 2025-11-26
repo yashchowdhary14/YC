@@ -8,14 +8,13 @@ import type { LiveBroadcast, Category } from '@/lib/types';
 import Link from 'next/link';
 import { formatCompactNumber } from '@/lib/utils';
 import { useSidebar } from '../ui/sidebar';
-import { WithId } from '@/firebase';
 
 interface LiveSidebarProps {
-  recommendedChannels: WithId<LiveBroadcast>[];
-  recommendedCategories: WithId<Category>[];
+  recommendedChannels: LiveBroadcast[];
+  recommendedCategories: Category[];
 }
 
-function ChannelItem({ channel }: { channel: WithId<LiveBroadcast> }) {
+function ChannelItem({ channel }: { channel: LiveBroadcast }) {
   const { setOpen } = useSidebar();
   return (
     <Link 
@@ -39,7 +38,7 @@ function ChannelItem({ channel }: { channel: WithId<LiveBroadcast> }) {
   );
 }
 
-function CategoryItem({ category }: { category: WithId<Category> }) {
+function CategoryItem({ category }: { category: Category }) {
     const { setOpen } = useSidebar();
     return (
      <Link 

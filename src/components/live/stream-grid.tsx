@@ -3,10 +3,9 @@
 
 import type { LiveBroadcast } from '@/lib/types';
 import StreamCard from './stream-card';
-import { WithId } from '@/firebase';
 
 interface StreamGridProps {
-  streams: WithId<LiveBroadcast>[];
+  streams: LiveBroadcast[];
 }
 
 export default function StreamGrid({ streams }: StreamGridProps) {
