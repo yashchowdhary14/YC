@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, PlayCircle } from 'lucide-react';
@@ -18,13 +19,27 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Post } from '@/lib/types'; // Assuming a generic Post type for now.
+import type { Post } from '@/lib/types';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 // Extend the Post type for our search grid needs
 interface SearchPost extends Post {
     type: 'photo' | 'video' | 'reel';
     span: 'row-span-1' | 'row-span-2' | 'col-span-1' | 'col-span-2';
 }
+
+// Dummy user data for search suggestions
+const dummyUsers = [
+  { id: 'user1', username: 'code_wizard', fullName: 'Alex Coder', avatarUrl: 'https://picsum.photos/seed/user1/100/100' },
+  { id: 'user2', username: 'design_diva', fullName: 'Brenda Designer', avatarUrl: 'https://picsum.photos/seed/user2/100/100' },
+  { id: 'user3', username: 'photo_phan', fullName: 'Chris Photographer', avatarUrl: 'https://picsum.photos/seed/user3/100/100' },
+  { id: 'user4', username: 'travel_bug', fullName: 'Diana Traveler', avatarUrl: 'https://picsum.photos/seed/user4/100/100' },
+  { id: 'user5', username: 'foodie_fiesta', fullName: 'Evan Eater', avatarUrl: 'https://picsum.photos/seed/user5/100/100' },
+  { id: 'user6', username: 'art_aficionado', fullName: 'Fiona Artist', avatarUrl: 'https://picsum.photos/seed/user6/100/100' },
+];
+
 
 function PostCard({ post }: { post: SearchPost }) {
     const isVideo = post.type === 'video' || post.type === 'reel';
@@ -60,6 +75,7 @@ function PostCard({ post }: { post: SearchPost }) {
 export default function SearchPage() {
     const firestore = useFirestore();
     const [searchTerm, setSearchTerm] = useState('');
+    const [isFocused, setIsFocused] = useState(false);
 
     const postsQuery = useMemoFirebase(
         () => (firestore ? query(collection(firestore, 'posts'), orderBy('createdAt', 'desc'), limit(25)) : null),
@@ -93,6 +109,15 @@ export default function SearchPage() {
         } as SearchPost;
     });
 
+    const filteredUsers = useMemo(() => {
+        if (!searchTerm) return [];
+        return dummyUsers.filter(user => 
+            user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [searchTerm]);
+
+    const showSearchResults = isFocused && searchTerm.length > 0;
 
   return (
     <SidebarProvider>
@@ -108,7 +133,7 @@ export default function SearchPage() {
         <AppHeader />
         <main className="bg-background min-h-[calc(100vh-4rem)]">
           <div className="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
-            <div className="sticky top-[calc(4rem+1px)] z-10 bg-background py-4 mb-4 -mt-4">
+            <div className="sticky top-[calc(4rem+1px)] z-20 bg-background py-4 mb-4 -mt-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -116,7 +141,33 @@ export default function SearchPage() {
                   className="w-full rounded-lg bg-muted pl-9"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setTimeout(() => setIsFocused(false), 150)} // Delay blur to allow click on results
                 />
+                 {showSearchResults && (
+                    <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
+                        {filteredUsers.length > 0 ? (
+                            filteredUsers.map(user => (
+                                <Link href={`/${user.username}`} key={user.id}>
+                                    <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
+                                        <Avatar>
+                                            <AvatarImage src={user.avatarUrl} alt={user.username} />
+                                            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="font-semibold text-sm">{user.username}</p>
+                                            <p className="text-xs text-muted-foreground">{user.fullName}</p>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))
+                        ) : (
+                            <div className="p-4 text-center text-sm text-muted-foreground">
+                                No users found.
+                            </div>
+                        )}
+                    </Card>
+                )}
               </div>
             </div>
 
