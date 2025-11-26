@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -27,17 +26,18 @@ function FeaturedStreamCard({ stream }: { stream: Stream }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0 md:gap-0.5">
-        <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-zinc-800 rounded-t-lg md:rounded-lg overflow-hidden group">
+        <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-zinc-800 rounded-t-lg md:rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
              <Image 
                 src={stream.thumbnailUrl!} 
                 alt={stream.title} 
                 fill 
                 className={cn(
-                  "object-cover transition-all duration-300 group-hover:scale-105",
+                  "object-cover transition-all duration-500 ease-in-out group-hover:scale-105",
                   isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
                 )}
                 onLoad={() => setIsLoaded(true)}
                 loading="lazy"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
              />
              <div className="absolute top-2 left-2 md:top-4 md:left-4">
                 <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-sm h-6 px-3">Live</Badge>
@@ -77,7 +77,6 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
         opts={{
           align: 'start',
           loop: true,
-          dragFree: true,
         }}
         className="w-full"
       >

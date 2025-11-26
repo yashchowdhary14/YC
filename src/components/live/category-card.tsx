@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -17,14 +16,14 @@ export default function CategoryCard({ category }: CategoryCardProps) {
 
   return (
     <Link href={`/live/category/${category.id}`} className="group block">
-      <div className="overflow-hidden rounded-lg bg-zinc-800">
+      <div className="overflow-hidden rounded-lg bg-zinc-800 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
         <AspectRatio ratio={3 / 4}>
           <Image
             src={category.thumbnailUrl}
             alt={category.name}
             fill
             className={cn(
-              "object-cover transition-all duration-300 group-hover:scale-105",
+              "object-cover transition-all duration-500 ease-in-out group-hover:scale-105",
               isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
             )}
             sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 15vw"

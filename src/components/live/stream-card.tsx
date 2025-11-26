@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -20,14 +19,14 @@ export default function StreamCard({ stream }: StreamCardProps) {
   
   return (
     <Link href={`/${stream.user.username}`} className="group">
-      <div className="relative mb-3 overflow-hidden rounded-lg">
+      <div className="relative mb-3 overflow-hidden rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
         <AspectRatio ratio={16 / 9} className="bg-zinc-800 rounded-lg overflow-hidden">
             <Image
                 src={stream.thumbnailUrl!}
                 alt={stream.title}
                 fill
                 className={cn(
-                  "object-cover transition-all duration-300 group-hover:scale-105",
+                  "object-cover transition-all duration-500 ease-in-out group-hover:scale-105",
                   isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
                 )}
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"

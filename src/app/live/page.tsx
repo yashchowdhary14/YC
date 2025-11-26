@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useMemo, useState, useCallback } from 'react';
@@ -17,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { collection, query, where, orderBy, limit } from 'firebase/firestore';
 import { seedDatabase } from '@/lib/seed-db';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 
 export default function LivePage() {
@@ -25,6 +25,11 @@ export default function LivePage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSeeding, setIsSeeding] = useState(false);
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+
+  useEffect(() => {
+    setIsPageLoaded(true);
+  }, []);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -104,7 +109,10 @@ export default function LivePage() {
                 </Button>
             </SidebarTrigger>
           </AppHeader>
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain">
+          <main className={cn(
+            "flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain transition-opacity duration-500 ease-in-out",
+            isPageLoaded ? "opacity-100" : "opacity-0"
+          )}>
               {isLoading ? (
                   <div className="flex h-full items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin" />
@@ -157,5 +165,3 @@ export default function LivePage() {
     </SidebarProvider>
   );
 }
-
-    
