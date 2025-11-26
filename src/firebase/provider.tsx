@@ -2,6 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
+import { dummyFollows } from '@/lib/dummy-data';
 
 // Mock User type to match Firebase Auth User object structure
 interface MockUser {
@@ -14,11 +15,13 @@ interface MockUser {
 interface UserAuthState {
   user: MockUser | null;
   isUserLoading: boolean;
+  followedUsers: Set<string>;
 }
 
 export interface FirebaseContextState extends UserAuthState {
   login: (user: MockUser) => void;
   logout: () => void;
+  toggleFollow: (username: string) => void;
 }
 
 export type UserHookResult = FirebaseContextState;
@@ -26,41 +29,64 @@ export type UserHookResult = FirebaseContextState;
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
+  const [userAuthState, setUserAuthState] = useState<Omit<UserAuthState, 'followedUsers'>>({
     user: null,
     isUserLoading: true,
   });
+  const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Try to load user from localStorage on initial load
     try {
       const storedUser = localStorage.getItem('dummyUser');
       if (storedUser) {
-        setUserAuthState({ user: JSON.parse(storedUser), isUserLoading: false });
+        const user = JSON.parse(storedUser);
+        setUserAuthState({ user, isUserLoading: false });
+        const initialFollows = new Set(dummyFollows[user.uid] || []);
+        setFollowedUsers(initialFollows);
       } else {
         setUserAuthState({ user: null, isUserLoading: false });
+        setFollowedUsers(new Set());
       }
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
       setUserAuthState({ user: null, isUserLoading: false });
+      setFollowedUsers(new Set());
     }
   }, []);
 
   const login = useCallback((user: MockUser) => {
     localStorage.setItem('dummyUser', JSON.stringify(user));
     setUserAuthState({ user, isUserLoading: false });
+    const initialFollows = new Set(dummyFollows[user.uid] || []);
+    setFollowedUsers(initialFollows);
   }, []);
 
   const logout = useCallback(() => {
     localStorage.removeItem('dummyUser');
     setUserAuthState({ user: null, isUserLoading: false });
+    setFollowedUsers(new Set());
+  }, []);
+
+  const toggleFollow = useCallback((username: string) => {
+    setFollowedUsers(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(username)) {
+            newSet.delete(username);
+        } else {
+            newSet.add(username);
+        }
+        return newSet;
+    });
   }, []);
 
   const contextValue = useMemo(() => ({
     ...userAuthState,
+    followedUsers,
     login,
     logout,
-  }), [userAuthState, login, logout]);
+    toggleFollow,
+  }), [userAuthState, followedUsers, login, logout, toggleFollow]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>

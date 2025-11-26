@@ -120,9 +120,8 @@ export default function AppHeader() {
                     <DropdownMenuItem asChild>
                         <NextLink href="/profile"><User className="mr-2 h-4 w-4"/>Profile</NextLink>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Users className="mr-2 h-4 w-4"/>
-                        <span>Following</span>
+                    <DropdownMenuItem asChild>
+                        <NextLink href="/following"><Users className="mr-2 h-4 w-4"/>Following</NextLink>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

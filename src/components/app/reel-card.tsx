@@ -39,15 +39,18 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     }, [reel, onUpdateReel]);
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        if (e.detail === 2) {
+        // Check if the click is on the video element itself, not on buttons
+        if ((e.target as HTMLElement).tagName === 'VIDEO') {
             handleLikeToggle();
         }
     };
     
-    const handleToggleMute = () => {
+    const handleToggleMute = (e: React.MouseEvent) => {
+        e.stopPropagation();
         if (videoRef.current) {
-            videoRef.current.muted = !videoRef.current.muted;
-            setIsMuted(videoRef.current.muted);
+            const newMutedState = !videoRef.current.muted;
+            videoRef.current.muted = newMutedState;
+            setIsMuted(newMutedState);
         }
     };
 
@@ -57,7 +60,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     };
 
     return (
-        <div className="relative h-full w-full rounded-lg overflow-hidden" onClick={handleDoubleClick}>
+        <div className="relative h-full w-full rounded-lg overflow-hidden" onDoubleClick={handleDoubleClick}>
             <video
                 ref={videoRef}
                 src={reel.videoUrl}
@@ -65,15 +68,16 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                 muted={isMuted}
                 className="h-full w-full object-cover"
                 playsInline
+                onClick={handleToggleMute}
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
             {showBigHeart && (
-                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-white/90 fill-white/90 animate-heart-pop" />
+                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-white/90 fill-white/90 animate-heart-pop pointer-events-none" />
             )}
             
-            <div onClick={(e) => { e.stopPropagation(); handleToggleMute(); }} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
+            <div onClick={handleToggleMute} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
                 {isMuted ? <VolumeX className="h-5 w-5 text-white" /> : <Volume2 className="h-5 w-5 text-white" />}
             </div>
 

@@ -10,6 +10,7 @@ import {
   Search,
   User,
   Clapperboard,
+  Users,
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,7 +23,7 @@ const links = [
   { href: '/search', label: 'Explore', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
-  { href: '/notifications', label: 'Notifications', icon: Heart },
+  { href: '/following', label: 'Following', icon: Users },
   { href: '/create', label: 'Create', icon: PlusSquare },
 ];
 
