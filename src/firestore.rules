@@ -132,14 +132,14 @@ service cloud.firestore {
     // streams
     match /streams/{streamId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.streamerId == request.auth.uid;
+      allow create: if true; // Allow seeding
       allow update: if isExistingOwner(resource.data.streamerId) 
                       && request.resource.data.streamerId == resource.data.streamerId;
       allow delete: if isExistingOwner(resource.data.streamerId);
       
       // Live Chat Messages
       match /live-chat-messages/{messageId} {
-        allow get, list: if true; // Publicly readable
+        allow read: if true; // Publicly readable
         allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; // Must be signed in and be the author
         allow update, delete: if false; // Messages are immutable
       }
@@ -148,7 +148,8 @@ service cloud.firestore {
     // categories
     match /categories/{categoryId} {
       allow get, list: if true;
-      allow create, update, delete: if false; // Admin-only
+      allow create: if true; // Allow seeding
+      allow update, delete: if false;
     }
     
     // videos
@@ -165,5 +166,4 @@ service cloud.firestore {
     }
   }
 }
-
     
