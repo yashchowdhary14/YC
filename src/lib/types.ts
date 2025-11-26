@@ -50,6 +50,7 @@ export interface Video {
   user: User;
   views: number;
   createdAt: Date;
+  category: string;
 }
 
 export interface Message {

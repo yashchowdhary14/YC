@@ -100,6 +100,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[3], avatarUrl: `https://picsum.photos/seed/${dummyUsers[3].id}/100/100` },
     views: 150234,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    category: 'Tech',
   },
   {
     id: 'vid_2',
@@ -109,6 +110,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
     views: 89034,
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    category: 'Food',
   },
   {
     id: 'vid_3',
@@ -118,6 +120,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
     views: 1200543,
     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+    category: 'Tech',
   },
   {
     id: 'vid_4',
@@ -127,6 +130,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[8], avatarUrl: `https://picsum.photos/seed/${dummyUsers[8].id}/100/100` },
     views: 4523,
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    category: 'Science',
   },
   {
     id: 'vid_5',
@@ -136,6 +140,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
     views: 230987,
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1 month ago
+    category: 'Travel',
   },
   {
     id: 'vid_6',
@@ -145,6 +150,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
     views: 76543,
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+    category: 'Art',
   },
     {
     id: 'vid_7',
@@ -154,6 +160,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[5], avatarUrl: `https://picsum.photos/seed/${dummyUsers[5].id}/100/100` },
     views: 12345,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    category: 'Fitness',
   },
   {
     id: 'vid_8',
@@ -163,6 +170,7 @@ export const dummyVideos: Video[] = [
     user: { ...dummyUsers[0], avatarUrl: `https://picsum.photos/seed/${dummyUsers[0].id}/100/100` },
     views: 2500000,
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+    category: 'Sports',
   },
 ];
 
