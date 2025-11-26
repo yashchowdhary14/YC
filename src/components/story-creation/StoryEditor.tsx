@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType } from '@/lib/story-creation-store';
@@ -5,16 +6,22 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Type, Pen } from 'lucide-react';
 import TextElement from './TextElement';
+import DrawingCanvas from './DrawingCanvas';
+import { useState } from 'react';
+import { Button } from '../ui/button';
 
 export default function StoryEditor() {
   const activeSlide = useActiveStorySlide();
   const reset = useStoryCreationStore((s) => s.reset);
   const updateSlide = useStoryCreationStore((s) => s.updateSlide);
   const router = useRouter();
+  
+  const [isDrawing, setIsDrawing] = useState(false);
 
   const handleBack = () => {
     reset();
-    router.back();
+    // Instead of router.back(), which might not be reliable, we go to a known page.
+    router.push('/create');
   }
   
   const addTextElement = () => {
@@ -31,20 +38,29 @@ export default function StoryEditor() {
     };
     updateSlide(activeSlide.id, { texts: [...activeSlide.texts, newText] });
   };
+  
+  const toggleDrawing = () => {
+    if (isDrawing) {
+        // Here you might want to confirm changes or just exit drawing mode
+    }
+    setIsDrawing(!isDrawing);
+  }
 
   if (!activeSlide) {
+    // This case can happen if the page is reloaded or state is lost.
+    // We should redirect to a safe page.
     if (typeof window !== 'undefined') {
        router.replace('/create');
     }
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
+      <div className="flex flex-col items-center justify-center h-full gap-4 bg-black text-white">
         <p>Loading story editor...</p>
       </div>
     );
   }
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full bg-black">
       {/* Media Preview */}
       <div className="absolute inset-0">
         {activeSlide.media.type === 'photo' ? (
@@ -66,32 +82,39 @@ export default function StoryEditor() {
       </div>
       
        {/* Interactive Elements */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 pointer-events-none">
         {activeSlide.texts.map(text => (
             <TextElement key={text.id} element={text} slideId={activeSlide.id} />
         ))}
       </div>
-
+      
+      {isDrawing && <DrawingCanvas />}
 
       {/* Header Tools */}
-      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+      <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-b from-black/50 to-transparent z-30">
         <div className="flex items-center justify-between">
            <button onClick={handleBack} className="p-2 text-white">
               <ArrowLeft className="h-7 w-7" />
            </button>
-            <div className="flex items-center gap-4">
-                <button onClick={() => {}} className="p-2 text-white">
-                    <Pen className="h-7 w-7" />
-                </button>
-                <button onClick={addTextElement} className="p-2 text-white">
-                    <Type className="h-7 w-7" />
-                </button>
+            <div className="flex items-center gap-2 sm:gap-4">
+                 {isDrawing ? (
+                   <Button onClick={toggleDrawing} variant="secondary" size="sm">Done</Button>
+                ) : (
+                   <>
+                    <button onClick={toggleDrawing} className="p-2 text-white">
+                        <Pen className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                    <button onClick={addTextElement} className="p-2 text-white">
+                        <Type className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                   </>
+                )}
             </div>
         </div>
       </div>
       
       {/* Footer / Sharing Tools */}
-       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent z-30">
           <div className="flex items-center justify-end">
             <button className="bg-white text-black font-bold py-2 px-6 rounded-full">
                 Post Story

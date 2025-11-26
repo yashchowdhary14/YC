@@ -9,6 +9,7 @@ import { Wand2, Loader2, Tag, MapPin, ChevronRight } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Label } from '../ui/label';
 import { Switch } from '../ui/switch';
+import { ScrollArea } from '../ui/scroll-area';
 
 interface DetailsFormProps {
     onGenerateCaption: () => void;
@@ -31,7 +32,7 @@ const DetailsForm = ({ onGenerateCaption }: DetailsFormProps) => {
     return (
         <div className="w-full h-full flex flex-col text-white bg-black">
             <div className="p-4 flex gap-4 border-b border-gray-800">
-                <div className="w-24 h-24 relative rounded-md overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 md:w-24 md:h-24 relative rounded-md overflow-hidden flex-shrink-0">
                     <Image src={activeMedia.previewUrl} alt="preview" fill className="object-cover" />
                 </div>
                 <div className="flex-1 relative">
@@ -54,46 +55,48 @@ const DetailsForm = ({ onGenerateCaption }: DetailsFormProps) => {
                     </Button>
                 </div>
             </div>
-            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <Tag />
-                    <span>Tag people</span>
+            <ScrollArea className="flex-1">
+                <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Tag />
+                        <span>Tag people</span>
+                    </div>
+                    <ChevronRight className="text-gray-500" />
                 </div>
-                <ChevronRight className="text-gray-500" />
-            </div>
-             <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <MapPin />
-                    <span>Add location</span>
+                 <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <MapPin />
+                        <span>Add location</span>
+                    </div>
+                    <ChevronRight className="text-gray-500" />
                 </div>
-                <ChevronRight className="text-gray-500" />
-            </div>
 
-            <Accordion type="single" collapsible className="w-full px-4">
-              <AccordionItem value="item-1" className="border-b-gray-800">
-                <AccordionTrigger className="hover:no-underline">Advanced settings</AccordionTrigger>
-                <AccordionContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="hide-likes" className="pr-4">Hide like and view counts on this post</Label>
-                        <Switch 
-                            id="hide-likes"
-                            checked={hideLikes}
-                            onCheckedChange={setHideLikes}
-                        />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="disable-comments" className="pr-4">Turn off commenting</Label>
-                        <Switch 
-                            id="disable-comments"
-                            checked={disableComments}
-                            onCheckedChange={setDisableComments}
-                        />
-                    </div>
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                <Accordion type="single" collapsible className="w-full px-4">
+                  <AccordionItem value="item-1" className="border-b-gray-800">
+                    <AccordionTrigger className="hover:no-underline">Advanced settings</AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="hide-likes" className="pr-4">Hide like and view counts on this post</Label>
+                            <Switch 
+                                id="hide-likes"
+                                checked={hideLikes}
+                                onCheckedChange={setHideLikes}
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="disable-comments" className="pr-4">Turn off commenting</Label>
+                            <Switch 
+                                id="disable-comments"
+                                checked={disableComments}
+                                onCheckedChange={setDisableComments}
+                            />
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+            </ScrollArea>
         </div>
     );
 };
