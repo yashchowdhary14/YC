@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,14 @@ import { useToast } from '@/hooks/use-toast';
 import { fileToDataUri, uploadFile } from '@/lib/utils';
 import { generateAiCaption, GenerateAiCaptionInput } from '@/ai/flows/generate-ai-caption';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useCapturedMedia } from '@/lib/captured-media-store';
 
 export default function CreatePostPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const { capturedMedia, setCapturedMedia } = useCapturedMedia();
   
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -26,6 +28,16 @@ export default function CreatePostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (capturedMedia) {
+        setImageFile(capturedMedia);
+        const previewUrl = URL.createObjectURL(capturedMedia);
+        setImagePreview(previewUrl);
+        // Clean up the captured media so it's not reused
+        setCapturedMedia(null);
+    }
+  }, [capturedMedia, setCapturedMedia]);
 
   const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,16 +65,14 @@ export default function CreatePostPage() {
     try {
         const dataUri = await fileToDataUri(imageFile);
         
-        // Enhance AI input with user profile data if available
         const input: GenerateAiCaptionInput = {
             mediaDataUri: dataUri,
             ...(user && {
               userProfile: {
                 username: user.displayName || user.email?.split('@')[0] || '',
-                // In a real app, you'd fetch the user's bio from their profile
                 bio: 'A passionate creator sharing my world.', 
-                followers: [], // Dummy data, replace with real data if available
-                following: [], // Dummy data, replace with real data if available
+                followers: [],
+                following: [],
               }
             })
         };
@@ -90,10 +100,8 @@ export default function CreatePostPage() {
     setIsSubmitting(true);
     
     try {
-      // 1. Upload image to Firebase Storage
       const imageUrl = await uploadFile(imageFile, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
 
-      // 2. Create post document in Firestore
       const postsCollection = collection(firestore, 'posts');
       await addDoc(postsCollection, {
         type: 'photo',
@@ -101,7 +109,7 @@ export default function CreatePostPage() {
         thumbnailUrl: imageUrl,
         uploaderId: user.uid,
         caption: caption,
-        tags: ['photography'], // Example tags, can be improved
+        tags: ['photography'],
         views: 0,
         likes: 0,
         commentsCount: 0,
@@ -194,3 +202,5 @@ export default function CreatePostPage() {
     </div>
   );
 }
+
+    
