@@ -15,7 +15,15 @@ interface DetailsFormProps {
 }
 
 const DetailsForm = ({ onGenerateCaption }: DetailsFormProps) => {
-    const { caption, setCaption, isGeneratingCaption } = usePostCreationStore();
+    const { 
+        caption, 
+        setCaption, 
+        isGeneratingCaption,
+        hideLikes,
+        setHideLikes,
+        disableComments,
+        setDisableComments
+    } = usePostCreationStore();
     const activeMedia = useActiveMedia();
 
     if (!activeMedia) return null;
@@ -67,12 +75,20 @@ const DetailsForm = ({ onGenerateCaption }: DetailsFormProps) => {
                 <AccordionContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="hide-likes">Hide like and view counts on this post</Label>
-                        <Switch id="hide-likes" />
+                        <Label htmlFor="hide-likes" className="pr-4">Hide like and view counts on this post</Label>
+                        <Switch 
+                            id="hide-likes"
+                            checked={hideLikes}
+                            onCheckedChange={setHideLikes}
+                        />
                     </div>
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="disable-comments">Turn off commenting</Label>
-                        <Switch id="disable-comments" />
+                        <Label htmlFor="disable-comments" className="pr-4">Turn off commenting</Label>
+                        <Switch 
+                            id="disable-comments"
+                            checked={disableComments}
+                            onCheckedChange={setDisableComments}
+                        />
                     </div>
                   </div>
                 </AccordionContent>
