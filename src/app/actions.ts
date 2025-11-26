@@ -288,16 +288,18 @@ export async function createOrGetChat(user1Id: string, user2Id: string) {
         const chatDoc = await getDoc(chatRef);
 
         if (!chatDoc.exists()) {
-            const batch = writeBatch(firestore);
-            batch.set(chatRef, {
+             // Create the chat document first in its own transaction
+            await setDoc(chatRef, {
                 id: chatId,
                 users: sortedIds,
                 lastUpdated: serverTimestamp(),
                 lastMessage: null,
             });
-
-            // Add initial messages
+            
+            // Then, in a separate batch, add the initial messages.
+            const batch = writeBatch(firestore);
             const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+            
             const message1 = {
                 chatId,
                 senderId: user1Id,
