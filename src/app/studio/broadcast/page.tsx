@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { dummyStreams, dummyUsers } from '@/lib/dummy-data';
+import LiveChat from '@/components/live/live-chat';
 
 // A simple local storage based state management for dummy data
 const updateDummyStreams = (updatedStream: any) => {
@@ -53,6 +54,17 @@ export default function BroadcastPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   
+  const streamer = useUser().user ? {
+    id: useUser().user!.uid,
+    username: useUser().user!.displayName || '',
+    avatarUrl: useUser().user!.photoURL || '',
+    fullName: useUser().user!.displayName || '',
+    bio: '',
+    followersCount: 0,
+    followingCount: 0,
+    verified: false,
+  } : null;
+
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
@@ -145,7 +157,7 @@ export default function BroadcastPage() {
   };
 
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || !user || !streamer) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -165,84 +177,87 @@ export default function BroadcastPage() {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="min-h-[calc(100vh-4rem)] bg-background">
-          <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-            <h1 className="text-3xl font-bold mb-4">Stream Dashboard</h1>
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div>
-                        <CardTitle>Manage Your Broadcast</CardTitle>
-                        <CardDescription>Setup your stream details and go live to your audience.</CardDescription>
+        <main className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 min-h-[calc(100vh-4rem)]">
+            <div className="md:col-span-2 lg:col-span-3 p-4 sm:p-6 lg:p-8">
+                <h1 className="text-3xl font-bold mb-4">Stream Dashboard</h1>
+                <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <div>
+                            <CardTitle>Manage Your Broadcast</CardTitle>
+                            <CardDescription>Setup your stream details and go live to your audience.</CardDescription>
+                        </div>
+                        {isLive ? (
+                            <div className="flex items-center gap-2 text-red-500 font-semibold px-3 py-1 rounded-md bg-red-500/10">
+                                <Wifi className="h-4 w-4"/>
+                                <span>Live</span>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-2 text-muted-foreground font-semibold px-3 py-1 rounded-md bg-secondary">
+                                <VideoOff className="h-4 w-4"/>
+                                <span>Offline</span>
+                            </div>
+                        )}
                     </div>
-                    {isLive ? (
-                        <div className="flex items-center gap-2 text-red-500 font-semibold px-3 py-1 rounded-md bg-red-500/10">
-                            <Wifi className="h-4 w-4"/>
-                            <span>Live</span>
-                        </div>
-                    ) : (
-                         <div className="flex items-center gap-2 text-muted-foreground font-semibold px-3 py-1 rounded-md bg-secondary">
-                            <VideoOff className="h-4 w-4"/>
-                            <span>Offline</span>
-                        </div>
-                    )}
-                </div>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="stream-title">Stream Title</Label>
-                    <Input 
-                        id="stream-title"
-                        placeholder="My Awesome Live Stream"
-                        value={streamTitle}
-                        onChange={(e) => setStreamTitle(e.target.value)}
-                        disabled={isLive || isLoading}
-                    />
-                  </div>
-                  <div>
-                    {isLive ? (
-                        <Button onClick={handleStopStream} variant="destructive" className="w-full" disabled={isLoading}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <VideoOff className="mr-2 h-4 w-4"/>}
-                            Stop Stream
-                        </Button>
-                    ) : (
-                        <Button onClick={handleGoLive} className="w-full" disabled={isLoading || hasCameraPermission === false}>
-                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Video className="mr-2 h-4 w-4"/>}
-                            Go Live
+                </CardHeader>
+                <CardContent className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                    <div>
+                        <Label htmlFor="stream-title">Stream Title</Label>
+                        <Input 
+                            id="stream-title"
+                            placeholder="My Awesome Live Stream"
+                            value={streamTitle}
+                            onChange={(e) => setStreamTitle(e.target.value)}
+                            disabled={isLoading}
+                        />
+                    </div>
+                    <div>
+                        {isLive ? (
+                            <Button onClick={handleStopStream} variant="destructive" className="w-full" disabled={isLoading}>
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <VideoOff className="mr-2 h-4 w-4"/>}
+                                Stop Stream
+                            </Button>
+                        ) : (
+                            <Button onClick={handleGoLive} className="w-full" disabled={isLoading || hasCameraPermission === false}>
+                                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Video className="mr-2 h-4 w-4"/>}
+                                Go Live
+                            </Button>
+                        )}
+                    </div>
+                    {isLive && (
+                        <Button onClick={() => handleUpdateStream(true, streamTitle)} variant="outline" className="w-full" disabled={isLoading}>
+                            {isLoading && streamTitle !== (dummyStreams.find(s => s.streamerId === user?.uid)?.title) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
+                            Update Stream Info
                         </Button>
                     )}
-                  </div>
-                  {isLive && (
-                     <Button onClick={() => handleUpdateStream(true, streamTitle)} variant="outline" className="w-full" disabled={isLoading}>
-                        {isLoading && streamTitle !== (dummyStreams.find(s => s.streamerId === user?.uid)?.title) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
-                        Update Stream Info
-                    </Button>
-                  )}
-                </div>
-                <div className="relative flex flex-col items-center justify-center bg-muted rounded-lg p-4 aspect-video">
-                    <video ref={videoRef} className="w-full h-full rounded-md object-cover" autoPlay muted playsInline style={{ display: hasCameraPermission ? 'block' : 'none'}}/>
-                    
-                    {hasCameraPermission === null && (
-                        <div className="text-center">
-                            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-                            <p>Requesting camera access...</p>
-                        </div>
-                    )}
+                    </div>
+                    <div className="relative flex flex-col items-center justify-center bg-muted rounded-lg p-4 aspect-video">
+                        <video ref={videoRef} className="w-full h-full rounded-md object-cover" autoPlay muted playsInline style={{ display: hasCameraPermission ? 'block' : 'none'}}/>
+                        
+                        {hasCameraPermission === null && (
+                            <div className="text-center">
+                                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+                                <p>Requesting camera access...</p>
+                            </div>
+                        )}
 
-                    {hasCameraPermission === false && (
-                         <Alert variant="destructive">
-                            <VideoOff className="h-4 w-4"/>
-                            <AlertTitle>Camera Access Required</AlertTitle>
-                            <AlertDescription>
-                                Please allow camera access in your browser to use this feature.
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                        {hasCameraPermission === false && (
+                            <Alert variant="destructive">
+                                <VideoOff className="h-4 w-4"/>
+                                <AlertTitle>Camera Access Required</AlertTitle>
+                                <AlertDescription>
+                                    Please allow camera access in your browser to use this feature.
+                                </AlertDescription>
+                            </Alert>
+                        )}
+                    </div>
+                </CardContent>
+                </Card>
+            </div>
+            <div className="md:col-span-1 lg:col-span-1 border-l h-[calc(100vh-4rem)] hidden md:flex">
+                <LiveChat streamer={streamer} />
+            </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
