@@ -36,6 +36,7 @@ export interface LiveBroadcast {
   category: string;
   title: string;
   isLive: boolean;
+  streamUrl: string;
   type?: 'live';
 }
 

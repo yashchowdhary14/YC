@@ -66,7 +66,7 @@ export default function LiveWatchPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         <main className="lg:col-span-9 flex flex-col overflow-y-auto">
           <div className="aspect-video">
-             <LiveStreamPlayer src={'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}/>
+             <LiveStreamPlayer src={stream.streamUrl}/>
           </div>
           <div className="p-4 flex-1">
              <StreamInfo streamer={streamer} stream={{...stream, viewers: stream.viewerCount}} />

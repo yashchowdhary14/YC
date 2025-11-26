@@ -1,16 +1,17 @@
 
 import { collection, writeBatch, doc, Firestore } from "firebase/firestore";
-import { dummyUsers } from "./dummy-data";
+import { dummyUsers, dummyLiveBroadcasts as dummyBroadcastsData } from "./dummy-data";
 import { LiveBroadcast, Category, Post } from "./types";
 
-const streamsToSeed: Omit<LiveBroadcast, 'id' | 'user' >[] = [
-    { streamerId: 'user_sachin', streamerName: 'sachin', title: 'Cricket Practice', category: 'Sports', isLive: true, viewerCount: 75000, liveThumbnail: 'https://picsum.photos/seed/stream_sachin/640/360' },
-    { streamerId: 'user_sakshi', streamerName: 'sakshi', title: 'Workout Session', category: 'Fitness', isLive: true, viewerCount: 52000, liveThumbnail: 'https://picsum.photos/seed/stream_sakshi/640/360' },
-    { streamerId: 'user_wanderlust_lila', streamerName: 'wanderlust_lila', title: 'Exploring Tokyo', category: 'Travel', isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_lila/640/360' },
-    { streamerId: 'user_ethan_bytes', streamerName: 'ethan_bytes', title: 'Coding a new project', category: 'Tech', isLive: true, viewerCount: 1200, liveThumbnail: 'https://picsum.photos/seed/stream_ethan/640/360' },
-    { streamerId: 'user_maya_creates', streamerName: 'maya_creates', title: 'Live Painting Session', category: 'Art', isLive: true, viewerCount: 9800, liveThumbnail: 'https://picsum.photos/seed/stream_maya/640/360' },
-    { streamerId: 'user_sam_reviews', streamerName: 'sam_reviews', title: 'Unboxing the new phone!', category: 'Tech', isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_sam/640/360' },
-];
+// This function now just transforms the imported dummy data
+const streamsToSeed = (): Omit<LiveBroadcast, 'id' | 'user' >[] => {
+  return dummyBroadcastsData.map(stream => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { liveId, user, avatarUrl, ...rest } = stream;
+    return rest;
+  });
+};
+
 
 const dummyCategories: Category[] = [
     { id: 'just-chatting', name: 'Just Chatting', thumbnailUrl: 'https://picsum.photos/seed/cat_chat/300/400' },
@@ -32,7 +33,7 @@ export async function seedDatabase(db: Firestore) {
 
   // Seed Streams
   const streamsCol = collection(db, "streams");
-  streamsToSeed.forEach((streamData) => {
+  streamsToSeed().forEach((streamData) => {
     const user = dummyUsers.find(u => u.id === streamData.streamerId);
     if (!user) return;
     
