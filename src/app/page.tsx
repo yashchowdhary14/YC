@@ -9,15 +9,12 @@ import type { Post, User } from '@/lib/types';
 import { dummyUsers, dummyPosts, dummyFollows } from '@/lib/dummy-data';
 import PostCard from '@/components/app/post-card';
 import SidebarNav from '@/components/app/sidebar-nav';
-import AppHeader from '@/components/app/header';
 import StoriesCarousel from '@/components/app/stories-carousel';
 import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
   SidebarFooter,
-  SidebarInset,
-  SidebarProvider,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
@@ -123,13 +120,6 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [isLoaderVisible, hasMore, loadMorePosts]);
-
-  const handleSignOut = () => {
-    if (logout) {
-      logout();
-      router.push('/login');
-    }
-  };
   
   useEffect(() => {
     const handleScroll = () => {
@@ -157,16 +147,20 @@ export default function Home() {
   }
 
   return (
-    <SidebarProvider>
       <div className="flex min-h-svh bg-background">
-        <div className="fixed left-0 top-0 h-full z-50 hidden md:flex flex-col border-r bg-background p-3 gap-4 w-20">
+        <div className="fixed left-0 top-0 h-full z-10 hidden lg:flex flex-col border-r bg-background w-72">
+           <div className="h-14 flex items-center border-b p-4">
+             <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+           </div>
+           <SidebarNav />
+        </div>
+        <div className="fixed left-0 top-0 h-full z-10 hidden md:flex lg:hidden flex-col border-r bg-background p-3 gap-4 w-20">
             <div className="p-2">
                  <svg aria-label="Instagram" fill="currentColor" height="24" role="img" viewBox="0 0 48 48" width="24"><path d="M32.8,0.6c-4.3,0-4.8,0-13.6,0C4.9,0.6,0.6,4.9,0.6,19.2c0,8.7,0,9.3,0,13.6c0,14.3,4.3,18.6,18.6,18.6c8.7,0,9.3,0,13.6,0c14.3,0,18.6-4.3,18.6-18.6c0-4.3,0-4.8,0-13.6C51.4,4.9,47.1,0.6,32.8,0.6z M47.4,32.8c0,12.1-3.4,15.4-15.4,15.4c-8.7,0-9.2,0-13.6,0c-12.1,0-15.4-3.4-15.4-15.4c0-8.7,0-9.2,0-13.6c0-12.1,3.4-15.4,15.4-15.4c4.5,0,4.9,0,13.6,0c12.1,0,15.4,3.4,15.4,15.4C47.4,23.6,47.4,24.2,47.4,32.8z"></path><path d="M25.9,12.5c-7.4,0-13.4,6-13.4,13.4s6,13.4,13.4,13.4s13.4-6,13.4-13.4S33.3,12.5,25.9,12.5z M25.9,35.3c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4s9.4,4.2,9.4,9.4S31.1,35.3,25.9,35.3z"></path><circle cx="38.3" cy="11.1" r="3.2"></circle></svg>
             </div>
             <SidebarNav isCollapsed />
         </div>
-        <main className="flex-1 md:ml-20 lg:ml-72 bg-background min-h-svh">
-            <AppHeader />
+        <main className="flex-1 md:ml-20 lg:ml-72 bg-background min-h-svh pt-14">
             <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2" ref={feedContainerRef}>
@@ -182,7 +176,7 @@ export default function Home() {
                         <p className="mt-2">Your feed is empty.</p>
                         <p>Start following people to see their posts here.</p>
                         <Button asChild className="mt-4">
-                            <Link href="/search">Find People to Follow</Link>
+                            <Link href="/explore">Find People to Follow</Link>
                         </Button>
                         </div>
                     )}
@@ -214,7 +208,7 @@ export default function Home() {
             {showBackToTop && (
                 <Button
                     onClick={scrollToTop}
-                    className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+                    className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
                     size="icon"
                 >
                     <ArrowUp className="h-6 w-6" />
@@ -223,6 +217,5 @@ export default function Home() {
             )}
         </main>
       </div>
-    </SidebarProvider>
   );
 }

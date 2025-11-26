@@ -3,17 +3,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@/firebase';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import ChatList from '@/components/messages/chat-list';
 import ChatDisplay from '@/components/messages/chat-display';
@@ -22,6 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { dummyChats, dummyUsers } from '@/lib/dummy-data';
+import { Button } from '@/components/ui/button';
 
 export default function MessagesPage() {
   const { user } = useUser();
@@ -71,83 +61,46 @@ export default function MessagesPage() {
 
   if (isMobile) {
     return (
-      <SidebarProvider>
-        <main className="min-h-svh bg-background">
-          <Sidebar>
-            <SidebarHeader>
-              <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarNav />
-            </SidebarContent>
-          </Sidebar>
-
-          <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
-            <AppHeader>
-                <SidebarTrigger>
-                    <Button variant="ghost" size="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                    </Button>
-                </SidebarTrigger>
-            </AppHeader>
-            <div className="p-4 border-b">
-              <h1 className="text-xl font-semibold">Messages</h1>
-            </div>
-            <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
+      <main className="min-h-screen bg-background pt-14">
+        <div className={cn('h-[calc(100vh-3.5rem)] flex flex-col', showChatList ? 'block' : 'hidden')}>
+          <div className="p-4 border-b">
+            <h1 className="text-xl font-semibold">Messages</h1>
           </div>
-          
-          <div className={cn('h-svh flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
-            {selectedChat ? (
-              <ChatDisplay
-                chatId={selectedChat.id}
-                onBack={() => setSelectedChatId(null)}
-              />
-            ) : null}
-          </div>
-        </main>
-      </SidebarProvider>
+          <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
+        </div>
+        
+        <div className={cn('h-screen flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
+          {selectedChat ? (
+            <ChatDisplay
+              chatId={selectedChat.id}
+              onBack={() => setSelectedChatId(null)}
+            />
+          ) : null}
+        </div>
+      </main>
     );
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </Button>
-            </SidebarTrigger>
-        </AppHeader>
-        <main className="min-h-[calc(100vh-4rem)] bg-background">
-          <div className="grid grid-cols-12 border-t h-[calc(100vh-4rem)]">
-            <div className="col-span-4 border-r">
-              <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} />
-            </div>
-            <div className="col-span-8">
-              {selectedChat ? (
-                <ChatDisplay chatId={selectedChat.id} />
-              ) : (
-                <div className="flex h-full flex-col items-center justify-center text-muted-foreground text-center">
-                  <div className="h-24 w-24 rounded-full border-2 border-foreground flex items-center justify-center mb-4">
-                    <svg aria-label="Direct" fill="currentColor" height="48" role="img" viewBox="0 0 96 96" width="48"><path d="M48 0C21.532 0 0 21.533 0 48s21.532 48 48 48 48-21.532 48-48S74.468 0 48 0zm0 88C26.038 88 8 69.962 8 48S26.038 8 48 8s40 17.962 40 40-17.962 40-40 40zm21.362-49.332l-40-12A4.002 4.002 0 0 0 24.1 21.41l14.887 34.738a4 4 0 0 0 7.375.242l6.516-19.548 19.548-6.516a4 4 0 0 0-2.064-7.658z"></path></svg>
-                  </div>
-                  <h2 className="text-xl font-light">Your Messages</h2>
-                  <p className="text-sm">Send private photos and messages to a friend or group.</p>
-                </div>
-              )}
-            </div>
+      <main className="min-h-screen bg-background pt-14">
+        <div className="grid grid-cols-12 border-t h-[calc(100vh-3.5rem)]">
+          <div className="col-span-4 border-r">
+            <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} />
           </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+          <div className="col-span-8">
+            {selectedChat ? (
+              <ChatDisplay chatId={selectedChat.id} />
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-muted-foreground text-center">
+                <div className="h-24 w-24 rounded-full border-2 border-foreground flex items-center justify-center mb-4">
+                  <svg aria-label="Direct" fill="currentColor" height="48" role="img" viewBox="0 0 96 96" width="48"><path d="M48 0C21.532 0 0 21.533 0 48s21.532 48 48 48 48-21.532 48-48S74.468 0 48 0zm0 88C26.038 88 8 69.962 8 48S26.038 8 48 8s40 17.962 40 40-17.962 40-40 40zm21.362-49.332l-40-12A4.002 4.002 0 0 0 24.1 21.41l14.887 34.738a4 4 0 0 0 7.375.242l6.516-19.548 19.548-6.516a4 4 0 0 0-2.064-7.658z"></path></svg>
+                </div>
+                <h2 className="text-xl font-light">Your Messages</h2>
+                <p className="text-sm">Send private photos and messages to a friend or group.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
   );
 }

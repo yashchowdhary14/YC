@@ -13,9 +13,10 @@ import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { dummyUsers, dummyChats } from '@/lib/dummy-data';
+import { dummyUsers } from '@/lib/dummy-data';
 
 function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => void }) {
+    const [open, setOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const { user: currentUser } = useUser();
@@ -35,13 +36,14 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
 
     const handleSelectUser = (targetUser: User) => {
         if (!currentUser) return;
+        setOpen(false);
         const sortedIds = [currentUser.uid, targetUser.id].sort();
         const chatId = sortedIds.join('_');
         router.push(`/chat/${chatId}`);
     };
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="ghost" size="icon">
                     <svg aria-label="New message" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M12.202 3.203H5.25a3 3 0 0 0-3 3V18.75a3 3 0 0 0 3 3h12.543a3 3 0 0 0 3-3V11.85a3.003 3.003 0 0 0-.748-1.921L14.12 4.93a3 3 0 0 0-1.918-1.727Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><path d="M10.426 18.252a1.5 1.5 0 1 0 3.001 0 1.5 1.5 0 0 0-3.001 0Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><path d="M18.75 3.25h-5.467a3 3 0 0 1-2.6-1.5L9.6 1.25H4.25a3 3 0 0 0-3 3V18.75a3 3 0 0 0 3 3h12.543a3 3 0 0 0 3-3V6.25a3 3 0 0 0-3-3Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg>
@@ -72,6 +74,11 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
                                 </div>
                             </div>
                         ))}
+                         {searchTerm && searchResults.length === 0 && (
+                            <div className="text-center text-muted-foreground p-4">
+                                <p>No results found.</p>
+                            </div>
+                        )}
                     </div>
                 </ScrollArea>
             </DialogContent>
@@ -90,10 +97,10 @@ export default function ChatList({ chats, selectedChat, onSelectChat, isMobile }
   const [filter, setFilter] = useState('');
   
   const filteredChats = chats.filter(chat => {
-    const partner = chat.userDetails.find(u => u.id !== 'current_user_id'); // dummy id
+    const partner = chat.userDetails?.find(u => u.id !== 'current_user_id'); // dummy id
     if (!partner) return false;
     return partner.username.toLowerCase().includes(filter.toLowerCase()) || 
-           partner.fullName.toLowerCase().includes(filter.toLowerCase());
+           (partner.fullName && partner.fullName.toLowerCase().includes(filter.toLowerCase()));
   });
 
   return (

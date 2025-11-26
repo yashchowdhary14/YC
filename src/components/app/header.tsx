@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useUser } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
@@ -25,6 +25,7 @@ import { dummyUsers } from '@/lib/dummy-data';
 export default function AppHeader({ children }: { children?: React.ReactNode }) {
   const { user, logout, login } = useUser();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleSignOut = () => {
     if (logout) {
@@ -45,8 +46,11 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
     }
   }
 
+  // On homepage with large sidebar, we don't show the trigger or the logo again.
+  const showLogoAndTrigger = pathname !== '/';
+
   return (
-    <header className="sticky top-0 z-30 w-full border-b border-zinc-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-4">
            <div className="md:hidden">
@@ -56,15 +60,15 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
                   </Button>
               </SidebarTrigger>
           </div>
-          <NextLink href="/" className="hidden font-serif text-2xl font-bold md:block">
-            Instagram
-          </NextLink>
-          <div className="hidden md:block">
-            {children}
-          </div>
+          {showLogoAndTrigger && (
+            <NextLink href="/" className="hidden font-serif text-2xl font-bold md:block">
+              Instagram
+            </NextLink>
+          )}
+          {children}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-1 items-center justify-end gap-2">
           <Button variant="ghost" size="icon" asChild>
             <NextLink href="/create">
               <PlusSquare />

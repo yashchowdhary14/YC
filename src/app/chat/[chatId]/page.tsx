@@ -4,15 +4,6 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-} from '@/components/ui/sidebar';
 import ChatDisplay from '@/components/messages/chat-display';
 import { Loader2 } from 'lucide-react';
 import { getChat } from '@/lib/dummy-data';
@@ -60,27 +51,14 @@ export default function ChatPage() {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-           <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader />
-        <main className="h-[calc(100vh-4rem)] bg-background">
-           {chatId ? (
-                <ChatDisplay chatId={chatId as string} />
-           ) : (
-                <div className="flex h-full items-center justify-center">
-                     <p>Chat not found.</p>
-                </div>
-           )}
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+    <div className="h-screen bg-background pt-14">
+       {chatId ? (
+            <ChatDisplay chatId={chatId as string} />
+       ) : (
+            <div className="flex h-full items-center justify-center">
+                 <p>Chat not found.</p>
+            </div>
+       )}
+    </div>
   );
 }

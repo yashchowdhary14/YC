@@ -15,16 +15,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useUser } from '@/firebase';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -144,156 +134,137 @@ export default function CreatePage() {
   };
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+    <div className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-background pt-14">
+      <Card className="w-full max-w-4xl mx-auto shadow-2xl overflow-hidden">
+        <div className="grid md:grid-cols-2">
+          <div className="relative flex items-center justify-center p-4 bg-muted aspect-square">
+            {image ? (
+              <>
+                <Image
+                  src={image.preview}
+                  alt="Post preview"
+                  fill
+                  className="object-contain"
+                />
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="absolute top-4 right-4 z-10 rounded-full h-8 w-8"
+                  onClick={() => setImage(null)}
+                >
+                  <X className="h-4 w-4" />
                 </Button>
-            </SidebarTrigger>
-        </AppHeader>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-background">
-          <Card className="w-full max-w-4xl mx-auto shadow-2xl overflow-hidden">
-            <div className="grid md:grid-cols-2">
-              <div className="relative flex items-center justify-center p-4 bg-muted aspect-square">
-                {image ? (
-                  <>
-                    <Image
-                      src={image.preview}
-                      alt="Post preview"
-                      fill
-                      className="object-contain"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-4 right-4 z-10 rounded-full h-8 w-8"
-                      onClick={() => setImage(null)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </>
-                ) : (
-                  <div
-                    className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <UploadCloud className="h-12 w-12 text-muted-foreground" />
-                    <p className="mt-2 text-sm font-semibold text-foreground">
-                      Click to upload an image
-                    </p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 4MB</p>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/png, image/jpeg, image/gif"
-                      className="hidden"
-                      onChange={handleImageChange}
-                    />
-                  </div>
-                )}
+              </>
+            ) : (
+              <div
+                className="flex flex-col items-center justify-center w-full h-full border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <UploadCloud className="h-12 w-12 text-muted-foreground" />
+                <p className="mt-2 text-sm font-semibold text-foreground">
+                  Click to upload an image
+                </p>
+                <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 4MB</p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png, image/jpeg, image/gif"
+                  className="hidden"
+                  onChange={handleImageChange}
+                />
               </div>
-              <div className="flex flex-col p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <Avatar>
-                    <AvatarImage src={profile?.profilePhoto || ''} />
-                    <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <p className="font-semibold">{profile?.username}</p>
-                </div>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1">
-                    <div className="flex-1">
-                        <Controller
-                            name="caption"
-                            control={form.control}
-                            render={({ field }) => (
-                                <Textarea
-                                {...field}
-                                placeholder="Write a caption..."
-                                className="resize-none h-32 border-0 focus-visible:ring-0 p-0"
-                                />
-                            )}
-                        />
-                    </div>
-                    <div className="space-y-2 mt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleGenerateCaption}
-                            disabled={!image || isGenerating || isSubmitting}
-                            className="w-full justify-start text-muted-foreground hover:text-foreground"
-                            >
-                            {isGenerating ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                                <Sparkles className="mr-2 h-4 w-4" />
-                            )}
-                            Generate with AI
-                        </Button>
-                        <Controller
-                            name="location"
-                            control={form.control}
-                            render={({ field }) => (
-                                <Input
-                                {...field}
-                                placeholder="Add location"
-                                className="bg-transparent border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
-                                />
-                            )}
-                        />
-                        <Accordion type="single" collapsible className="w-full">
-                           <AccordionItem value="advanced-settings" className="border-b-0">
-                               <AccordionTrigger className="p-0 hover:no-underline text-base">Advanced Settings</AccordionTrigger>
-                               <AccordionContent className="space-y-4 pt-2">
-                                   <Controller
-                                        name="hideLikes"
-                                        control={form.control}
-                                        render={({ field }) => (
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="hide-likes" className="text-sm">Hide like and view counts on this post</Label>
-                                                <Switch id="hide-likes" checked={field.value} onCheckedChange={field.onChange} />
-                                            </div>
-                                        )}
-                                    />
-                                    <Controller
-                                        name="commentsOff"
-                                        control={form.control}
-                                        render={({ field }) => (
-                                            <div className="flex items-center justify-between">
-                                                <Label htmlFor="comments-off" className="text-sm">Turn off commenting</Label>												<Switch id="comments-off" checked={field.value} onCheckedChange={field.onChange} />
-                                            </div>
-                                        )}
-                                    />
-                               </AccordionContent>
-                           </AccordionItem>
-                        </Accordion>
-                    </div>
-
-                    <div className="mt-4">
-                        <Button
-                        type="submit"
-                        disabled={!image || isSubmitting}
-                        className="w-full"
-                        >
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Share
-                        </Button>
-                    </div>
-                </form>
-              </div>
+            )}
+          </div>
+          <div className="flex flex-col p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Avatar>
+                <AvatarImage src={profile?.profilePhoto || ''} />
+                <AvatarFallback>{profile?.username?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <p className="font-semibold">{profile?.username}</p>
             </div>
-          </Card>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1">
+                <div className="flex-1">
+                    <Controller
+                        name="caption"
+                        control={form.control}
+                        render={({ field }) => (
+                            <Textarea
+                            {...field}
+                            placeholder="Write a caption..."
+                            className="resize-none h-32 border-0 focus-visible:ring-0 p-0"
+                            />
+                        )}
+                    />
+                </div>
+                <div className="space-y-2 mt-4">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleGenerateCaption}
+                        disabled={!image || isGenerating || isSubmitting}
+                        className="w-full justify-start text-muted-foreground hover:text-foreground"
+                        >
+                        {isGenerating ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Sparkles className="mr-2 h-4 w-4" />
+                        )}
+                        Generate with AI
+                    </Button>
+                    <Controller
+                        name="location"
+                        control={form.control}
+                        render={({ field }) => (
+                            <Input
+                            {...field}
+                            placeholder="Add location"
+                            className="bg-transparent border-0 border-b rounded-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
+                            />
+                        )}
+                    />
+                    <Accordion type="single" collapsible className="w-full">
+                       <AccordionItem value="advanced-settings" className="border-b-0">
+                           <AccordionTrigger className="p-0 hover:no-underline text-base">Advanced Settings</AccordionTrigger>
+                           <AccordionContent className="space-y-4 pt-2">
+                               <Controller
+                                    name="hideLikes"
+                                    control={form.control}
+                                    render={({ field }) => (
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="hide-likes" className="text-sm">Hide like and view counts on this post</Label>
+                                            <Switch id="hide-likes" checked={field.value} onCheckedChange={field.onChange} />
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name="commentsOff"
+                                    control={form.control}
+                                    render={({ field }) => (
+                                        <div className="flex items-center justify-between">
+                                            <Label htmlFor="comments-off" className="text-sm">Turn off commenting</Label>												<Switch id="comments-off" checked={field.value} onCheckedChange={field.onChange} />
+                                        </div>
+                                    )}
+                                />
+                           </AccordionContent>
+                       </AccordionItem>
+                    </Accordion>
+                </div>
+
+                <div className="mt-4">
+                    <Button
+                    type="submit"
+                    disabled={!image || isSubmitting}
+                    className="w-full"
+                    >
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Share
+                    </Button>
+                </div>
+            </form>
+          </div>
+        </div>
+      </Card>
+    </div>
   );
 }

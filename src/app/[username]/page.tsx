@@ -12,17 +12,6 @@ import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import { Separator } from '@/components/ui/separator';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import type { Post } from '@/lib/types';
 import { dummyUsers, dummyPosts, dummyFollows, dummyChats } from '@/lib/dummy-data';
@@ -86,44 +75,27 @@ export default function UserProfilePage() {
   );
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </Button>
-            </SidebarTrigger>
-        </AppHeader>
-        <main className="bg-background">
-          <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-            <ProfileHeader
-              user={profileUser}
-              onEditClick={() => setIsEditDialogOpen(true)}
-              onMessageClick={handleMessageClick}
-              isNavigatingToChat={false} // This is just for UI, not critical for dummy data
-              isCurrentUser={isCurrentUser}
-            />
-            <div className="my-8">
-              <HighlightsCarousel />
-            </div>
-            <Separator />
-            <TabSwitcher
-              postsContent={<PostsGrid posts={posts as any} />}
-              reelsContent={emptyState}
-              taggedContent={emptyState}
-            />
+    <>
+      <div className="bg-background pt-14">
+        <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+          <ProfileHeader
+            user={profileUser}
+            onEditClick={() => setIsEditDialogOpen(true)}
+            onMessageClick={handleMessageClick}
+            isNavigatingToChat={false} // This is just for UI, not critical for dummy data
+            isCurrentUser={isCurrentUser}
+          />
+          <div className="my-8">
+            <HighlightsCarousel />
           </div>
-        </main>
-      </SidebarInset>
+          <Separator />
+          <TabSwitcher
+            postsContent={<PostsGrid posts={posts as any} />}
+            reelsContent={emptyState}
+            taggedContent={emptyState}
+          />
+        </div>
+      </div>
       {isCurrentUser && profileUser && (
         <EditProfileDialog
           open={isEditDialogOpen}
@@ -131,6 +103,6 @@ export default function UserProfilePage() {
           userProfile={profileUser}
         />
       )}
-    </SidebarProvider>
+    </>
   );
 }

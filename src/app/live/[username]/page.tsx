@@ -4,7 +4,6 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { useUser } from '@/firebase';
-import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import LiveStreamPlayer from '@/components/live/live-stream-player';
 import LiveChat from '@/components/live/live-chat';
@@ -61,8 +60,7 @@ export default function LiveWatchPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
-      <AppHeader />
+    <div className="h-screen flex flex-col bg-background text-foreground pt-14">
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         <main className="lg:col-span-9 flex flex-col overflow-y-auto">
           <div className="aspect-video">

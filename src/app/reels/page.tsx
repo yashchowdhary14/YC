@@ -2,21 +2,10 @@
 'use client';
 
 import { useRef, useEffect, useState, useMemo } from 'react';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+import { useUser } from '@/firebase';
 import ReelCard from '@/components/app/reel-card';
 import { dummyPosts } from '@/lib/dummy-data';
 import type { Post, ReelComment } from '@/lib/types';
-import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import CommentsSheet from '@/components/app/comments-sheet';
@@ -100,27 +89,11 @@ export default function ReelsPage() {
     }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </Button>
-            </SidebarTrigger>
-        </AppHeader>
-        <main className="h-[calc(100svh-4rem)] bg-black flex justify-center items-center overflow-hidden">
+    <>
+        <div className="h-screen bg-black flex justify-center items-center overflow-hidden">
             <div
               ref={containerRef}
-              className="relative h-full w-full max-w-[450px] snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
+              className="relative h-full w-full max-w-[450px] snap-y snap-mandatory overflow-y-scroll scrollbar-hide pt-14"
             >
               {reels.map((reel) => (
                 <div key={reel.id} className="reel-card-container h-full w-full snap-start flex items-center justify-center">
@@ -134,7 +107,7 @@ export default function ReelsPage() {
                 </div>
               ))}
             </div>
-        </main>
+        </div>
         <CommentsSheet 
             reel={selectedReelForComments} 
             onOpenChange={(isOpen) => {
@@ -145,7 +118,6 @@ export default function ReelsPage() {
             onUpdateComment={handleUpdateComment}
             currentUser={user}
         />
-      </SidebarInset>
-    </SidebarProvider>
+    </>
   );
 }

@@ -44,9 +44,7 @@ export function SidebarProvider({
 
   return (
     <SidebarContext.Provider value={value}>
-        <Sheet open={open} onOpenChange={setOpen}>
-            {children}
-        </Sheet>
+        {children}
     </SidebarContext.Provider>
   );
 }
@@ -61,17 +59,20 @@ export function Sidebar({
   className?: string;
   side?: 'left' | 'right';
 }) {
+  const { open, setOpen } = useSidebar();
   return (
-      <SheetContent
-        side={side}
-        className={cn(
-          'flex h-full flex-col px-0 w-72',
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </SheetContent>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent
+          side={side}
+          className={cn(
+            'flex h-full flex-col px-0 w-72',
+            className
+          )}
+          {...props}
+        >
+          {children}
+        </SheetContent>
+      </Sheet>
   );
 }
 
