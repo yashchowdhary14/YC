@@ -1,105 +1,15 @@
-
 'use client';
 
-import { Heart, MessageCircle, PlusSquare, Menu, UserPlus } from 'lucide-react';
-import NextLink from 'next/link';
-import { Button } from '@/components/ui/button';
-import { useUser, useAuth } from '@/firebase';
-import { useRouter, usePathname, useParams } from 'next/navigation';
-import { signOut } from 'firebase/auth';
-import { SidebarTrigger } from '@/components/ui/sidebar';
-import { ThemeSwitcher } from './theme-switcher';
+import { Plus, Heart } from 'lucide-react';
 
-export default function AppHeader({ children }: { children?: React.ReactNode }) {
-  const { user } = useUser();
-  const auth = useAuth();
-  const router = useRouter();
-  const pathname = usePathname();
-  const params = useParams<{ username?: string }>();
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      router.push('/login');
-    } catch (error) {
-      console.error("Error signing out: ", error);
-    }
-  };
-  
-  const isHomePage = pathname === '/';
-  const isProfilePage = !!params.username;
-
-  // Mobile Header for Profile Page
-  if (isProfilePage) {
-    return (
-       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 max-w-screen-2xl items-center">
-            <h2 className="text-lg font-bold flex-1">{params.username}</h2>
-            <div className="flex items-center gap-2">
-                <ThemeSwitcher />
-                <Button variant="ghost" size="icon">
-                    <UserPlus />
-                </Button>
-                 <Button variant="ghost" size="icon">
-                    <Menu />
-                </Button>
-            </div>
-        </div>
-       </header>
-    )
-  }
-
+export default function AppHeader() {
   return (
-    <>
-    {/* Desktop and Tablet Header */}
-    <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
-      <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
-        <div className="flex items-center gap-4">
-           <SidebarTrigger className="md:hidden">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-           </SidebarTrigger>
-          {!isHomePage && (
-            <NextLink href="/" className="hidden font-instagram text-2xl font-bold md:block text-foreground">
-              YCP
-            </NextLink>
-          )}
-           {isHomePage && (
-             <div className="hidden lg:block w-[180px]">
-                <NextLink href="/" passHref>
-                    <h1 className="text-2xl font-bold p-2 px-4 font-instagram text-foreground">YCP</h1>
-                </NextLink>
-            </div>
-          )}
-          {children}
-        </div>
-
-        <div className="flex flex-1 items-center justify-end gap-2">
-          <ThemeSwitcher />
-        </div>
+    <header className="bg-black text-white p-4 flex justify-between items-center">
+      <h1 className="text-2xl font-serif">Instagram</h1>
+      <div className="flex items-center space-x-4">
+        <Plus />
+        <Heart />
       </div>
     </header>
-
-    {/* Mobile Header (Home Page Only) */}
-    {isHomePage && (
-      <header className="sticky top-0 z-40 w-full bg-background md:hidden">
-        <div className="flex h-14 items-center justify-between px-4">
-          <h1 className="font-instagram text-3xl text-foreground">YCP</h1>
-          <div className="flex items-center gap-2 text-foreground">
-            <Button variant="ghost" size="icon" asChild className="text-foreground">
-              <NextLink href="/create">
-                <PlusSquare />
-                <span className="sr-only">Create Post</span>
-              </NextLink>
-            </Button>
-            <Button variant="ghost" size="icon" className="text-foreground">
-              <Heart />
-              <span className="sr-only">Notifications</span>
-            </Button>
-            <ThemeSwitcher />
-          </div>
-        </div>
-      </header>
-    )}
-    </>
   );
 }
