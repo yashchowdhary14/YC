@@ -7,7 +7,7 @@ import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Wand2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Wand2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { fileToDataUri, uploadFile } from '@/lib/utils';
@@ -27,34 +27,28 @@ export default function CreatePostPage() {
   const [caption, setCaption] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (capturedMedia) {
         setImageFile(capturedMedia);
         const previewUrl = URL.createObjectURL(capturedMedia);
         setImagePreview(previewUrl);
+        
         // Clean up the captured media so it's not reused
         setCapturedMedia(null);
+    } else {
+        // If there's no captured media, user shouldn't be here.
+        // Redirect them back to the creation start page.
+        router.replace('/create');
     }
-  }, [capturedMedia, setCapturedMedia]);
-
-  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 4 * 1024 * 1024) { // 4MB limit
-        toast({
-          variant: 'destructive',
-          title: 'File too large',
-          description: 'Please upload an image smaller than 4MB.',
-        });
-        return;
-      }
-      setImageFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+    
+    // Cleanup URL object when component unmounts
+    return () => {
+        if (imagePreview) {
+            URL.revokeObjectURL(imagePreview);
+        }
     }
-  };
+  }, [capturedMedia, setCapturedMedia, router]);
 
   const handleGenerateCaption = async () => {
     if (!imageFile) {
@@ -92,7 +86,7 @@ export default function CreatePostPage() {
       toast({
         variant: 'destructive',
         title: 'Missing information',
-        description: 'Please upload an image, write a caption, and be logged in.',
+        description: 'Please provide an image and a caption.',
       });
       return;
     }
@@ -152,22 +146,11 @@ export default function CreatePostPage() {
                 {imagePreview ? (
                     <Image src={imagePreview} alt="Image preview" fill className="object-contain lg:rounded-l-lg" />
                 ) : (
-                    <div 
-                        className="flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer p-8 text-center"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <UploadCloud className="h-12 w-12" />
-                        <h3 className="font-semibold text-lg">Click to upload an image</h3>
-                        <p className="text-sm">PNG, JPG, or GIF (max 4MB)</p>
+                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground p-8 text-center">
+                        <Loader2 className="h-12 w-12 animate-spin" />
+                        <h3 className="font-semibold text-lg">Loading image...</h3>
                     </div>
                 )}
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/png, image/jpeg, image/gif"
-                    className="hidden"
-                    onChange={handleImageChange}
-                />
               </div>
 
               <div className="p-6 flex flex-col space-y-4">
@@ -202,5 +185,3 @@ export default function CreatePostPage() {
     </div>
   );
 }
-
-    
