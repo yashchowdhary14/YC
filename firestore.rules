@@ -128,5 +128,22 @@ service cloud.firestore {
       allow update: if resource != null && isCallParticipant(resource.data);
       allow delete: if resource != null && isCallParticipant(resource.data);
     }
+
+    // streams
+    match /streams/{streamId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.streamerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.streamerId) 
+                      && request.resource.data.streamerId == resource.data.streamerId;
+      allow delete: if isExistingOwner(resource.data.streamerId);
+    }
+
+    // categories
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // Admin-only
+    }
   }
 }
+
+    

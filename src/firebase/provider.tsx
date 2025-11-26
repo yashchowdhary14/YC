@@ -2,75 +2,71 @@
 'use client';
 
 import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
-import { dummyFollows } from '@/lib/dummy-data';
+import { onAuthStateChanged, User as FirebaseUser, Auth } from 'firebase/auth';
+import { FirebaseApp } from 'firebase/app';
+import { Firestore } from 'firebase/firestore';
 
-// Mock User type to match Firebase Auth User object structure
-interface MockUser {
-  uid: string;
-  displayName: string | null;
-  email: string | null;
-  photoURL: string | null;
-}
-
-interface UserAuthState {
-  user: MockUser | null;
+interface FirebaseContextValue {
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
+  user: FirebaseUser | null;
   isUserLoading: boolean;
   followedUsers: Set<string>;
-}
-
-export interface FirebaseContextState extends UserAuthState {
-  login: (user: MockUser) => void;
-  logout: () => void;
   toggleFollow: (username: string) => void;
+  login: (user: any) => void; // Keeping this for dummy login compatibility
+  logout: () => void;
 }
 
-export type UserHookResult = FirebaseContextState;
+const FirebaseContext = createContext<FirebaseContextValue | undefined>(undefined);
 
-export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
-
-export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [userAuthState, setUserAuthState] = useState<Omit<UserAuthState, 'followedUsers'>>({
-    user: null,
-    isUserLoading: true,
-  });
+export const FirebaseProvider: React.FC<{
+  children: ReactNode;
+  firebaseApp: FirebaseApp | null;
+  auth: Auth | null;
+  firestore: Firestore | null;
+}> = ({ children, firebaseApp, auth, firestore }) => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
   const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Try to load user from localStorage on initial load
-    try {
-      const storedUser = localStorage.getItem('dummyUser');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setUserAuthState({ user, isUserLoading: false });
-        // Also load followed users from localStorage
+    if (!auth) {
+      setIsUserLoading(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsUserLoading(false);
+      
+      if (user) {
+        // For real app, load follows from Firestore. For now, use localStorage.
         const storedFollows = localStorage.getItem(`followedUsers_${user.uid}`);
-        const initialFollows = storedFollows ? new Set(JSON.parse(storedFollows)) : new Set(dummyFollows[user.uid] || []);
-        setFollowedUsers(initialFollows);
+        if (storedFollows) {
+          setFollowedUsers(new Set(JSON.parse(storedFollows)));
+        } else {
+          setFollowedUsers(new Set());
+        }
       } else {
-        setUserAuthState({ user: null, isUserLoading: false });
         setFollowedUsers(new Set());
       }
-    } catch (error) {
-      console.error("Failed to parse user from localStorage", error);
-      setUserAuthState({ user: null, isUserLoading: false });
-      setFollowedUsers(new Set());
-    }
-  }, []);
+    });
 
-  const login = useCallback((user: MockUser) => {
+    return () => unsubscribe();
+  }, [auth]);
+  
+  // Dummy login/logout for compatibility with existing components
+  const login = useCallback((user: any) => {
+    setUser(user as FirebaseUser);
     localStorage.setItem('dummyUser', JSON.stringify(user));
-    setUserAuthState({ user, isUserLoading: false });
-    // Also load followed users from localStorage or default
-    const storedFollows = localStorage.getItem(`followedUsers_${user.uid}`);
-    const initialFollows = storedFollows ? new Set(JSON.parse(storedFollows)) : new Set(dummyFollows[user.uid] || []);
-    setFollowedUsers(initialFollows);
   }, []);
 
   const logout = useCallback(() => {
+    auth?.signOut();
     localStorage.removeItem('dummyUser');
-    setUserAuthState({ user: null, isUserLoading: false });
-    setFollowedUsers(new Set());
-  }, []);
+    setUser(null);
+  }, [auth]);
+
 
   const toggleFollow = useCallback((username: string) => {
     setFollowedUsers(prev => {
@@ -80,21 +76,24 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
         } else {
             newSet.add(username);
         }
-        // Persist to localStorage
-        if (userAuthState.user) {
-             localStorage.setItem(`followedUsers_${userAuthState.user.uid}`, JSON.stringify(Array.from(newSet)));
+        if (user) {
+             localStorage.setItem(`followedUsers_${user.uid}`, JSON.stringify(Array.from(newSet)));
         }
         return newSet;
     });
-  }, [userAuthState.user]);
+  }, [user]);
 
   const contextValue = useMemo(() => ({
-    ...userAuthState,
+    firebaseApp,
+    auth,
+    firestore,
+    user,
+    isUserLoading,
     followedUsers,
+    toggleFollow,
     login,
     logout,
-    toggleFollow,
-  }), [userAuthState, followedUsers, login, logout, toggleFollow]);
+  }), [firebaseApp, auth, firestore, user, isUserLoading, followedUsers, toggleFollow, login, logout]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -103,19 +102,25 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
   );
 };
 
-export const useUser = (): UserHookResult => {
+// --- Hooks ---
+
+const useFirebaseContext = () => {
   const context = useContext(FirebaseContext);
   if (context === undefined) {
-    throw new Error('useUser must be used within a FirebaseProvider.');
+    throw new Error('useFirebaseContext must be used within a FirebaseProvider.');
   }
   return context;
 };
 
-// Mock other hooks to return dummy values or no-op functions
-export const useFirebase = () => ({});
-export const useAuth = () => ({});
-export const useFirestore = () => ({});
-export const useFirebaseApp = () => ({});
+export const useFirebaseApp = () => useFirebaseContext().firebaseApp;
+export const useAuth = () => useFirebaseContext().auth;
+export const useFirestore = () => useFirebaseContext().firestore;
+
+export const useUser = () => {
+  const { user, isUserLoading, followedUsers, toggleFollow, login, logout } = useFirebaseContext();
+  return { user, isUserLoading, followedUsers, toggleFollow, login, logout };
+};
+
 export const useMemoFirebase = <T, D extends readonly any[]>(factory: () => T, deps: D) => useMemo(factory, deps);
-export const useDoc = <T,>() => ({ data: null, isLoading: true, error: null });
-export const useCollection = <T,>() => ({ data: [], isLoading: true, error: null });
+
+    
