@@ -65,7 +65,7 @@ function CategoryItem({ category }: { category: Category }) {
 export default function LiveSidebar({ recommendedChannels, recommendedCategories }: LiveSidebarProps) {
   return (
     <Sidebar className="p-0 border-r border-r-zinc-800 bg-zinc-900 text-white" side="left">
-        <SidebarHeader className="h-[3.5rem] md:h-[4rem] border-b border-zinc-800 flex items-center justify-between px-4">
+        <SidebarHeader className="h-[3.5rem] md:h-14 border-b border-zinc-800 flex items-center justify-between px-4">
             <h2 className="text-lg font-bold">For You</h2>
         </SidebarHeader>
         <SidebarContent className="py-2">
