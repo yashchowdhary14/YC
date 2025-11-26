@@ -24,7 +24,7 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
   return (
     <div key={suggestion.username} className="flex items-center gap-3">
       <Link href={`/${suggestion.username}`} className="flex items-center gap-3 flex-1">
-        <Avatar>
+        <Avatar className="h-8 w-8">
           <AvatarImage src={suggestion.avatarUrl} alt={suggestion.username} />
           <AvatarFallback>{suggestion.username.charAt(0)}</AvatarFallback>
         </Avatar>
@@ -33,7 +33,7 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
           <p className="text-xs text-muted-foreground">Suggested for you</p>
         </div>
       </Link>
-      <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs" onClick={handleFollowToggle}>
+      <Button variant="link" size="sm" className="p-0 h-auto text-blue-400 font-semibold text-xs" onClick={handleFollowToggle}>
         {isFollowing ? 'Unfollow' : 'Follow'}
       </Button>
     </div>
@@ -66,7 +66,9 @@ export default function Home() {
   // Fetch posts from users you follow
   const postsQuery = useMemoFirebase(() => {
     if (!user || followingIds.length === 0) return null;
-    return query(collection(firestore, 'posts'), where('uploaderId', 'in', followingIds));
+    // Firestore 'in' queries are limited to 10 elements.
+    // For a real app, you'd need a more complex feed generation system.
+    return query(collection(firestore, 'posts'), where('uploaderId', 'in', followingIds.slice(0, 10)));
   }, [user, firestore, followingIds]);
   const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
   
@@ -151,7 +153,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
               <div className="flex flex-col md:gap-8">
-              <div className="md:border-b md:pb-4">
+              <div className="md:border-b md:border-border md:pb-4">
                 <StoriesCarousel />
               </div>
               {displayedPosts.length > 0 ? (
@@ -159,7 +161,7 @@ export default function Home() {
                   <PostCard key={post.id} post={post} />
                   ))
               ) : (
-                  <div className="text-center py-16 text-muted-foreground bg-card rounded-lg hidden md:block">
+                  <div className="text-center py-16 text-muted-foreground bg-background rounded-lg hidden md:block">
                   <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
                   <p className="mt-2">Your feed is empty.</p>
                   <p>Start following people to see their posts here.</p>
@@ -173,8 +175,20 @@ export default function Home() {
 
           <div className="hidden lg:block lg:col-span-1">
               <div className="sticky top-24">
+                {user && (
+                  <div className="flex items-center gap-4 mb-6">
+                    <Avatar className="h-12 w-12">
+                      <AvatarImage src={user.photoURL || ''} />
+                      <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-sm">{user.displayName || user.email?.split('@')[0]}</p>
+                      <p className="text-sm text-muted-foreground">{user.displayName}</p>
+                    </div>
+                  </div>
+                )}
               <div className="flex items-center justify-between mb-4">
-                  <p className="font-semibold text-muted-foreground">Suggestions for you</p>
+                  <p className="font-semibold text-muted-foreground text-sm">Suggestions for you</p>
                   <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
                     <Link href="/explore">See All</Link>
                   </Button>

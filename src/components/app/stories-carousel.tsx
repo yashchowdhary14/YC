@@ -36,7 +36,7 @@ export default function StoriesCarousel() {
           {/* Current User's Story */}
           {user && (
              <CarouselItem className="basis-auto pl-4">
-              <Link href="/stories/create" className="flex flex-col items-center gap-2">
+              <Link href="/create/story" className="flex flex-col items-center gap-2">
                  <div className="p-0.5 rounded-full relative">
                   <Avatar className="w-16 h-16">
                     <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'Your Story'} />

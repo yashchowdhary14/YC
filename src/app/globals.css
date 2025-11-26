@@ -9,52 +9,66 @@ body {
 
 @layer base {
   :root {
-    --background: 240 6% 10%; /* zinc-900 */
-    --foreground: 0 0% 98%;
-    --card: 240 6% 12%; /* Slightly lighter than background */
+    --background: 0 0% 0%; /* True Black */
+    --foreground: 0 0% 98%; /* White */
+
+    --card: 0 0% 0%; /* Black cards */
     --card-foreground: 0 0% 98%;
-    --popover: 240 6% 8%;
+
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 262 80% 58%; /* Twitch Purple */
+
+    --primary: 330 80% 58%; /* Vibrant Pink/Magenta */
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 20%; /* Darker Gray for buttons */
+
+    --secondary: 0 0% 15%; /* Dark Gray for buttons */
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 0 0% 65%;
-    --accent: 262 80% 58%;
-    --accent-foreground: 0 0% 100%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
+
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 25%;
-    --input: 240 4% 15%;
-    --ring: 262 80% 58%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --radius: 0.5rem; /* Rounded-lg */
+
+    --border: 0 0% 15%; /* Dark gray borders */
+    --input: 0 0% 15%;
+    --ring: 330 80% 58%;
+
+    --radius: 0.5rem; /* rounded-lg */
   }
+
   .dark {
-    --background: 240 6% 10%; /* zinc-900 */
-    --foreground: 0 0% 98%;
-    --card: 240 6% 12%;
+    --background: 0 0% 0%; /* True Black */
+    --foreground: 0 0% 98%; /* White */
+
+    --card: 0 0% 0%; /* Black cards */
     --card-foreground: 0 0% 98%;
-    --popover: 240 6% 8%;
+
+    --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
-    --primary: 262 80% 58%; /* Twitch Purple */
+
+    --primary: 330 80% 58%; /* Vibrant Pink/Magenta */
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 20%; /* Darker Gray for buttons */
+
+    --secondary: 0 0% 15%; /* Dark Gray for buttons */
     --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
+
+    --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
-    --accent: 262 80% 58%;
-    --accent-foreground: 0 0% 100%;
+
+    --accent: 0 0% 20%;
+    --accent-foreground: 0 0% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 25%;
-    --input: 240 4% 15%;
-    --ring: 262 80% 58%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 330 80% 58%;
+
     --radius: 0.5rem;
   }
 }

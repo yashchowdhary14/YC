@@ -66,7 +66,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   };
 
   return (
-    <Wrapper className="max-w-xl mx-auto w-full border-0 md:border-b">
+    <Wrapper className="max-w-xl mx-auto w-full border-0 md:border-t md:border-border">
       <CardHeader className="flex flex-row items-center gap-3 p-2 md:p-4">
         <Link href={`/${post.user.username}`}>
           <Avatar className="h-8 w-8">
@@ -80,9 +80,8 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
             {post.user.verified && <CheckCircle className="h-4 w-4 text-blue-500 fill-current" />}
             <span className="text-muted-foreground font-normal ml-2 text-xs">· {formatDistanceToNow(new Date(post.createdAt), { addSuffix: false })}</span>
           </div>
-          <span className="text-xs text-muted-foreground">Suggested for you</span>
+          {post.location && <span className="text-xs text-muted-foreground">{post.location}</span>}
         </div>
-        <Button variant="link" size="sm" className="text-primary font-semibold text-sm p-0 h-auto hidden md:block">Follow</Button>
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <MoreHorizontal className="h-5 w-5" />
           <span className="sr-only">More options</span>

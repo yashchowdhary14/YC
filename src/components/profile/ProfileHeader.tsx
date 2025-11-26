@@ -63,14 +63,14 @@ export default function ProfileHeader({
     const parts = bio.split(urlRegex);
     return parts.map((part, index) =>
       urlRegex.test(part)
-        ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{part}</a>
+        ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>
         : part
     );
   };
 
   return (
-    <header className="flex gap-8 md:gap-16 items-start w-full">
-      <div className="flex-shrink-0 w-24 h-24 md:w-36 md:h-36">
+    <header className="flex gap-4 md:gap-16 items-start w-full">
+      <div className="flex-shrink-0 w-20 h-20 md:w-36 md:h-36">
         <Avatar className="h-full w-full">
           <AvatarImage src={user.profilePhoto} alt={user.username} />
           <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
@@ -83,32 +83,34 @@ export default function ProfileHeader({
             <h1 className="text-xl font-normal text-foreground">{user.username}</h1>
             {user.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />}
           </div>
-          {isCurrentUser ? (
-            <div className="flex items-center gap-2">
-              <Button onClick={onEditClick} variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm">
-                Edit profile
-              </Button>
-              <Button variant="secondary" size="sm" className="bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-sm">
-                View archive
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant={isFollowing ? 'secondary' : 'default'} onClick={handleFollowToggle}>
-                {isFollowing ? 'Following' : 'Follow'}
-              </Button>
-              <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat}>
-                {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Message
-              </Button>
-            </div>
-          )}
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            {isCurrentUser ? (
+              <>
+                <Button onClick={onEditClick} variant="secondary" size="sm" className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
+                  Edit profile
+                </Button>
+                <Button variant="secondary" size="sm" className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
+                  View archive
+                </Button>
+                <Button variant="ghost" size="icon" className="hidden md:inline-flex">
+                  <Settings className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button size="sm" variant={isFollowing ? 'secondary' : 'default'} onClick={handleFollowToggle} className="flex-1">
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Button>
+                <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat} className="flex-1">
+                  {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Message
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-6 text-base text-foreground">
+        <div className="hidden md:flex items-center gap-6 text-base text-foreground">
           <span><span className="font-semibold">{user.postsCount}</span> posts</span>
           <button><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</button>
           <Link href="/following" passHref>
@@ -116,7 +118,7 @@ export default function ProfileHeader({
           </Link>
         </div>
 
-        <div className="text-sm">
+        <div className="hidden md:block text-sm">
           <p className="font-semibold">{user.fullName}</p>
           <p className="whitespace-pre-wrap">{renderBio(user.bio)}</p>
         </div>
