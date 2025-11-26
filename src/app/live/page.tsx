@@ -59,10 +59,12 @@ export default function LivePage() {
 
   return (
     <div className="flex min-h-screen bg-zinc-900 text-white overscroll-contain">
+        {/* Desktop Sidebar - Will be hidden on mobile by its own internal logic */}
         <LiveSidebar 
           recommendedChannels={recommendedChannels} 
           recommendedCategories={(categories?.slice(0,6) || [])} 
         />
+        {/* Main Content Area */}
         <div className="flex-1 flex flex-col overscroll-contain pt-14 md:ml-60">
           <main className={cn(
               "flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain transition-opacity duration-500 ease-in-out",
