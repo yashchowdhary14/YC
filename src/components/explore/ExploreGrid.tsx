@@ -5,18 +5,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import ExploreTile from './ExploreTile';
-import type { User } from '@/lib/types';
-
-export interface ExploreItem {
-    id: string;
-    type: 'photo' | 'video' | 'reel' | 'live';
-    imageUrl: string;
-    imageHint: string;
-    likes?: number;
-    comments?: number;
-    viewerCount?: number;
-    streamer?: User;
-}
+import type { ExploreItem } from './types';
 
 interface ExploreGridProps {
   items: ExploreItem[];

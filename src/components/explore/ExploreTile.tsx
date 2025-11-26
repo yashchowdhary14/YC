@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { formatCompactNumber } from '@/lib/utils';
-import { ExploreItem } from './ExploreGrid';
+import { ExploreItem } from './types';
 import { Heart, MessageCircle, PlayCircle, Clapperboard, Wifi } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 

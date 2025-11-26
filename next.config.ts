@@ -37,12 +37,6 @@ const baseConfig: NextConfig = {
       },
     ],
   },
-  webpack(config) {
-    config.externals.push({
-      'node-fetch': 'commonjs node-fetch',
-    });
-    return config;
-  }
 };
 
 const devConfig: NextConfig = {

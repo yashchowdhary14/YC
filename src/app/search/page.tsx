@@ -23,7 +23,7 @@ import { dummyUsers, dummyPosts, dummyReels, dummyVideos, dummyStreams } from '@
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { User as UserType } from '@/lib/types';
 import ExploreGrid from '@/components/explore/ExploreGrid';
-import type { ExploreItem } from '@/components/explore/ExploreGrid';
+import type { ExploreItem } from '@/components/explore/types';
 
 const ITEMS_PER_PAGE = 18;
 
