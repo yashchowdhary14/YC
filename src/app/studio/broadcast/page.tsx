@@ -69,20 +69,29 @@ export default function BroadcastPage() {
 
   useEffect(() => {
     const getCameraPermission = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setHasCameraPermission(true);
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera permissions in your browser to broadcast.',
+          });
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser to broadcast.',
-        });
+      } else {
+         setHasCameraPermission(false);
+         toast({
+            variant: 'destructive',
+            title: 'Media Devices Not Supported',
+            description: 'Your browser does not support camera access.',
+         });
       }
     };
 
@@ -211,13 +220,16 @@ export default function BroadcastPage() {
                     </Button>
                   )}
                 </div>
-                <div className="flex flex-col items-center justify-center bg-muted rounded-lg p-4 aspect-video">
+                <div className="relative flex flex-col items-center justify-center bg-muted rounded-lg p-4 aspect-video">
+                    <video ref={videoRef} className="w-full h-full rounded-md object-cover" autoPlay muted playsInline style={{ display: hasCameraPermission ? 'block' : 'none'}}/>
+                    
                     {hasCameraPermission === null && (
                         <div className="text-center">
                             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
                             <p>Requesting camera access...</p>
                         </div>
                     )}
+
                     {hasCameraPermission === false && (
                          <Alert variant="destructive">
                             <VideoOff className="h-4 w-4"/>
@@ -227,7 +239,6 @@ export default function BroadcastPage() {
                             </AlertDescription>
                         </Alert>
                     )}
-                    <video ref={videoRef} className="w-full h-full rounded-md object-cover" autoPlay muted playsInline style={{ display: hasCameraPermission ? 'block' : 'none'}}/>
                 </div>
               </CardContent>
             </Card>
