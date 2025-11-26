@@ -14,20 +14,30 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatCompactNumber } from '@/lib/utils';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+
 
 interface FeaturedStreamCarouselProps {
     streams: Stream[];
 }
 
 function FeaturedStreamCard({ stream }: { stream: Stream }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0.5">
+    <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0 md:gap-0.5">
         <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-zinc-800 rounded-t-lg md:rounded-t-none md:rounded-l-lg overflow-hidden group">
              <Image 
                 src={stream.thumbnailUrl!} 
                 alt={stream.title} 
                 fill 
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className={cn(
+                  "object-cover transition-all duration-300 group-hover:scale-105",
+                  isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+                )}
+                onLoad={() => setIsLoaded(true)}
+                loading="lazy"
              />
              <div className="absolute top-2 left-2 md:top-4 md:left-4">
                 <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-xs h-5">Live</Badge>
@@ -67,6 +77,7 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
         opts={{
           align: 'start',
           loop: true,
+          dragFree: true,
         }}
         className="w-full"
       >

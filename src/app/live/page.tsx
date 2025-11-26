@@ -45,7 +45,7 @@ export default function LivePage() {
       liveStreams,
       recommendedChannels,
       featuredStreams,
-      categories: dummyCategories.slice(0,12),
+      categories: dummyCategories.slice(0,18),
     };
   }, []);
 
@@ -63,7 +63,7 @@ export default function LivePage() {
         <LiveSidebar recommendedChannels={liveData.recommendedChannels} recommendedCategories={liveData.categories.slice(0,6)} />
         <SidebarInset className="flex-1 flex flex-col">
           <AppHeader />
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 overscroll-contain">
               <div className="space-y-12">
                   <FeaturedStreamCarousel streams={liveData.featuredStreams} />
 
@@ -71,7 +71,7 @@ export default function LivePage() {
                       <h2 className="text-xl font-bold mb-4">
                         <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
                       </h2>
-                      <StreamGrid streams={liveData.liveStreams.slice(0,4)} />
+                      <StreamGrid streams={liveData.liveStreams.slice(0,12)} />
                   </div>
 
                   <Separator className="bg-zinc-700" />

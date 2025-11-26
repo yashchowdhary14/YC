@@ -8,12 +8,16 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatCompactNumber } from '@/lib/utils';
 import { AspectRatio } from '../ui/aspect-ratio';
+import { cn } from '@/lib/utils';
+import { useState } from 'react';
 
 interface StreamCardProps {
   stream: Stream;
 }
 
 export default function StreamCard({ stream }: StreamCardProps) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   return (
     <Link href={`/${stream.user.username}`} className="group">
       <div className="relative mb-3 overflow-hidden rounded-lg">
@@ -22,8 +26,13 @@ export default function StreamCard({ stream }: StreamCardProps) {
                 src={stream.thumbnailUrl!}
                 alt={stream.title}
                 fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                className={cn(
+                  "object-cover transition-all duration-300 group-hover:scale-105",
+                  isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+                )}
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                onLoad={() => setIsLoaded(true)}
+                loading="lazy"
             />
             <div className="absolute top-2 left-2">
                 <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-xs h-5">Live</Badge>
