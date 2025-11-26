@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { Loader2, VideoOff, Camera, Check, SwitchCamera } from 'lucide-react';
+import { Loader2, VideoOff, Camera, Check, SwitchCamera, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useCapturedMedia } from '@/lib/captured-media-store';
 import { motion } from 'framer-motion';
+
+type CaptureMode = 'post' | 'story' | 'reel';
 
 export default function StudioPage() {
   const { user, isUserLoading } = useUser();
@@ -20,6 +22,8 @@ export default function StudioPage() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
+  const [captureMode, setCaptureMode] = useState<CaptureMode>('post');
+  
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -92,7 +96,14 @@ export default function StudioPage() {
             if (blob) {
                 const file = new File([blob], "capture.jpg", { type: "image/jpeg" });
                 setCapturedMedia(file);
-                router.push('/create/post');
+                
+                // Navigate based on selected mode
+                if (captureMode === 'story') {
+                    router.push('/create/story');
+                } else { // Default to post
+                    router.push('/create/post');
+                }
+
             } else {
                 toast({ variant: 'destructive', title: 'Failed to capture image.' });
                 setIsCapturing(false);
@@ -145,7 +156,11 @@ export default function StudioPage() {
                     <div className="w-[60px] h-[60px] rounded-full bg-white/90"></div>
                 </motion.div>
              </div>
-             <Tabs defaultValue="post" className="w-full">
+             <Tabs 
+                defaultValue={captureMode} 
+                onValueChange={(value) => setCaptureMode(value as CaptureMode)}
+                className="w-full"
+            >
                 <TabsList className="grid w-full grid-cols-3 bg-transparent">
                     <TabsTrigger value="post" className="text-white/60 data-[state=active]:text-white data-[state=active]:font-bold">Post</TabsTrigger>
                     <TabsTrigger value="story" className="text-white/60 data-[state=active]:text-white data-[state=active]:font-bold">Story</TabsTrigger>
@@ -172,7 +187,3 @@ export default function StudioPage() {
     </main>
   );
 }
-
-const X = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-);
