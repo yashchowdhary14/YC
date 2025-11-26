@@ -47,16 +47,15 @@ export default function SearchPage() {
     const [hasMore, setHasMore] = useState(true);
 
     const allExploreItems: ExploreItem[] = useMemo(() => {
-        const photos = dummyPosts.filter(p => p.type === 'photo').map(p => ({ ...p, id: p.id }));
-        const reels = dummyPosts.filter(p => p.type === 'reel').map(p => ({ ...p, id: p.id }));
-        const videos = dummyPosts.filter(p => p.type === 'video').map(p => ({ ...p, id: p.id }));
-        const liveStreams = dummyLiveBroadcasts.filter(s => s.isLive).map(s => ({
+        const photos: ExploreItem[] = dummyPosts.filter(p => p.type === 'photo').map(p => ({ ...p, id: p.id, thumbnailUrl: p.mediaUrl }));
+        const reels: ExploreItem[] = dummyPosts.filter(p => p.type === 'reel').map(p => ({ ...p, id: p.id }));
+        const videos: ExploreItem[] = dummyPosts.filter(p => p.type === 'video').map(p => ({ ...p, id: p.id }));
+        const liveStreams: ExploreItem[] = dummyLiveBroadcasts.filter(s => s.isLive).map(s => ({
             ...s,
-            id: s.liveId,
             type: 'live' as const,
+            id: s.liveId,
             thumbnailUrl: s.liveThumbnail,
-            streamerName: s.streamerName,
-            caption: s.title
+            caption: s.title,
         }));
 
         // Combine and shuffle for a mixed feed

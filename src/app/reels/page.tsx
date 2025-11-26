@@ -45,8 +45,14 @@ export default function ReelsPage() {
     };
 
     const handleUpdateComment = (reelId: string, updatedComments: ReelComment[]) => {
-        // This is a simulation, in a real app you'd update this via an API
-        console.log('Comments updated for reel:', reelId, updatedComments);
+        setReels(currentReels => 
+            currentReels.map(reel => 
+              reel.id === reelId ? {...reel, comments: updatedComments} as Post : reel
+            )
+        );
+        if (selectedReelForComments?.id === reelId) {
+            setSelectedReelForComments(prev => prev ? ({...prev, comments: updatedComments} as Post) : null);
+        }
     };
 
     useEffect(() => {
@@ -121,7 +127,7 @@ export default function ReelsPage() {
               ))}
             </div>
         </main>
-        {/* <CommentsSheet 
+        <CommentsSheet 
             reel={selectedReelForComments} 
             onOpenChange={(isOpen) => {
                 if (!isOpen) {
@@ -130,7 +136,7 @@ export default function ReelsPage() {
             }}
             onUpdateComment={handleUpdateComment}
             currentUser={user}
-        /> */}
+        />
       </SidebarInset>
     </SidebarProvider>
   );

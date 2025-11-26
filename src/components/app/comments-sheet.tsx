@@ -7,7 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, Send, Loader2 } from 'lucide-react';
-import type { Reel, ReelComment } from '@/lib/types';
+import type { Post, ReelComment } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -44,7 +44,7 @@ function CommentItem({ comment, onLikeToggle }: CommentItemProps) {
 }
 
 interface CommentsSheetProps {
-  reel: Reel | null;
+  reel: Post | null;
   onOpenChange: (isOpen: boolean) => void;
   onUpdateComment: (reelId: string, updatedComments: ReelComment[]) => void;
   currentUser: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; } | null;
@@ -56,7 +56,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   
   const handleLikeToggle = useCallback((commentId: string) => {
-    if (!reel) return;
+    if (!reel || !reel.comments) return;
     const updatedComments = reel.comments.map(c => {
         if (c.id === commentId) {
             return {
@@ -72,7 +72,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
 
 
   const handleSendComment = async () => {
-    if (!commentText.trim() || !reel || isSending || !currentUser) return;
+    if (!commentText.trim() || !reel || isSending || !currentUser || !reel.comments) return;
     setIsSending(true);
 
     const newComment: ReelComment = {
@@ -100,14 +100,14 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
   
   useEffect(() => {
     // When a new comment is added, scroll to the bottom.
-    if (reel && reel.comments.length > 0 && scrollViewportRef.current) {
+    if (reel && reel.comments && reel.comments.length > 0 && scrollViewportRef.current) {
       setTimeout(() => {
         if(scrollViewportRef.current) {
             scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
         }
       }, 100); // A small delay to ensure the DOM is updated.
     }
-  }, [reel?.comments.length, reel]);
+  }, [reel, reel?.comments?.length]);
 
   return (
     <Sheet open={!!reel} onOpenChange={onOpenChange}>
@@ -123,10 +123,10 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
         </SheetHeader>
         <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
           <div className="p-4 space-y-6">
-            {reel?.comments.map((comment) => (
+            {reel?.comments?.map((comment) => (
               <CommentItem key={comment.id} comment={comment} onLikeToggle={handleLikeToggle} />
             ))}
-             {reel?.comments.length === 0 && (
+             {reel?.comments?.length === 0 && (
                 <div className="text-center text-muted-foreground py-16">
                     <p className="font-semibold">No comments yet.</p>
                     <p className="text-sm">Start the conversation.</p>

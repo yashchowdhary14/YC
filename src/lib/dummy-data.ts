@@ -23,6 +23,21 @@ const getHydratedUser = (userId: string): User => {
     }
 };
 
+const generateReelComments = (count: number): ReelComment[] => {
+    return Array.from({length: count}).map((_, i) => {
+        const user = dummyUsers[i % dummyUsers.length];
+        return {
+            id: `comment-${Date.now()}-${i}`,
+            user: user.username,
+            profilePic: `https://picsum.photos/seed/${user.id}/100`,
+            text: `This is a fantastic reel! Great job! #${i+1}`,
+            likes: Math.floor(Math.random() * 100),
+            timeAgo: `${Math.floor(Math.random() * 59) + 1}m`,
+            isLiked: Math.random() > 0.8
+        }
+    })
+}
+
 const createDummyPosts = (): Post[] => {
     const posts: Post[] = [];
     
@@ -55,6 +70,7 @@ const createDummyPosts = (): Post[] => {
     ];
     reelVideos.forEach((videoUrl, index) => {
         const user = dummyUsers[(index + 3) % dummyUsers.length];
+        const comments = generateReelComments(Math.floor(Math.random() * 15));
         posts.push({
             id: `reel_${index + 1}`,
             type: 'reel',
@@ -66,8 +82,9 @@ const createDummyPosts = (): Post[] => {
             tags: ['reel', 'trending'],
             views: Math.floor(Math.random() * 50000),
             likes: Math.floor(Math.random() * 5000),
-            commentsCount: Math.floor(Math.random() * 1000),
+            commentsCount: comments.length,
             createdAt: new Date(Date.now() - index * 12 * 60 * 60 * 1000),
+            comments: comments
         });
     });
     
@@ -206,7 +223,7 @@ export const dummyCategories: Category[] = [
     { id: 'food', name: 'Food', thumbnailUrl: 'https://picsum.photos/seed/cat_food/300/400' },
 ];
 
-export const dummyLiveBroadcasts: LiveBroadcast[] = [
+export let dummyLiveBroadcasts: LiveBroadcast[] = [
     { liveId: 'live_sachin', streamerId: 'user_sachin', streamerName: 'sachin', user: getHydratedUser('user_sachin'), title: 'Cricket Practice', category: 'Sports', avatarUrl: getHydratedUser('user_sachin').avatarUrl, isLive: true, viewerCount: 75000, liveThumbnail: 'https://picsum.photos/seed/stream_sachin/640/360' },
     { liveId: 'live_sakshi', streamerId: 'user_sakshi', streamerName: 'sakshi', user: getHydratedUser('user_sakshi'), title: 'Workout Session', category: 'Fitness', avatarUrl: getHydratedUser('user_sakshi').avatarUrl, isLive: true, viewerCount: 52000, liveThumbnail: 'https://picsum.photos/seed/stream_sakshi/640/360' },
     { liveId: 'live_lila', streamerId: 'user_wanderlust_lila', streamerName: 'wanderlust_lila', user: getHydratedUser('user_wanderlust_lila'), title: 'Exploring Tokyo', category: 'Travel', avatarUrl: getHydratedUser('user_wanderlust_lila').avatarUrl, isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_lila/640/360' },

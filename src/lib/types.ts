@@ -23,6 +23,7 @@ export interface Post {
   likes: number;
   commentsCount: number;
   createdAt: Date;
+  comments?: ReelComment[]; // Optional for reels
 }
 
 export interface LiveBroadcast {
@@ -36,6 +37,7 @@ export interface LiveBroadcast {
   category: string;
   title: string;
   isLive: boolean;
+  type?: 'live';
 }
 
 export interface ReelComment {

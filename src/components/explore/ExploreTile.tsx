@@ -27,6 +27,7 @@ const getLinkHref = (item: ExploreItem) => {
 
 const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const imageUrl = item.type === 'live' ? item.liveThumbnail : item.thumbnailUrl;
 
   return (
     <Link href={getLinkHref(item)} className="block w-full h-full group">
@@ -37,7 +38,7 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
         />
 
         <Image
-            src={item.thumbnailUrl}
+            src={imageUrl}
             alt={item.caption || 'Explore content'}
             fill
             className={cn(

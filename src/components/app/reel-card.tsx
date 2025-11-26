@@ -25,12 +25,10 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
     const [showBigHeart, setShowBigHeart] = useState(false);
+    
+    // Manage like state locally within the card
     const [isLiked, setIsLiked] = useState(false);
-
-    const [optimisticReel, updateOptimisticReel] = useOptimistic(
-        reel,
-        (state: Post, newLikes: number) => ({ ...state, likes: newLikes })
-    );
+    const [likesCount, setLikesCount] = useState(reel.likes);
 
     const handleLikeToggle = useCallback(() => {
         if (!user) {
@@ -38,17 +36,17 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
             return;
         }
         const newLikedState = !isLiked;
-        const newLikesCount = newLikedState ? optimisticReel.likes + 1 : optimisticReel.likes - 1;
+        const newLikesCount = newLikedState ? likesCount + 1 : likesCount - 1;
         
         setIsLiked(newLikedState);
-        updateOptimisticReel(newLikesCount);
+        setLikesCount(newLikesCount);
         
         if(newLikedState) {
             setShowBigHeart(true);
             setTimeout(() => setShowBigHeart(false), 800);
         }
 
-    }, [isLiked, optimisticReel.likes, user, toast, updateOptimisticReel]);
+    }, [isLiked, likesCount, user, toast]);
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         if ((e.target as HTMLElement).tagName === 'VIDEO') {
@@ -134,11 +132,11 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
             <div className="absolute bottom-4 right-2 flex flex-col items-center gap-4 text-white">
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); handleLikeToggle(); }}>
                     <Heart className={cn("h-7 w-7", isLiked && "fill-red-500 text-red-500")} />
-                    <span className="text-xs font-semibold">{optimisticReel.likes.toLocaleString()}</span>
+                    <span className="text-xs font-semibold">{likesCount.toLocaleString()}</span>
                 </Button>
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); onCommentClick(); }}>
                     <MessageCircle className="h-7 w-7" />
-                    <span className="text-xs font-semibold">{optimisticReel.commentsCount.toLocaleString()}</span>
+                    <span className="text-xs font-semibold">{reel.commentsCount.toLocaleString()}</span>
                 </Button>
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent">
                     <Send className="h-7 w-7" />
