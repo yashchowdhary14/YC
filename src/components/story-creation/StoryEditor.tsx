@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Type } from 'lucide-react';
+import { ArrowLeft, Type, Pen } from 'lucide-react';
 import TextElement from './TextElement';
 
 export default function StoryEditor() {
@@ -81,6 +80,9 @@ export default function StoryEditor() {
               <ArrowLeft className="h-7 w-7" />
            </button>
             <div className="flex items-center gap-4">
+                <button onClick={() => {}} className="p-2 text-white">
+                    <Pen className="h-7 w-7" />
+                </button>
                 <button onClick={addTextElement} className="p-2 text-white">
                     <Type className="h-7 w-7" />
                 </button>
