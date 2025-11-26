@@ -20,16 +20,16 @@ import {
 } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { dummyUsers } from '@/lib/dummy-data';
-import { useUser } from '@/firebase'; // Keep using the context for state management
+import { useUser } from '@/firebase';
 
 export default function LoginPage() {
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const router = useRouter();
   const { login } = useUser();
 
   const handleLogin = () => {
-    if (selectedUser) {
-      const userToLogin = dummyUsers.find(u => u.id === selectedUser);
+    if (selectedUserId) {
+      const userToLogin = dummyUsers.find(u => u.id === selectedUserId);
       if (userToLogin && login) {
         login({
           uid: userToLogin.id,
@@ -49,13 +49,13 @@ export default function LoginPage() {
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Select a User</CardTitle>
+          <CardTitle className="text-2xl">Select an Account</CardTitle>
           <CardDescription>
             Choose a user to log in and demo the application.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Select onValueChange={setSelectedUser}>
+          <Select onValueChange={setSelectedUserId} value={selectedUserId || ''}>
             <SelectTrigger>
               <SelectValue placeholder="Select a user..." />
             </SelectTrigger>
@@ -73,8 +73,8 @@ export default function LoginPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button onClick={handleLogin} className="w-full" disabled={!selectedUser}>
-            Log In as Selected User
+          <Button onClick={handleLogin} className="w-full" disabled={!selectedUserId}>
+            Log In
           </Button>
         </CardContent>
       </Card>

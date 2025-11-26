@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Heart, MessageCircle, PlusSquare, Search } from 'lucide-react';
+import { Heart, MessageCircle, PlusSquare, Search, LogOut, User, Users, PlusCircle } from 'lucide-react';
 import NextLink from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
+  DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useUser } from '@/firebase';
@@ -18,9 +20,10 @@ import { useRouter } from 'next/navigation';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { dummyUsers } from '@/lib/dummy-data';
 
 export default function AppHeader() {
-  const { user, logout } = useUser();
+  const { user, logout, login } = useUser();
   const router = useRouter();
 
   const handleSignOut = () => {
@@ -29,9 +32,21 @@ export default function AppHeader() {
       router.push('/login');
     }
   };
+  
+  const handleSwitchUser = (userId: string) => {
+    const userToSwitch = dummyUsers.find(u => u.id === userId);
+    if(userToSwitch && login) {
+        login({
+          uid: userToSwitch.id,
+          displayName: userToSwitch.fullName,
+          email: `${userToSwitch.username}@example.com`,
+          photoURL: `https://picsum.photos/seed/${userToSwitch.id}/150/150`,
+        });
+    }
+  }
 
   return (
-    <header className="sticky top-0 z-10 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-4">
            <div className="md:hidden">
@@ -80,14 +95,40 @@ export default function AppHeader() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuItem asChild>
-                  <NextLink href="/profile">Profile</NextLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuContent className="w-64" align="end" forceMount>
+                <DropdownMenuGroup>
+                    <DropdownMenuLabel>Switch Accounts</DropdownMenuLabel>
+                    {dummyUsers.filter(u => u.id !== user.uid).slice(0,3).map(u => (
+                         <DropdownMenuItem key={u.id} onSelect={() => handleSwitchUser(u.id)}>
+                            <Avatar className="h-8 w-8 mr-2">
+                                <AvatarImage src={`https://picsum.photos/seed/${u.id}/100/100`} />
+                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{u.username}</p>
+                                <p className="text-xs text-muted-foreground">{u.fullName}</p>
+                            </div>
+                        </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuItem onSelect={() => router.push('/login')}>
+                        <PlusCircle className="mr-2 h-5 w-5"/>
+                        Add Account
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
-                  Log out
+                <DropdownMenuGroup>
+                    <DropdownMenuItem asChild>
+                        <NextLink href="/profile"><User className="mr-2 h-4 w-4"/>Profile</NextLink>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Users className="mr-2 h-4 w-4"/>
+                        <span>Following</span>
+                    </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

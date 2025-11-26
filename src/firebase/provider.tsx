@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
 
 // Mock User type to match Firebase Auth User object structure
 interface MockUser {
@@ -16,19 +16,12 @@ interface UserAuthState {
   isUserLoading: boolean;
 }
 
-export interface FirebaseContextState {
-  user: MockUser | null;
-  isUserLoading: boolean;
+export interface FirebaseContextState extends UserAuthState {
   login: (user: MockUser) => void;
   logout: () => void;
 }
 
-export interface UserHookResult {
-  user: MockUser | null;
-  isUserLoading: boolean;
-  login: (user: MockUser) => void;
-  logout: () => void;
-}
+export type UserHookResult = FirebaseContextState;
 
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
@@ -53,21 +46,21 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
     }
   }, []);
 
-  const login = (user: MockUser) => {
+  const login = useCallback((user: MockUser) => {
     localStorage.setItem('dummyUser', JSON.stringify(user));
     setUserAuthState({ user, isUserLoading: false });
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('dummyUser');
     setUserAuthState({ user: null, isUserLoading: false });
-  };
+  }, []);
 
   const contextValue = useMemo(() => ({
     ...userAuthState,
     login,
     logout,
-  }), [userAuthState]);
+  }), [userAuthState, login, logout]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -89,6 +82,6 @@ export const useFirebase = () => ({});
 export const useAuth = () => ({});
 export const useFirestore = () => ({});
 export const useFirebaseApp = () => ({});
-export const useMemoFirebase = <T>(factory: () => T) => factory();
+export const useMemoFirebase = <T, D extends readonly any[]>(factory: () => T, deps: D) => useMemo(factory, deps);
 export const useDoc = <T,>() => ({ data: null, isLoading: true, error: null });
 export const useCollection = <T,>() => ({ data: [], isLoading: true, error: null });
