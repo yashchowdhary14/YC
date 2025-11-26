@@ -28,27 +28,30 @@ export default function CreatePostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    if (capturedMedia) {
-        setImageFile(capturedMedia);
-        const previewUrl = URL.createObjectURL(capturedMedia);
-        setImagePreview(previewUrl);
-        
-        // Clean up the captured media so it's not reused
-        setCapturedMedia(null);
-    } else {
-        // If there's no captured media, user shouldn't be here.
-        // Redirect them back to the creation start page.
-        router.replace('/create');
+  // If there's no captured media, the user shouldn't be on this page.
+  // Redirect them immediately.
+  if (!capturedMedia) {
+    if (typeof window !== 'undefined') {
+      router.replace('/create');
     }
+    return null;
+  }
+
+  useEffect(() => {
+    // This effect now only runs when there IS captured media.
+    const file = capturedMedia;
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    
+    // Clean up the captured media so it's not reused on next visit
+    setCapturedMedia(null);
     
     // Cleanup URL object when component unmounts
     return () => {
-        if (imagePreview) {
-            URL.revokeObjectURL(imagePreview);
-        }
-    }
-  }, [capturedMedia, setCapturedMedia, router]);
+      URL.revokeObjectURL(previewUrl);
+    };
+  }, [capturedMedia, setCapturedMedia]);
 
   const handleGenerateCaption = async () => {
     if (!imageFile) {

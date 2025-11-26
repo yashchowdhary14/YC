@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -18,25 +19,30 @@ export default function CreateStoryPage() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (capturedMedia) {
-        setMediaFile(capturedMedia);
-        const previewUrl = URL.createObjectURL(capturedMedia);
-        setMediaPreview(previewUrl);
-        
-        // Clean up the captured media so it's not reused
-        setCapturedMedia(null);
-    } else {
-        router.replace('/create');
+  // If there's no captured media, the user shouldn't be on this page.
+  // Redirect them immediately.
+  if (!capturedMedia) {
+    if (typeof window !== 'undefined') {
+      router.replace('/create');
     }
+    return null;
+  }
+
+  useEffect(() => {
+    // This effect now only runs when there IS captured media.
+    const file = capturedMedia;
+    setMediaFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setMediaPreview(previewUrl);
+    
+    // Clean up the captured media so it's not reused
+    setCapturedMedia(null);
     
     // Cleanup URL object when component unmounts
     return () => {
-        if (mediaPreview) {
-            URL.revokeObjectURL(mediaPreview);
-        }
-    }
-  }, [capturedMedia, setCapturedMedia, router]);
+      URL.revokeObjectURL(previewUrl);
+    };
+  }, [capturedMedia, setCapturedMedia]);
 
 
   const handleSubmit = async (e: React.FormEvent) => {
