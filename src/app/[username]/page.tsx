@@ -21,10 +21,10 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
-import type { Post, User } from '@/lib/types';
+import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import type { Post } from '@/lib/types';
 import { createOrGetChat } from '@/app/actions';
-import { doc, query, collection, where } from 'firebase/firestore';
+import { doc, query, collection, where, getDocs } from 'firebase/firestore';
 
 
 export default function UserProfilePage() {
@@ -35,26 +35,50 @@ export default function UserProfilePage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const firestore = useFirestore();
 
-  const userQuery = useMemoFirebase(
-    () => (firestore && username ? query(collection(firestore, 'users'), where('username', '==', username)) : null),
-    [firestore, username]
-  );
-  const { data: userData, isLoading: isUserLoading } = useCollection(userQuery);
-  const profileUserDoc = useMemo(() => userData?.[0], [userData]);
+  const [profileUser, setProfileUser] = useState<any>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+
+  // Fetch user by username
+  useEffect(() => {
+    if (!firestore || !username) return;
+
+    const fetchUser = async () => {
+      setIsUserLoading(true);
+      try {
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('username', '==', username));
+        const querySnapshot = await getDocs(q);
+        
+        if (querySnapshot.empty) {
+          setProfileUser(null);
+        } else {
+          const userDoc = querySnapshot.docs[0];
+          setProfileUser({ id: userDoc.id, ...userDoc.data() });
+        }
+      } catch (error) {
+        console.error("Error fetching user:", error);
+        setProfileUser(null);
+      } finally {
+        setIsUserLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [firestore, username]);
   
   const postsQuery = useMemoFirebase(
-    () => (firestore && profileUserDoc ? query(collection(firestore, 'users', profileUserDoc.id, 'posts')) : null),
-    [firestore, profileUserDoc]
+    () => (firestore && profileUser ? query(collection(firestore, 'users', profileUser.id, 'posts')) : null),
+    [firestore, profileUser]
   );
   const { data: postsData, isLoading: arePostsLoading } = useCollection(postsQuery);
   
 
-  const isCurrentUser = currentUser?.uid === profileUserDoc?.id;
+  const isCurrentUser = currentUser?.uid === profileUser?.id;
   
   const handleMessageClick = async () => {
-    if (!currentUser || !profileUserDoc || isCurrentUser) return;
+    if (!currentUser || !profileUser || isCurrentUser) return;
     setIsNavigating(true);
-    const result = await createOrGetChat(profileUserDoc.id, currentUser.uid);
+    const result = await createOrGetChat(profileUser.id, currentUser.uid);
     if (result.success && result.chatId) {
       router.push(`/chat/${result.chatId}`);
     } else {
@@ -63,21 +87,13 @@ export default function UserProfilePage() {
     }
   };
 
-  const profileUser = useMemo(() => {
-    if (!profileUserDoc) return null;
-    return {
-      id: profileUserDoc.id,
-      ...profileUserDoc
-    }
-  }, [profileUserDoc]);
-
   const posts = useMemo(() => {
     if (!postsData) return [];
     return postsData.map(p => ({...p}));
   }, [postsData]);
 
 
-  if (isUserLoading || isCurrentUserLoading) {
+  if (isUserLoading || isCurrentUserLoading || arePostsLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -94,7 +110,7 @@ export default function UserProfilePage() {
       username: profileUser!.username,
       fullName: profileUser!.fullName,
       bio: profileUser!.bio,
-      profilePhoto: profileUser!.avatarUrl || profileUser!.profilePhoto,
+      profilePhoto: profileUser!.profilePhoto,
       postsCount: posts.length,
       followersCount: profileUser!.followersCount,
       followingCount: profileUser!.followingCount,

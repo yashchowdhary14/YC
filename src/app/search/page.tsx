@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, PlayCircle } from 'lucide-react';
@@ -19,10 +19,17 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Post, User } from '@/lib/types';
+import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
+
+interface UserSearchResult {
+    id: string;
+    username: string;
+    fullName: string;
+    profilePhoto: string;
+}
 
 // Extend the Post type for our search grid needs
 interface SearchPost extends Post {
@@ -83,7 +90,7 @@ export default function SearchPage() {
     );
 
     const { data: postsData, isLoading: isLoadingPosts } = useCollection(postsQuery);
-    const { data: filteredUsers, isLoading: isLoadingUsers } = useCollection<User>(usersQuery);
+    const { data: filteredUsers, isLoading: isLoadingUsers } = useCollection<UserSearchResult>(usersQuery);
     
     // Assign random spans and types for masonry effect
     const searchPosts: SearchPost[] = (postsData || []).map((post, index) => {
@@ -135,7 +142,7 @@ export default function SearchPage() {
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onFocus={() => setIsFocused(true)}
-                  onBlur={() => setTimeout(() => setIsFocused(false), 150)} // Delay blur to allow click on results
+                  onBlur={() => setTimeout(() => setIsFocused(false), 200)} // Delay blur to allow click on results
                 />
                  {showSearchResults && (
                     <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
@@ -145,7 +152,7 @@ export default function SearchPage() {
                                 <Link href={`/${user.username}`} key={user.id}>
                                     <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
                                         <Avatar>
-                                            <AvatarImage src={user.avatarUrl || user.profilePhoto} alt={user.username} />
+                                            <AvatarImage src={user.profilePhoto} alt={user.username} />
                                             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
                                         </Avatar>
                                         <div>
@@ -156,8 +163,8 @@ export default function SearchPage() {
                                 </Link>
                             ))
                         ) : (
-                           !isLoadingUsers && <div className="p-4 text-center text-sm text-muted-foreground">
-                                No users found.
+                           !isLoadingUsers && searchTerm && <div className="p-4 text-center text-sm text-muted-foreground">
+                                No users found for &quot;{searchTerm}&quot;.
                             </div>
                         )}
                     </Card>
