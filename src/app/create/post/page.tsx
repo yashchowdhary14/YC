@@ -3,18 +3,20 @@
 
 import { useState, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, UploadCloud, Wand2, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { fileToDataUri } from '@/lib/utils';
+import { fileToDataUri, uploadFile } from '@/lib/utils';
 import { generateAiCaption, GenerateAiCaptionInput } from '@/ai/flows/generate-ai-caption';
+import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 
 export default function CreatePostPage() {
   const { user } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
   
@@ -50,8 +52,19 @@ export default function CreatePostPage() {
     setIsGenerating(true);
     try {
         const dataUri = await fileToDataUri(imageFile);
+        
+        // Enhance AI input with user profile data if available
         const input: GenerateAiCaptionInput = {
             mediaDataUri: dataUri,
+            ...(user && {
+              userProfile: {
+                username: user.displayName || user.email?.split('@')[0] || '',
+                // In a real app, you'd fetch the user's bio from their profile
+                bio: 'A passionate creator sharing my world.', 
+                followers: [], // Dummy data, replace with real data if available
+                following: [], // Dummy data, replace with real data if available
+              }
+            })
         };
         const result = await generateAiCaption(input);
         setCaption(result.caption);
@@ -65,32 +78,53 @@ export default function CreatePostPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!imageFile || !caption.trim() || !user) {
+    if (!imageFile || !caption.trim() || !user || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Missing information',
-        description: 'Please upload an image and write a caption.',
+        description: 'Please upload an image, write a caption, and be logged in.',
       });
       return;
     }
     
     setIsSubmitting(true);
     
-    // Simulate upload and post creation
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    console.log('Simulating post creation:', {
-      userId: user.uid,
-      caption: caption,
-      imageName: imageFile.name,
-    });
+    try {
+      // 1. Upload image to Firebase Storage
+      const imageUrl = await uploadFile(imageFile, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
 
-    toast({
-      title: 'Post Created! (Simulation)',
-      description: 'Your post has been successfully shared.',
-    });
-    
-    router.push('/');
+      // 2. Create post document in Firestore
+      const postsCollection = collection(firestore, 'posts');
+      await addDoc(postsCollection, {
+        type: 'photo',
+        mediaUrl: imageUrl,
+        thumbnailUrl: imageUrl,
+        uploaderId: user.uid,
+        caption: caption,
+        tags: ['photography'], // Example tags, can be improved
+        views: 0,
+        likes: 0,
+        commentsCount: 0,
+        createdAt: serverTimestamp(),
+      });
+
+      toast({
+        title: 'Post Created!',
+        description: 'Your post has been successfully shared.',
+      });
+      
+      router.push(`/${user.displayName || user.email?.split('@')[0]}`);
+
+    } catch (error) {
+      console.error("Error creating post:", error);
+      toast({
+        variant: 'destructive',
+        title: 'Failed to create post',
+        description: 'An error occurred while saving your post. Please try again.'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -160,4 +194,3 @@ export default function CreatePostPage() {
     </div>
   );
 }
-

@@ -1,5 +1,7 @@
 
 import { clsx, type ClassValue } from "clsx"
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { initializeFirebase } from "@/firebase";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -30,4 +32,25 @@ export function fileToDataUri(file: File): Promise<string> {
     };
     reader.readAsDataURL(file);
   });
+}
+
+/**
+ * Uploads a file to Firebase Storage and returns the download URL.
+ * @param file The file to upload.
+ * @param path The path in Firebase Storage where the file will be stored.
+ * @returns A promise that resolves with the public URL of the uploaded file.
+ */
+export async function uploadFile(file: File, path: string): Promise<string> {
+  const { firebaseApp } = initializeFirebase();
+  const storage = getStorage(firebaseApp);
+  const storageRef = ref(storage, path);
+  
+  try {
+    const snapshot = await uploadBytes(storageRef, file);
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    return downloadURL;
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    throw new Error("File upload failed.");
+  }
 }
