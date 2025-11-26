@@ -2,16 +2,44 @@
 {
   "indexes": [
     {
-      "collectionGroup": "chats",
+      "collectionGroup": "streams",
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "users",
-          "arrayConfig": "CONTAINS"
+          "fieldPath": "isLive",
+          "order": "ASCENDING"
         },
         {
-          "fieldPath": "lastUpdated",
+          "fieldPath": "viewerCount",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "streams",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "isLive",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "category",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "viewerCount",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "categories",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "name",
+          "order": "ASCENDING"
         }
       ]
     }
