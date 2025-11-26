@@ -3,12 +3,9 @@
 
 import {
   Compass,
-  Heart,
   Home,
   MessageCircle,
   PlusSquare,
-  Search,
-  User,
   Clapperboard,
   Video,
 } from 'lucide-react';
@@ -29,6 +26,7 @@ import { LiveIcon } from '../icons/live-icon';
 
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
+  { href: '/explore', label: 'Explore', icon: Compass },
   { href: '/videos', label: 'Videos', icon: Video },
   { href: '/live', label: 'Live', icon: LiveIcon },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
@@ -51,7 +49,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
         <AvatarImage src={user.photoURL || ''} />
         <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
-    ) : User },
+    ) : Compass },
   ];
 
   if (isCollapsed) {
