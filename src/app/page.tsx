@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useEffect, useState, useOptimistic } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, where, getDocs } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import type { Post } from '@/lib/types';
 import PostCard from '@/components/app/post-card';
@@ -21,11 +22,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { useCollection } from '@/firebase/firestore/use-collection';
 import { useHydratedPosts } from '@/firebase/firestore/use-hydrated-posts';
 import { signOut } from 'firebase/auth';
 import { followUser, unfollowUser } from './actions';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 const suggestions = [
   {
@@ -97,6 +98,8 @@ export default function Home() {
   const auth = useAuth();
   const firestore = useFirestore();
   const router = useRouter();
+  const [feedPostsData, setFeedPostsData] = useState<any[] | null>(null);
+  const [isLoadingFeed, setIsLoadingFeed] = useState(true);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -104,12 +107,61 @@ export default function Home() {
     }
   }, [user, isUserLoading, router]);
 
-  const postsQuery = useMemoFirebase(
-    () => (firestore ? query(collection(firestore, 'posts'), orderBy('createdAt', 'desc')) : null),
-    [firestore]
-  );
-  const { data: postsData, isLoading: postsLoading } = useCollection<Omit<Post, 'user'>>(postsQuery);
-  const { posts, isLoading: isHydrating } = useHydratedPosts(postsData);
+  useEffect(() => {
+    const fetchFeed = async () => {
+        if (!firestore || !user) return;
+
+        setIsLoadingFeed(true);
+        try {
+            // 1. Get the list of users the current user is following
+            const followingRef = collection(firestore, 'users', user.uid, 'following');
+            const followingSnapshot = await getDocs(followingRef);
+            const followingIds = followingSnapshot.docs.map(doc => doc.id);
+
+            if (followingIds.length === 0) {
+                setFeedPostsData([]);
+                setIsLoadingFeed(false);
+                return;
+            }
+
+            // 2. Fetch posts from those users
+            // Firestore 'in' query limit is 30. We need to batch requests if the user follows more.
+            const MAX_IN_QUERY_SIZE = 30;
+            const postPromises = [];
+            for (let i = 0; i < followingIds.length; i += MAX_IN_QUERY_SIZE) {
+                const chunk = followingIds.slice(i, i + MAX_IN_QUERY_SIZE);
+                const postsQuery = query(
+                    collection(firestore, 'posts'),
+                    where('userId', 'in', chunk)
+                );
+                postPromises.push(getDocs(postsQuery));
+            }
+
+            const querySnapshots = await Promise.all(postPromises);
+            const postsFromFollowedUsers = querySnapshots.flatMap(snapshot =>
+                snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            );
+            
+            // 3. Sort posts by creation date client-side
+            postsFromFollowedUsers.sort((a, b) => {
+              const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+              const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+              return dateB.getTime() - dateA.getTime();
+            });
+
+            setFeedPostsData(postsFromFollowedUsers);
+
+        } catch (error) {
+            console.error("Error fetching user feed:", error);
+            setFeedPostsData([]); // Set to empty on error
+        } finally {
+            setIsLoadingFeed(false);
+        }
+    };
+    fetchFeed();
+  }, [firestore, user]);
+
+  const { posts, isLoading: isHydrating } = useHydratedPosts(feedPostsData);
 
   const handleSignOut = async () => {
     if (auth) {
@@ -117,6 +169,8 @@ export default function Home() {
       router.push('/login');
     }
   };
+  
+  const isLoading = isUserLoading || isLoadingFeed || isHydrating;
 
   if (isUserLoading || !user) {
     return (
@@ -152,7 +206,7 @@ export default function Home() {
               <div className="lg:col-span-2">
                 <div className="flex flex-col gap-8">
                   <StoriesCarousel />
-                  {postsLoading || isHydrating ? (
+                  {isLoading ? (
                      <div className="flex justify-center items-center h-64">
                         <Loader2 className="h-8 w-8 animate-spin" />
                     </div>
@@ -161,8 +215,13 @@ export default function Home() {
                       <PostCard key={post.id} post={post} />
                     ))
                   ) : (
-                    <div className="text-center py-16 text-muted-foreground">
-                      No posts to show. Follow some people!
+                    <div className="text-center py-16 text-muted-foreground bg-card rounded-lg">
+                      <h3 className="text-xl font-semibold text-foreground">Welcome to Instagram</h3>
+                      <p className="mt-2">Your feed is empty.</p>
+                      <p>Start following people to see their posts here.</p>
+                       <Button asChild className="mt-4">
+                         <Link href="/search">Find People to Follow</Link>
+                       </Button>
                     </div>
                   )}
                 </div>
@@ -188,3 +247,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    
