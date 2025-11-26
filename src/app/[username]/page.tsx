@@ -98,7 +98,7 @@ export default function UserProfilePage() {
         const profileUserData = profileUserDoc.data() as UserType;
         
         const postsRef = collection(firestore, 'posts');
-        const postsQuery = query(postsRef, where('uploaderId', '==', profileUserDoc.id));
+        const postsQuery = query(postsRef, where('userId', '==', profileUserDoc.id));
         const postsSnapshot = await getDocs(postsQuery);
         const userPosts = postsSnapshot.docs.map(doc => doc.data() as Post);
 
