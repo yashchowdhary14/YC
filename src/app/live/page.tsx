@@ -7,7 +7,7 @@ import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { dummyStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
-import type { Stream, Category, User } from '@/lib/types';
+import type { Stream, Category } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
 import StreamGrid from '@/components/live/stream-grid';
@@ -45,7 +45,7 @@ export default function LivePage() {
       liveStreams,
       recommendedChannels,
       featuredStreams,
-      categories: dummyCategories.slice(0,6),
+      categories: dummyCategories.slice(0,12),
     };
   }, []);
 
@@ -59,8 +59,8 @@ export default function LivePage() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen bg-zinc-900 text-white">
-        <LiveSidebar recommendedChannels={liveData.recommendedChannels} recommendedCategories={liveData.categories} />
+      <div className="flex min-h-screen bg-zinc-900 text-white">
+        <LiveSidebar recommendedChannels={liveData.recommendedChannels} recommendedCategories={liveData.categories.slice(0,6)} />
         <SidebarInset className="flex-1 flex flex-col">
           <AppHeader />
           <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
