@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,14 @@ export default function GlobalError({
   useEffect(() => {
     // In a real application, you would log the error to a reporting service
     console.error(error);
+    
+    // TODO: PHASE 2 - REAL-TIME MONITORING
+    // Once you've integrated a service like Sentry or Firebase Crashlytics,
+    // you would report the error here.
+    // Example with Sentry:
+    // import * as Sentry from "@sentry/nextjs";
+    // Sentry.captureException(error);
+
   }, [error]);
 
   return (
