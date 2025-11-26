@@ -3,12 +3,11 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
-import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
 import type { LiveBroadcast, Category } from '@/lib/types';
 import Link from 'next/link';
 import { formatCompactNumber } from '@/lib/utils';
-import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, useSidebar } from '../ui/sidebar';
+import { useSidebar } from '../ui/sidebar';
 
 interface LiveSidebarProps {
   recommendedChannels: LiveBroadcast[];
@@ -64,11 +63,11 @@ function CategoryItem({ category }: { category: Category }) {
 
 export default function LiveSidebar({ recommendedChannels, recommendedCategories }: LiveSidebarProps) {
   return (
-    <Sidebar className="p-0 border-r border-r-zinc-800 bg-zinc-900 text-white w-60" side="left">
-        <SidebarHeader className="h-[3.5rem] md:h-14 border-b border-zinc-800 flex items-center justify-between px-4">
+    <div className="fixed top-0 left-0 h-full w-60 bg-zinc-900 border-r border-r-zinc-800 text-white flex-col hidden md:flex">
+        <div className="h-14 border-b border-zinc-800 flex items-center justify-between px-4">
             <h2 className="text-lg font-bold">For You</h2>
-        </SidebarHeader>
-        <SidebarContent className="py-2">
+        </div>
+        <div className="flex-1 overflow-y-auto py-2">
             <div className="p-2">
                 <h3 className="text-sm font-semibold uppercase text-zinc-400 px-2 mb-2">Recommended Categories</h3>
                 <div className="space-y-1">
@@ -88,7 +87,7 @@ export default function LiveSidebar({ recommendedChannels, recommendedCategories
                     <Button variant="link" size="sm" className="text-xs p-0 text-primary">Show More</Button>
                 </div>
             </div>
-        </SidebarContent>
-    </Sidebar>
+        </div>
+    </div>
   );
 }
