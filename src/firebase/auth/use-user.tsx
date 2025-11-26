@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, collection, onSnapshot, DocumentData, deleteDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, DocumentData, deleteDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
 import type { User as AppUser } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -83,7 +83,6 @@ export const useUser = (): UseUserHookResult => {
       return;
     }
 
-    const targetUserId = followedUsersMap.get(username);
     const isFollowing = followedUsers.has(username);
     const followDocRef = doc(firestore, `users/${user.uid}/following`, username);
     
@@ -92,26 +91,27 @@ export const useUser = (): UseUserHookResult => {
             await deleteDoc(followDocRef);
             toast({ title: `Unfollowed ${username}` });
         } else {
-            // To add a follow, we need the target user's ID. This is a simplification.
-            // In a real app, you might need to query for the user by username first.
-            // For now, this part will only work if the user is already in the suggestions.
-            // A more robust implementation is needed for a full social graph feature.
-            // Let's assume for now we can't follow users not already known.
-            // A better approach would be to look up the user ID from the username.
-            // This is a placeholder for that logic.
-            
-            // This is a HACK to get the user ID from the username for dummy data.
-            // In a real app, you would query the 'users' collection where 'username' == username.
-            const newFollowId = `user_${username}`; 
+            // Find the user to follow by their username to get their ID
+            const usersRef = collection(firestore, 'users');
+            const q = query(usersRef, where('username', '==', username));
+            const querySnapshot = await getDocs(q);
 
-            await setDoc(followDocRef, { userId: newFollowId });
+            if (querySnapshot.empty) {
+                toast({ variant: "destructive", title: `User ${username} not found.` });
+                return;
+            }
+            
+            const targetUserDoc = querySnapshot.docs[0];
+            await setDoc(followDocRef, { userId: targetUserDoc.id });
             toast({ title: `Followed ${username}` });
         }
     } catch (error) {
         console.error("Error toggling follow:", error);
         toast({ variant: "destructive", title: "Something went wrong" });
     }
-  }, [user, firestore, followedUsers, followedUsersMap, toast]);
+  }, [user, firestore, followedUsers, toast]);
 
   return { user, appUser, isUserLoading, followedUsers, toggleFollow };
 };
+
+    

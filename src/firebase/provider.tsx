@@ -3,12 +3,11 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, collection, onSnapshot, deleteDoc, setDoc } from 'firebase/firestore';
+import { Firestore, doc, getDoc, collection, onSnapshot, deleteDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
-import { dummyUsers } from '@/lib/dummy-data';
 
 interface UserAuthState {
   user: User | null;
@@ -130,15 +129,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
         await deleteDoc(followDocRef);
         toast({ title: `Unfollowed ${username}` });
       } else {
-        // In a real app, you'd need to look up the user's ID from their username
-        // For this dummy implementation, we find it from the imported list
-        const targetUser = dummyUsers.find(u => u.username === username);
-        if (targetUser) {
-           await setDoc(followDocRef, { userId: targetUser.id });
-           toast({ title: `Followed ${username}` });
-        } else {
-           toast({ variant: "destructive", title: `User ${username} not found.` });
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('username', '==', username));
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+            toast({ variant: "destructive", title: `User ${username} not found.` });
+            return;
         }
+        
+        const targetUserDoc = querySnapshot.docs[0];
+        await setDoc(followDocRef, { userId: targetUserDoc.id });
+        toast({ title: `Followed ${username}` });
       }
     } catch (error) {
       console.error("Error toggling follow:", error);
@@ -235,3 +237,5 @@ export const useUser = (): UserHookResult => {
     toggleFollow: context.toggleFollow,
   };
 };
+
+    
