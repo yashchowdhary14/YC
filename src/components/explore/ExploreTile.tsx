@@ -27,7 +27,6 @@ const getLinkHref = (item: ExploreItem) => {
 
 const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const imageUrl = item.type === 'live' ? item.liveThumbnail : item.thumbnailUrl;
 
   return (
     <Link href={getLinkHref(item)} className="block w-full h-full group">
@@ -38,7 +37,7 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
         />
 
         <Image
-            src={imageUrl}
+            src={item.thumbnailUrl}
             alt={item.caption || 'Explore content'}
             fill
             className={cn(
@@ -50,9 +49,9 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
         />
         
         {/* Overlays */}
-        <div className="absolute inset-0 bg-black/30 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-center justify-center">
             {item.type !== 'live' && (
-                <div className="flex items-center gap-4 text-white font-semibold">
+                <div className="flex items-center gap-6 text-white font-semibold">
                     {typeof item.likes === 'number' && (
                         <div className="flex items-center gap-1.5">
                             <Heart className="h-5 w-5 fill-white" />
@@ -67,27 +66,20 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
                     )}
                 </div>
             )}
+            {item.type === 'live' && (
+                <div className="flex items-center gap-2 text-white font-semibold">
+                     <Wifi className="h-5 w-5" />
+                    <span>{formatCompactNumber(item.viewerCount || 0)} viewers</span>
+                </div>
+            )}
         </div>
         
         {/* Corner icons */}
         <div className="absolute top-2 right-2 pointer-events-none">
             {item.type === 'reel' && <Clapperboard className="h-5 w-5 text-white shadow-lg" />}
             {item.type === 'video' && <PlayCircle className="h-5 w-5 text-white shadow-lg" />}
+            {item.type === 'live' && <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-xs">Live</Badge>}
         </div>
-        
-        {/* Live badge */}
-        {item.type === 'live' && (
-             <div className={cn(
-                "absolute top-0 left-0 w-full h-full flex flex-col justify-between p-2 pointer-events-none",
-                "ring-2 ring-red-500/80 rounded-md group-hover:ring-red-500"
-             )}>
-                <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-xs h-5 w-fit">Live</Badge>
-                <div className="bg-black/60 text-white px-1.5 py-0.5 rounded text-xs font-semibold w-fit flex items-center gap-1">
-                    <Wifi className="h-3 w-3" />
-                    <span>{formatCompactNumber(item.viewerCount || 0)}</span>
-                </div>
-            </div>
-        )}
     </Link>
   );
 };

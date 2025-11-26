@@ -3,22 +3,11 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import ExploreTile from './ExploreTile';
 import type { ExploreItem } from './types';
 
 interface ExploreGridProps {
   items: ExploreItem[];
-}
-
-const getSpan = (index: number): string => {
-    // These patterns create the dynamic Instagram-style grid.
-    const patternIndex = index % 18;
-    if (patternIndex === 0) return "col-span-1 row-span-2"; // Tall
-    if (patternIndex === 5) return "col-span-1 row-span-2"; // Tall
-    if (patternIndex === 8) return "col-span-1 row-span-2"; // Tall
-    if (patternIndex === 13) return "col-span-2 row-span-2"; // Large square
-    return "col-span-1 row-span-1"; // Standard square
 }
 
 const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
@@ -29,20 +18,19 @@ const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
         variants={{
             visible: {
                 transition: {
-                    staggerChildren: 0.025,
+                    staggerChildren: 0.05,
                 },
             },
         }}
-        className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-1"
-        style={{ gridAutoRows: 'minmax(0, 1fr)' }}
+        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 auto-rows-fr gap-4"
     >
       {items.map((item, index) => (
         <motion.div
           key={`${item.id}-${index}`}
-          className={cn('relative w-full overflow-hidden first:rounded-tl-lg', getSpan(index))}
+          className="relative w-full aspect-square overflow-hidden rounded-lg"
           variants={{
-              hidden: { opacity: 0, scale: 0.95 },
-              visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
+              hidden: { opacity: 0, scale: 0.9 },
+              visible: { opacity: 1, scale: 1, transition: { duration: 0.4 } },
           }}
           layout
         >
