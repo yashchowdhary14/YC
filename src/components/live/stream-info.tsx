@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -41,7 +40,6 @@ export default function StreamInfo({ streamer, stream }: StreamInfoProps) {
         <div className="flex sm:flex-col sm:items-end gap-2">
             <div className="flex items-center gap-2">
                 <Button>Follow</Button>
-                <Button variant="secondary">Subscribe</Button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                 <Eye className="h-4 w-4 text-red-500" />
