@@ -25,25 +25,27 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-function SuggestionCard({ suggestion, currentUserId }: { suggestion: User, currentUserId: string }) {
-  const [isFollowing, setIsFollowing] = useState(false);
+function SuggestionCard({ suggestion }: { suggestion: User }) {
+  const { followedUsers, toggleFollow } = useUser();
+  const isFollowing = followedUsers.has(suggestion.username);
 
   const handleFollowToggle = () => {
-    setIsFollowing(prev => !prev);
-    // In a real app, you'd call a server action here.
+    toggleFollow(suggestion.username);
   };
 
   return (
     <div key={suggestion.username} className="flex items-center gap-3">
-      <Avatar>
-        <AvatarImage src={suggestion.avatarUrl} alt={suggestion.username} />
-        <AvatarFallback>{suggestion.username.charAt(0)}</AvatarFallback>
-      </Avatar>
-      <div className="flex-1">
-        <p className="font-semibold text-sm">{suggestion.username}</p>
-        <p className="text-xs text-muted-foreground">Suggested for you</p>
-      </div>
-      <Button variant="link" size="sm" className="p-0 h-auto text-primary" onClick={handleFollowToggle}>
+      <Link href={`/${suggestion.username}`} className="flex items-center gap-3 flex-1">
+        <Avatar>
+          <AvatarImage src={suggestion.avatarUrl} alt={suggestion.username} />
+          <AvatarFallback>{suggestion.username.charAt(0)}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <p className="font-semibold text-sm truncate">{suggestion.username}</p>
+          <p className="text-xs text-muted-foreground">Suggested for you</p>
+        </div>
+      </Link>
+      <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs" onClick={handleFollowToggle}>
         {isFollowing ? 'Following' : 'Follow'}
       </Button>
     </div>
@@ -51,7 +53,7 @@ function SuggestionCard({ suggestion, currentUserId }: { suggestion: User, curre
 }
 
 export default function Home() {
-  const { user, isUserLoading, logout } = useUser();
+  const { user, isUserLoading, logout, followedUsers } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -64,8 +66,14 @@ export default function Home() {
     if (!user) return { feedPosts: [], suggestions: [], isLoading: true };
 
     const followingIds = dummyFollows[user.uid] || [];
+    
+    // Add users followed via the UI to the list
+    const allFollowingUsernames = new Set([...Array.from(followedUsers), ...followingIds.map(id => dummyUsers.find(u => u.id === id)?.username).filter(Boolean)]);
+    
+    const allFollowingIds = dummyUsers.filter(u => allFollowingUsernames.has(u.username)).map(u => u.id);
+    
     const hydratedPosts: Post[] = dummyPosts
-      .filter(post => followingIds.includes(post.userId) || post.userId === user.uid)
+      .filter(post => allFollowingIds.includes(post.userId) || post.userId === user.uid)
       .map(post => {
         const postAuthor = dummyUsers.find(u => u.id === post.userId)!;
         const image = PlaceHolderImages.find(img => img.id === post.imageId)!;
@@ -82,7 +90,7 @@ export default function Home() {
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     const suggestedUsers = dummyUsers
-      .filter(u => u.id !== user.uid && !followingIds.includes(u.id))
+      .filter(u => u.id !== user.uid && !allFollowingUsernames.has(u.username))
       .slice(0, 5)
       .map(u => ({
         ...u,
@@ -90,7 +98,7 @@ export default function Home() {
       }));
 
     return { feedPosts: hydratedPosts, suggestions: suggestedUsers, isLoading: false };
-  }, [user]);
+  }, [user, followedUsers]);
 
   const handleSignOut = () => {
     if (logout) {
@@ -154,11 +162,11 @@ export default function Home() {
                  <div className="sticky top-24">
                    <div className="flex items-center justify-between mb-4">
                      <p className="font-semibold text-muted-foreground">Suggestions for you</p>
-                     <Button variant="link" size="sm" className="p-0 h-auto">See All</Button>
+                     <Button variant="link" size="sm" className="p-0 h-auto text-xs">See All</Button>
                    </div>
                    <div className="flex flex-col gap-4">
                     {suggestions.map((s) => (
-                        <SuggestionCard key={s.id} suggestion={s} currentUserId={user.uid} />
+                        <SuggestionCard key={s.id} suggestion={s} />
                     ))}
                   </div>
                  </div>
