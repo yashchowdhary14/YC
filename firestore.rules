@@ -131,20 +131,16 @@ service cloud.firestore {
 
     // streams
     match /streams/{streamId} {
-      allow get, list: if true; // PUBLIC READ
-
-      allow create: if isSignedIn();
-      
-      allow update: if isSignedIn() 
-            && request.auth.uid == resource.data.streamerId;
-
-      allow delete: if isSignedIn()
+      allow read: if true; // allow get + list publicly
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null
             && request.auth.uid == resource.data.streamerId;
 
       // Live Chat Messages
       match /live-chat-messages/{messageId} {
         allow read: if true; // Publicly readable
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; // Must be signed in and be the author
+        allow create: if request.auth != null 
+            && request.resource.data.userId == request.auth.uid; // Must be signed in and be the author
         allow update, delete: if false; // Messages are immutable
       }
     }
