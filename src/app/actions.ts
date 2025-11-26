@@ -87,6 +87,7 @@ export async function handleCreatePost(formData: FormData) {
 export async function toggleLike(postId: string, userId: string) {
   const { firestore } = initializeFirebase();
   const postRef = doc(firestore, 'posts', postId);
+  const userPostRef = doc(firestore, 'users', userId, 'posts', postId);
 
   try {
     await runTransaction(firestore, async (transaction) => {
@@ -99,20 +100,22 @@ export async function toggleLike(postId: string, userId: string) {
       const likes: string[] = postData.likes || [];
       
       const isLiked = likes.includes(userId);
-
+      let newLikes: string[];
+      
       if (isLiked) {
-        transaction.update(postRef, {
-          likes: arrayRemove(userId)
-        });
+        newLikes = likes.filter(id => id !== userId);
+        transaction.update(postRef, { likes: arrayRemove(userId) });
+        transaction.update(userPostRef, { likes: arrayRemove(userId) });
       } else {
-        transaction.update(postRef, {
-          likes: arrayUnion(userId)
-        });
+        newLikes = [...likes, userId];
+        transaction.update(postRef, { likes: arrayUnion(userId) });
+        transaction.update(userPostRef, { likes: arrayUnion(userId) });
       }
     });
 
     revalidatePath('/');
     revalidatePath(`/p/${postId}`);
+    revalidatePath('/profile');
     return { success: true };
   } catch (error: any) {
     console.error('Error toggling like:', error);
