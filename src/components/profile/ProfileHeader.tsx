@@ -7,6 +7,7 @@ import { Settings, CheckCircle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 
 interface ProfileHeaderProps {
   user: {
@@ -37,9 +38,12 @@ export default function ProfileHeader({
   const { toast } = useToast();
 
   const isFollowing = followedUsers.has(user.username);
+  
+  // Use a separate state for optimistic updates to avoid direct mutation of props
   const [optimisticFollowers, setOptimisticFollowers] = useState(user.followersCount);
 
   useEffect(() => {
+    // Sync with the prop value when it changes
     setOptimisticFollowers(user.followersCount);
   }, [user.followersCount]);
 
@@ -85,25 +89,33 @@ export default function ProfileHeader({
           <div className="flex items-center gap-2 w-full md:w-auto">
             {isCurrentUser ? (
               <>
-                <Button onClick={onEditClick} variant="secondary" size="sm" className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
-                  Edit profile
-                </Button>
-                <Button variant="secondary" size="sm" className="flex-1 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
-                  View archive
-                </Button>
+                <motion.div whileTap={{ scale: 0.95 }} className="flex-1">
+                    <Button onClick={onEditClick} variant="secondary" size="sm" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
+                        Edit profile
+                    </Button>
+                </motion.div>
+                 <motion.div whileTap={{ scale: 0.95 }} className="flex-1">
+                    <Button variant="secondary" size="sm" className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold text-sm">
+                        View archive
+                    </Button>
+                </motion.div>
                 <Button variant="ghost" size="icon" className="hidden md:inline-flex">
                   <Settings className="h-5 w-5" />
                 </Button>
               </>
             ) : (
               <>
-                <Button size="sm" variant={isFollowing ? 'secondary' : 'default'} onClick={handleFollowToggle} className="flex-1">
-                  {isFollowing ? 'Following' : 'Follow'}
-                </Button>
-                <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat} className="flex-1">
-                  {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Message
-                </Button>
+                <motion.div whileTap={{ scale: 0.95 }} className="flex-1">
+                    <Button size="sm" variant={isFollowing ? 'secondary' : 'default'} onClick={handleFollowToggle} className="w-full">
+                        {isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                </motion.div>
+                <motion.div whileTap={{ scale: 0.95 }} className="flex-1">
+                    <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat} className="w-full">
+                        {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Message
+                    </Button>
+                </motion.div>
               </>
             )}
           </div>
