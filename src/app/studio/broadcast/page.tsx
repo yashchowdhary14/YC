@@ -13,7 +13,7 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { Loader2, Video, VideoOff, Wifi, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import LiveChat from '@/components/live/live-chat';
 import type { Stream, User } from '@/lib/types';
+import { dummyUsers } from '@/lib/dummy-data';
 
 
 export default function BroadcastPage() {
@@ -38,38 +39,53 @@ export default function BroadcastPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   
+  // In a real app, a user might manage multiple stream keys or have one created.
+  // For this demo, we'll create a stream document for the user if it doesn't exist.
+  const streamId = useMemo(() => user?.uid, [user]);
+
   const streamRef = useMemoFirebase(() => {
-    if (!firestore || !user) return null;
-    // For this demo, we assume the stream ID is derived from the user ID.
-    // In a real app, a user might manage multiple stream keys.
-    const { dummyStreams } = require('@/lib/dummy-data');
-    const streamId = dummyStreams.find((s:any) => s.streamerId === user.uid)?.id;
-    if (!streamId) return null;
+    if (!firestore || !streamId) return null;
     return doc(firestore, 'streams', streamId);
-  }, [firestore, user]);
+  }, [firestore, streamId]);
 
   const { data: streamData, isLoading: isStreamLoading } = useDoc<Stream>(streamRef);
 
   useEffect(() => {
+    // If stream data exists, populate the component state
     if (streamData) {
         setStreamTitle(streamData.title);
         setIsLive(streamData.isLive);
-    }
-  }, [streamData]);
+    } 
+    // If no stream document and we have a user, create one.
+    else if (!isStreamLoading && !streamData && user && streamRef) {
+        const userData = dummyUsers.find(u => u.id === user.uid);
+        if (!userData) return;
 
-  const streamer: User | null = useMemo(() => {
-    if (!user || !streamData) return null;
-    return {
-        id: user.uid,
-        username: streamData.user.username,
-        avatarUrl: streamData.user.avatarUrl,
-        fullName: streamData.user.fullName,
-        bio: streamData.user.bio,
-        followersCount: streamData.user.followersCount,
-        followingCount: streamData.user.followingCount,
-        verified: streamData.user.verified,
-    };
-  }, [user, streamData]);
+        const newStreamData: Omit<Stream, 'id'> = {
+            streamerId: user.uid,
+            title: `${userData.username}'s Stream`,
+            category: 'Just Chatting',
+            tags: ['IRL', 'New Streamer'],
+            viewerCount: 0,
+            isLive: false,
+            user: {
+                id: userData.id,
+                username: userData.username,
+                avatarUrl: `https://picsum.photos/seed/${userData.id}/100/100`,
+                fullName: userData.fullName,
+                bio: userData.bio,
+                followersCount: userData.followersCount,
+                followingCount: userData.followingCount,
+                verified: userData.verified
+            }
+        };
+        setDoc(streamRef, newStreamData).catch(err => {
+            console.error("Failed to create stream document:", err);
+            toast({ variant: 'destructive', title: 'Could not initialize your stream.'});
+        });
+    }
+  }, [streamData, isStreamLoading, user, streamRef, toast]);
+
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -121,6 +137,7 @@ export default function BroadcastPage() {
         await updateDoc(streamRef, {
             isLive: liveStatus,
             title: newTitle,
+            viewerCount: liveStatus ? Math.floor(Math.random() * 5000) + 100 : 0, // Simulate viewers
         });
         toast({ title: `Stream ${liveStatus ? 'started' : 'ended'} successfully!` });
     } catch (error) {
@@ -155,7 +172,7 @@ export default function BroadcastPage() {
   }
 
 
-  if (isUserLoading || !user || isStreamLoading || !streamData || !streamer) {
+  if (isUserLoading || !user || isStreamLoading || !streamData) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

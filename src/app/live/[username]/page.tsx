@@ -3,8 +3,8 @@
 
 import { useMemo, useEffect } from 'react';
 import { useParams, notFound } from 'next/navigation';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit } from 'firebase/firestore';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import LiveStreamPlayer from '@/components/live/live-stream-player';
@@ -18,26 +18,18 @@ export default function LiveWatchPage() {
   const { user: currentUser, isUserLoading } = useUser();
   const firestore = useFirestore();
 
-  // Find the streamer's ID from the username (this is a simulation, in a real app you'd query this)
-  // For this to work with Firestore, we'd need a users collection to look up the username.
-  // We'll assume for now that the stream document contains enough info.
-  // This part is tricky without a `users` collection query by username.
-  // A better real-world structure might be to stream by `streamId` not username,
-  // or have a `users` collection to query first. Let's assume we can find the stream.
-  
-  // This is a placeholder for finding the right stream document.
-  // In a real app, you would query the `streams` collection `where("streamerName", "==", username)`.
-  // Since we don't have that query hook set up, we'll have to improvise or assume an ID.
-  // Let's find the stream from the dummy data to get its ID, then fetch that doc.
-  const { dummyStreams } = require('@/lib/dummy-data');
-  const streamData = dummyStreams.find((s: any) => s.user?.username === username || s.streamerName === username);
+  const streamQuery = useMemoFirebase(() => {
+    if (!firestore || !username) return null;
+    return query(
+      collection(firestore, 'streams'),
+      where('user.username', '==', username),
+      limit(1)
+    );
+  }, [firestore, username]);
 
-  const streamRef = useMemoFirebase(() => {
-      if (!firestore || !streamData) return null;
-      return doc(firestore, 'streams', streamData.id);
-  }, [firestore, streamData]);
+  const { data: streams, isLoading: isStreamLoading } = useCollection<Stream>(streamQuery);
 
-  const { data: stream, isLoading: isStreamLoading } = useDoc<Stream>(streamRef);
+  const stream = useMemo(() => (streams && streams.length > 0 ? streams[0] : null), [streams]);
 
   const streamer: User | null = useMemo(() => {
     if (!stream) return null;
@@ -60,9 +52,18 @@ export default function LiveWatchPage() {
       </div>
     );
   }
-
+  
   if (!stream || !streamer) {
-    return notFound();
+    // Wait until loading is false to show notFound
+    if (!isStreamLoading) {
+      return notFound();
+    }
+    // Return loader while stream is loading and not yet found.
+    return (
+       <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   return (
@@ -71,7 +72,7 @@ export default function LiveWatchPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         <main className="lg:col-span-9 flex flex-col overflow-y-auto">
           <div className="aspect-video">
-             <LiveStreamPlayer src={stream?.videoUrl}/>
+             <LiveStreamPlayer src={(stream as any)?.videoUrl}/>
           </div>
           <div className="p-4 flex-1">
              <StreamInfo streamer={streamer} stream={{...stream, viewers: stream.viewerCount}} />

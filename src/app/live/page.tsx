@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useCollection, useFirestore } from '@/firebase';
 import type { Stream, Category } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
@@ -15,47 +15,30 @@ import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { dummyStreams as initialStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
+import { collection } from 'firebase/firestore';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
+  const firestore = useFirestore();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [streams, setStreams] = useState<Omit<Stream, 'user'>[]>(() => {
-    if (typeof window !== 'undefined') {
-      const storedStreams = localStorage.getItem('dummyStreams');
-      if (storedStreams) {
-        return JSON.parse(storedStreams, (key, value) => {
-          if (key === 'createdAt') return new Date(value);
-          return value;
-        });
-      }
-    }
-    return initialStreams;
-  });
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const storedStreams = localStorage.getItem('dummyStreams');
-      if (storedStreams) {
-        setStreams(JSON.parse(storedStreams, (key, value) => {
-          if (key === 'createdAt') return new Date(value);
-          return value;
-        }));
-      }
-    };
-    
-    // Initial load from storage in case it was updated while this page was inactive
-    handleStorageChange();
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
 
   useEffect(() => {
     setIsPageLoaded(true);
   }, []);
+
+  const streamsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'streams');
+  }, [firestore]);
+
+  const categoriesQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'categories');
+  }, [firestore]);
+
+  const { data: streams, isLoading: areStreamsLoading } = useCollection<Stream>(streamsQuery as any);
+  const { data: categories, isLoading: areCategoriesLoading } = useCollection<Category>(categoriesQuery as any);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -63,22 +46,8 @@ export default function LivePage() {
     }
   }, [isUserLoading, user, router]);
 
-  const { liveStreams, categories, recommendedChannels, featuredStreams, justChattingStreams } = useMemo(() => {
-    // Hydrate stream data with user data
-    const hydratedStreams: Stream[] = streams.map(stream => {
-      const streamer = dummyUsers.find(u => u.id === stream.streamerId);
-      return {
-        ...stream,
-        thumbnailUrl: stream.thumbnailUrl || `https://picsum.photos/seed/${stream.id}/640/360`,
-        user: {
-          ...streamer!,
-          avatarUrl: streamer?.avatarUrl || `https://picsum.photos/seed/${streamer?.id}/100/100`,
-        }
-      };
-    });
-
-    const live = hydratedStreams.filter(s => s.isLive).sort((a, b) => b.viewerCount - a.viewerCount);
-    const cats = dummyCategories.sort((a, b) => a.name.localeCompare(b.name));
+  const { liveStreams, recommendedChannels, featuredStreams, justChattingStreams } = useMemo(() => {
+    const live = (streams || []).filter(s => s.isLive).sort((a, b) => b.viewerCount - a.viewerCount);
     
     const recommended = live.slice(0, 7);
     const featured = live.slice(0, 5);
@@ -86,14 +55,17 @@ export default function LivePage() {
 
     return {
       liveStreams: live,
-      categories: cats,
       recommendedChannels: recommended,
       featuredStreams: featured,
       justChattingStreams: justChatting
     };
   }, [streams]);
+
+  const sortedCategories = useMemo(() => {
+    return (categories || []).sort((a, b) => a.name.localeCompare(b.name));
+  }, [categories]);
   
-  const isLoading = isUserLoading;
+  const isLoading = isUserLoading || areStreamsLoading || areCategoriesLoading;
 
   if (isLoading && !isPageLoaded) {
      return (
@@ -108,7 +80,7 @@ export default function LivePage() {
       <div className="flex min-h-screen bg-zinc-900 text-white overscroll-contain">
         <LiveSidebar 
           recommendedChannels={recommendedChannels} 
-          recommendedCategories={categories.slice(0,6)} 
+          recommendedCategories={sortedCategories.slice(0,6)} 
         />
         <SidebarInset className="flex-1 flex flex-col overscroll-contain">
           <AppHeader>
@@ -146,12 +118,14 @@ export default function LivePage() {
 
                     <Separator className="bg-zinc-700" />
 
-                    <div>
+                    {sortedCategories.length > 0 && (
+                      <div>
                         <h2 className="text-xl md:text-2xl font-bold mb-4">
                             <span className="text-primary hover:underline cursor-pointer">Categories</span> we think you'll like
                         </h2>
-                        <CategoryGrid categories={categories} />
-                    </div>
+                        <CategoryGrid categories={sortedCategories} />
+                      </div>
+                    )}
 
                     {justChattingStreams.length > 0 && (
                       <div>
