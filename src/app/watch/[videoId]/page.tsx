@@ -11,6 +11,7 @@ import {
   SidebarContent,
   SidebarInset,
   SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -217,7 +218,13 @@ export default function WatchPage() {
           <SidebarContent><SidebarNav /></SidebarContent>
         </Sidebar>
         <SidebarInset>
-          <AppHeader />
+          <AppHeader>
+             <SidebarTrigger>
+                <Button variant="ghost" size="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </Button>
+            </SidebarTrigger>
+          </AppHeader>
           <main className="min-h-[calc(100vh-4rem)] bg-background"><WatchPageSkeleton /></main>
         </SidebarInset>
       </SidebarProvider>
@@ -235,7 +242,13 @@ export default function WatchPage() {
         <SidebarContent><SidebarNav /></SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <AppHeader />
+        <AppHeader>
+             <SidebarTrigger>
+                <Button variant="ghost" size="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </Button>
+            </SidebarTrigger>
+        </AppHeader>
         <main className="min-h-[calc(100vh-4rem)] bg-background">
             <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

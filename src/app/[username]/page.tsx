@@ -20,7 +20,9 @@ import {
   SidebarContent,
   SidebarInset,
   SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import type { Post } from '@/lib/types';
 import { dummyUsers, dummyPosts, dummyFollows, dummyChats } from '@/lib/dummy-data';
@@ -58,9 +60,9 @@ export default function UserProfilePage() {
       followingCount,
     };
 
-    const isCurrentUser = currentUser?.uid === hydratedProfileUser.id;
+    const isCurrentUserProfile = currentUser?.uid === hydratedProfileUser.id;
 
-    return { profileUser: hydratedProfileUser, posts: userPosts, isCurrentUser };
+    return { profileUser: hydratedProfileUser, posts: userPosts, isCurrentUser: isCurrentUserProfile };
   }, [username, currentUser]);
 
   const handleMessageClick = () => {
@@ -94,7 +96,13 @@ export default function UserProfilePage() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <AppHeader />
+        <AppHeader>
+             <SidebarTrigger>
+                <Button variant="ghost" size="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </Button>
+            </SidebarTrigger>
+        </AppHeader>
         <main className="bg-background">
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
             <ProfileHeader

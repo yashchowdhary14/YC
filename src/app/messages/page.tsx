@@ -11,7 +11,9 @@ import {
   SidebarContent,
   SidebarInset,
   SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import ChatList from '@/components/messages/chat-list';
 import ChatDisplay from '@/components/messages/chat-display';
@@ -81,7 +83,13 @@ export default function MessagesPage() {
           </Sidebar>
 
           <div className={cn('h-svh flex flex-col', showChatList ? 'block' : 'hidden')}>
-            <AppHeader />
+            <AppHeader>
+                <SidebarTrigger>
+                    <Button variant="ghost" size="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    </Button>
+                </SidebarTrigger>
+            </AppHeader>
             <div className="p-4 border-b">
               <h1 className="text-xl font-semibold">Messages</h1>
             </div>
@@ -112,7 +120,13 @@ export default function MessagesPage() {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <AppHeader />
+        <AppHeader>
+             <SidebarTrigger>
+                <Button variant="ghost" size="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                </Button>
+            </SidebarTrigger>
+        </AppHeader>
         <main className="min-h-[calc(100vh-4rem)] bg-background">
           <div className="grid grid-cols-12 border-t h-[calc(100vh-4rem)]">
             <div className="col-span-4 border-r">
