@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, doc, getDoc } from 'firebase/firestore';
 import { handleSendMessage } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 
@@ -38,14 +38,35 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [partner, setPartner] = useState<User | null>(null);
+
 
   const chatDocRef = useMemoFirebase(
-    () => (firestore && chatId ? collection(firestore, 'chats', chatId) : null),
+    () => (firestore && chatId ? doc(firestore, 'chats', chatId) : null),
     [firestore, chatId]
   );
   const { data: chatData, isLoading: isLoadingChat } = useDoc<Chat>(chatDocRef);
   
-  const partner = chatData?.userDetails?.find(u => u.id !== currentUser?.uid);
+  useEffect(() => {
+      const fetchPartner = async () => {
+          if (chatData?.users && currentUser && firestore) {
+              const partnerId = chatData.users.find(id => id !== currentUser.uid);
+              if (partnerId) {
+                  const userDoc = await getDoc(doc(firestore, 'users', partnerId));
+                  if (userDoc.exists()) {
+                      const partnerData = userDoc.data();
+                      setPartner({
+                          id: userDoc.id,
+                          username: partnerData.username,
+                          fullName: partnerData.fullName,
+                          avatarUrl: partnerData.profilePhoto,
+                      } as User);
+                  }
+              }
+          }
+      }
+      fetchPartner();
+  }, [chatData, currentUser, firestore]);
 
   const messagesQuery = useMemoFirebase(
     () =>
@@ -274,3 +295,5 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     </div>
   );
 }
+
+    
