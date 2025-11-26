@@ -49,9 +49,9 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     }, [isLiked, likesCount, user, toast]);
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        if ((e.target as HTMLElement).tagName === 'VIDEO') {
-            handleLikeToggle();
-        }
+        // Ensure the double-click is on the video container itself, not on buttons overlaying it
+        if ((e.target as HTMLElement).closest('button, a')) return;
+        handleLikeToggle();
     };
     
     const handleToggleMute = (e: React.MouseEvent) => {
