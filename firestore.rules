@@ -206,7 +206,7 @@ service cloud.firestore {
      */
     match /chats/{chatId} {
       allow get: if isMemberOfChat();
-      allow list: if isSignedIn(); // Client queries must use array-contains to be secure.
+      allow list: if isSignedIn() && request.query.where.get('users', ['array-contains']) == request.auth.uid;
       allow create: if isCreatingChatWithSelf();
       allow update: if isMemberOfChat() && resource != null && request.resource.data.users == resource.data.users; // Participants can update, but not the user list.
       allow delete: if false; // Chats cannot be deleted for now.
@@ -239,7 +239,7 @@ service cloud.firestore {
       allow list: if false; // Listing active calls is not allowed.
       allow create: if isOwner(request.resource.data.callerId);
       allow update: if resource != null && isCallParticipant(resource.data);
-      allow delete: if resource != null && isCallParticipant(resource.data);
+      delete: if resource != null && isCallParticipant(resource.data);
     }
   }
 }
