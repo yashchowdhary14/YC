@@ -1,199 +1,167 @@
-/**
- * This ruleset enforces a security model for a social media application.
- *
- * Core Philosophy: The security model is primarily based on user ownership and
- * shared access. User-generated content is owned and controlled by the user
- * who created it. Collaborative data, like chats and calls, is accessible only
- * to the specified participants. Publicly readable data is still protected
- * against unauthorized writes.
- *
- * Data Structure: User-specific content such as posts, stories, and reels are
- * stored in subcollections under `/users/{userId}` to enable simple, path-based
- * security. Shared or global data like comments, chats, calls, and live streams
- * are stored in top-level collections.
- *
- * Key Security Decisions:
- * - User Listing: Listing of user profiles in the `/users` collection is public
- *   to allow for features like search and discovery.
- * - Private Collections: Direct listing of all chats or calls is disallowed to
- *   prevent data leakage. Clients must query for specific documents they are
- *   a member of.
- * - Ownership: All write operations (create, update, delete) on content are
- *   strictly validated to ensure they are performed only by the document owner.
- * - Default Posture: Unspecified permissions are implicitly denied. All match
- *   blocks explicitly define rules for all five operation types (get, list,
- *   create, update, delete).
- *
- * Denormalization for Authorization: To ensure performant and secure rules,
- * authorization data is denormalized. For example, a `Chat` document contains
- * a `users` array of participant UIDs, and a `LiveStream` contains a `userId`
- * field for the host. This avoids slow and costly `get()` calls in rules.
- *
- * Structural Segregation: User-owned content (posts, stories) is structurally
- * separated into subcollections under a user's document (`/users/{userId}/...`),
- * while globally accessible content (comments, live streams) resides in top-level
- * collections. This simplifies rules for list operations and enhances security.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for readable and reusable logic
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-    
-    // Checks for ownership on an existing document. Used for update/delete.
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
+      return request.auth.uid == userId;
     }
 
-    // Checks if the user is a participant in a chat document.
-    function isChatParticipant(chatDoc) {
-      return isSignedIn() && request.auth.uid in chatDoc.data.users;
+    // Use this for update/delete rules
+    function isExistingOwner(ownerId) {
+      return resource != null && isOwner(ownerId);
     }
     
-    // Checks if the user is a member of a chat by fetching the parent chat document.
-    function isChatMember(chatId) {
-      return isSignedIn() && isChatParticipant(get(/databases/$(database)/documents/chats/$(chatId)));
+    // Use this for create rules
+    function isAuthor() {
+      return request.resource.data.userId == request.auth.uid;
     }
 
-    // Checks if a user is either the caller or receiver of a call.
+    function isChatParticipant(chatId) {
+      return isSignedIn()
+        && get(/databases/$(database)/documents/chats/$(chatId)).data.users.hasAny([request.auth.uid]);
+    }
+    
+    function isMemberOfChat() {
+      return isSignedIn() && request.auth.uid in resource.data.users;
+    }
+
+    function isCreatingChatWithSelf() {
+        return isSignedIn() && request.auth.uid in request.resource.data.users;
+    }
+    
     function isCallParticipant(callDoc) {
-      return isSignedIn() && (request.auth.uid == callDoc.data.callerId || request.auth.uid == callDoc.data.receiverId);
+      return isSignedIn() &&
+        (request.auth.uid == callDoc.callerId || request.auth.uid == callDoc.receiverId);
     }
-    
-    /**
-     * @description Rules for user profile documents.
-     * @path /users/{userId}
-     * @allow (get) Any user, signed in or not, can view a user's profile.
-     * @deny (update) An authenticated user tries to update another user's profile.
-     * @principle Enforces self-creation and ownership for writes while allowing public reads.
-     */
+
+    // users
     match /users/{userId} {
       allow get, list: if true;
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if false; // Users should not be able to delete their own profiles.
+      allow update: if isOwner(userId) 
+        && resource != null
+        && request.resource.data.id == resource.data.id;
+      allow delete: if false;
+
+      match /posts/{postId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /followers/{followerId} {
+        allow read: if true;
+        allow write: if isOwner(followerId);
+      }
+
+      match /following/{followingId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
     }
     
-    /**
-     * @description Rules for user-created posts.
-     * @path /users/{userId}/posts/{postId}
-     * @allow (create) An authenticated user creates a post for themselves under their own user path.
-     * @deny (create) An authenticated user tries to create a post under another user's path.
-     * @principle Restricts all write access to the data owner, identified by the path. Public read access.
-     */
-    match /users/{userId}/posts/{postId} {
-      allow get, list: if true;
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-    
-    /**
-     * @description Rules for user-created stories.
-     * @path /users/{userId}/stories/{storyId}
-     * @allow (delete) The user who owns this data tree deletes their own story.
-     * @deny (update) An authenticated user tries to update another user's story.
-     * @principle Restricts all write access to the data owner, identified by the path. Public read access.
-     */
-    match /users/{userId}/stories/{storyId} {
-      allow get, list: if true;
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
-    }
-    
-    /**
-     * @description Rules for user-created reels.
-     * @path /users/{userId}/reels/{reelId}
-     * @allow (create) An authenticated user creates a reel under their own user path.
-     * @deny (delete) An authenticated user tries to delete another user's reel.
-     * @principle Restricts all write access to the data owner, identified by the path. Public read access.
-     */
-    match /users/{userId}/reels/{reelId} {
-      allow get, list: if true;
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+    // posts
+    match /posts/{postId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && isAuthor();
+        allow update: if isExistingOwner(resource.data.userId) 
+                      && request.resource.data.userId == resource.data.userId;
+        allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    /**
-     * @description Rules for comments on posts and reels.
-     * @path /comments/{commentId}
-     * @allow (create) Any signed-in user can create a comment.
-     * @deny (delete) A user tries to delete a comment they did not author.
-     * @principle Allows public reads and creation by any authenticated user, but restricts modification and deletion to the original author.
-     */
+    // stories
+    match /stories/{storyId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isAuthor();
+      allow update: if false;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+
+    // reels
+    match /reels/{reelId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isAuthor();
+      allow update: if isExistingOwner(resource.data.userId)
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+    
+    // comments
     match /comments/{commentId} {
       allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow create: if isSignedIn() && isAuthor();
+      allow update: if isExistingOwner(resource.data.userId)
+                    && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
-    
-    /**
-     * @description Rules for chat metadata documents.
-     * @path /chats/{chatId}
-     * @allow (get) A user whose UID is in the `users` array reads the chat document.
-     * @deny (get) A user tries to read a chat document they are not a participant of.
-     * @principle Enforces shared access based on a denormalized list of participant UIDs.
-     */
+
+    // chats
     match /chats/{chatId} {
-      allow get: if isChatParticipant(resource);
-      allow list: if false; // Prevent listing all chats. Client must query by user ID.
-      allow create: if isChatParticipant(request.resource);
-      allow update: if isChatParticipant(resource);
-      allow delete: if false; // Disallow deleting chats for now.
+      allow get: if isMemberOfChat();
+      allow list: if isSignedIn() && request.query.where.users.hasAny([request.auth.uid]);
+      allow create: if isCreatingChatWithSelf();
+      allow update: if isMemberOfChat()
+                    && resource != null
+                    && request.resource.data.users == resource.data.users;
+      allow delete: if false;
+
+      // messages subcollection
+      match /messages/{messageId} {
+        allow get, list: if isChatParticipant(chatId);
+        allow create: if isChatParticipant(chatId) 
+                      && isOwner(request.resource.data.senderId);
+        allow update: if isChatParticipant(chatId) 
+                      && isExistingOwner(resource.data.senderId);
+        allow delete: if isChatParticipant(chatId) 
+                      && isExistingOwner(resource.data.senderId);
+      }
     }
-    
-    /**
-     * @description Rules for messages within a chat subcollection.
-     * @path /chats/{chatId}/messages/{messageId}
-     * @allow (create) A member of the parent chat creates a message.
-     * @deny (list) A user who is not a member of the parent chat tries to list messages.
-     * @principle Inherits access control from the parent document using a `get()` call.
-     */
-    match /chats/{chatId}/messages/{messageId} {
-      allow get, list: if isChatMember(chatId);
-      allow create: if isChatMember(chatId) && request.resource.data.senderId == request.auth.uid;
-      allow update: if isChatMember(chatId) && isExistingOwner(resource.data.senderId) && request.resource.data.senderId == resource.data.senderId;
-      allow delete: if isChatMember(chatId) && isExistingOwner(resource.data.senderId);
-    }
-    
-    /**
-     * @description Rules for call documents.
-     * @path /calls/{callId}
-     * @allow (get) The user is either the `callerId` or `receiverId`.
-     * @deny (get) A user tries to read a call document they are not a participant in.
-     * @principle Enforces shared access based on denormalized owner fields (`callerId`, `receiverId`).
-     */
+
+    // calls
     match /calls/{callId} {
-      allow get: if isCallParticipant(resource);
-      allow list: if false; // Prevent listing all calls.
+      allow get: if isCallParticipant(resource.data);
+      allow list: if false;
       allow create: if isOwner(request.resource.data.callerId);
-      allow update: if resource != null && (isOwner(resource.data.callerId) || isOwner(resource.data.receiverId));
-      allow delete: if resource != null && (isOwner(resource.data.callerId) || isOwner(resource.data.receiverId));
+      allow update: if resource != null && isCallParticipant(resource.data);
+      allow delete: if resource != null && isCallParticipant(resource.data);
+    }
+
+    // streams
+    match /streams/{streamId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.streamerId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.streamerId) 
+                      && request.resource.data.streamerId == resource.data.streamerId;
+      allow delete: if isExistingOwner(resource.data.streamerId);
+      
+      // Live Chat Messages
+      match /live-chat-messages/{messageId} {
+        allow get, list: if true; // Publicly readable
+        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid; // Must be signed in and be the author
+        allow update, delete: if false; // Messages are immutable
+      }
+    }
+
+    // categories
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update, delete: if false; // Admin-only
     }
     
-    /**
-     * @description Rules for live stream documents.
-     * @path /liveStreams/{liveStreamId}
-     * @allow (update) The stream host (`userId`) updates the stream title.
-     * @deny (delete) A viewer tries to delete a live stream.
-     * @principle Allows public reads, but write access is restricted to the host. Any signed-in user can perform limited updates like liking.
-     */
-    match /liveStreams/{liveStreamId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      // Allow host to update everything; allow any signed-in user to update (e.g., likes/viewers), but not change the owner.
-      allow update: if (isExistingOwner(resource.data.userId)) || (isSignedIn() && resource != null && request.resource.data.userId == resource.data.userId);
-      allow delete: if isExistingOwner(resource.data.userId);
+    // videos
+    match /videos/{videoId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
+        allow update, delete: if isExistingOwner(resource.data.user.id);
+
+        match /comments/{commentId} {
+            allow get, list: if true;
+            allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
+            allow update, delete: if isExistingOwner(resource.data.user.id);
+        }
     }
   }
 }
