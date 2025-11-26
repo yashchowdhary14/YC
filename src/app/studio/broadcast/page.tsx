@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -12,7 +12,8 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useUser } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { Loader2, Video, VideoOff, Wifi, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -20,33 +21,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { dummyStreams, dummyUsers } from '@/lib/dummy-data';
 import LiveChat from '@/components/live/live-chat';
-
-// A simple local storage based state management for dummy data
-const updateDummyStreams = (updatedStream: any) => {
-  const currentStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams), (key, value) => {
-      if (key === 'createdAt') return new Date(value);
-      return value;
-  });
-  const streamIndex = currentStreams.findIndex((s: any) => s.id === updatedStream.id);
-  if (streamIndex > -1) {
-    currentStreams[streamIndex] = updatedStream;
-  }
-  localStorage.setItem('dummyStreams', JSON.stringify(currentStreams));
-  // Dispatch a storage event to notify other tabs/pages
-  window.dispatchEvent(new StorageEvent('storage', {
-    key: 'dummyStreams',
-    newValue: JSON.stringify(currentStreams)
-  }));
-};
+import type { Stream, User } from '@/lib/types';
 
 
 export default function BroadcastPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  
+  const firestore = useFirestore();
+
   const [streamTitle, setStreamTitle] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,28 +38,42 @@ export default function BroadcastPage() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   
-  const streamer = useUser().user ? {
-    id: useUser().user!.uid,
-    username: useUser().user!.displayName || '',
-    avatarUrl: useUser().user!.photoURL || '',
-    fullName: useUser().user!.displayName || '',
-    bio: '',
-    followersCount: 0,
-    followingCount: 0,
-    verified: false,
-  } : null;
+  const streamRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    // For this demo, we assume the stream ID is derived from the user ID.
+    // In a real app, a user might manage multiple stream keys.
+    const { dummyStreams } = require('@/lib/dummy-data');
+    const streamId = dummyStreams.find((s:any) => s.streamerId === user.uid)?.id;
+    if (!streamId) return null;
+    return doc(firestore, 'streams', streamId);
+  }, [firestore, user]);
+
+  const { data: streamData, isLoading: isStreamLoading } = useDoc<Stream>(streamRef);
+
+  useEffect(() => {
+    if (streamData) {
+        setStreamTitle(streamData.title);
+        setIsLive(streamData.isLive);
+    }
+  }, [streamData]);
+
+  const streamer: User | null = useMemo(() => {
+    if (!user || !streamData) return null;
+    return {
+        id: user.uid,
+        username: streamData.user.username,
+        avatarUrl: streamData.user.avatarUrl,
+        fullName: streamData.user.fullName,
+        bio: streamData.user.bio,
+        followersCount: streamData.user.followersCount,
+        followingCount: streamData.user.followingCount,
+        verified: streamData.user.verified,
+    };
+  }, [user, streamData]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
-    } else if (user) {
-        // Load initial state from localStorage
-        const allStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams));
-        const userStream = allStreams.find((s: any) => s.streamerId === user.uid);
-        if (userStream) {
-            setStreamTitle(userStream.title);
-            setIsLive(userStream.isLive);
-        }
     }
   }, [isUserLoading, user, router]);
 
@@ -116,48 +114,48 @@ export default function BroadcastPage() {
     }
   }, [toast]);
   
-  const handleUpdateStream = useCallback((liveStatus: boolean, newTitle: string) => {
-    if(!user) return;
-    const allStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams));
-    const userStream = allStreams.find((s:any) => s.streamerId === user.uid);
-    if (userStream) {
-      const updatedStream = {
-        ...userStream,
-        isLive: liveStatus,
-        title: newTitle,
-      };
-      updateDummyStreams(updatedStream);
+  const handleUpdateStream = useCallback(async (liveStatus: boolean, newTitle: string) => {
+    if(!streamRef) return;
+    setIsLoading(true);
+    try {
+        await updateDoc(streamRef, {
+            isLive: liveStatus,
+            title: newTitle,
+        });
+        toast({ title: `Stream ${liveStatus ? 'started' : 'ended'} successfully!` });
+    } catch (error) {
+        console.error("Error updating stream:", error);
+        toast({ variant: 'destructive', title: "Failed to update stream." });
+    } finally {
+        setIsLoading(false);
     }
-  }, [user]);
+  }, [streamRef, toast]);
 
-  const handleGoLive = async () => {
+
+  const handleGoLive = () => {
     if (!streamTitle.trim()) {
         toast({ variant: 'destructive', title: 'Stream title is required.'});
         return;
     }
-    setIsLoading(true);
-    await new Promise(res => setTimeout(res, 1500)); 
-    
     handleUpdateStream(true, streamTitle);
-    
-    setIsLive(true);
-    setIsLoading(false);
-    toast({ title: 'You are now live!', description: 'Your stream has started successfully.'});
   };
 
-  const handleStopStream = async () => {
-    setIsLoading(true);
-    await new Promise(res => setTimeout(res, 1000));
-    
+  const handleStopStream = () => {
     handleUpdateStream(false, streamTitle);
-    
-    setIsLive(false);
-    setIsLoading(false);
-    toast({ title: 'Stream Ended', description: 'Your broadcast has finished.'});
   };
 
+  const handleUpdateInfo = () => {
+    if (!streamRef || !streamTitle.trim()) {
+        toast({ variant: 'destructive', title: 'Stream title cannot be empty.'});
+        return;
+    }
+    updateDoc(streamRef, { title: streamTitle })
+        .then(() => toast({ title: 'Stream info updated!' }))
+        .catch(() => toast({ variant: 'destructive', title: 'Failed to update info.' }));
+  }
 
-  if (isUserLoading || !user || !streamer) {
+
+  if (isUserLoading || !user || isStreamLoading || !streamData || !streamer) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -226,8 +224,8 @@ export default function BroadcastPage() {
                         )}
                     </div>
                     {isLive && (
-                        <Button onClick={() => handleUpdateStream(true, streamTitle)} variant="outline" className="w-full" disabled={isLoading}>
-                            {isLoading && streamTitle !== (dummyStreams.find(s => s.streamerId === user?.uid)?.title) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
+                        <Button onClick={handleUpdateInfo} variant="outline" className="w-full" disabled={isLoading}>
+                            {isLoading && streamTitle !== streamData.title ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
                             Update Stream Info
                         </Button>
                     )}
@@ -256,7 +254,7 @@ export default function BroadcastPage() {
                 </Card>
             </div>
             <div className="md:col-span-1 lg:col-span-1 border-l h-[calc(100vh-4rem)] hidden md:flex">
-                <LiveChat streamer={streamer} />
+                <LiveChat stream={streamData} />
             </div>
         </main>
       </SidebarInset>
