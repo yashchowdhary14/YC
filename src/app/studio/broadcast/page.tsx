@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -13,13 +13,30 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { useUser } from '@/firebase';
-import { Loader2, Video, VideoOff } from 'lucide-react';
+import { Loader2, Video, VideoOff, Wifi, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { dummyStreams, dummyUsers } from '@/lib/dummy-data';
+
+// A simple local storage based state management for dummy data
+const updateDummyStreams = (updatedStream: any) => {
+  const currentStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams), (key, value) => {
+      if (key === 'createdAt') return new Date(value);
+      return value;
+  });
+  const streamIndex = currentStreams.findIndex((s: any) => s.id === updatedStream.id);
+  if (streamIndex > -1) {
+    currentStreams[streamIndex] = updatedStream;
+  }
+  localStorage.setItem('dummyStreams', JSON.stringify(currentStreams));
+  // Dispatch a storage event to notify other tabs/pages
+  window.dispatchEvent(new Event('storage'));
+};
+
 
 export default function BroadcastPage() {
   const { user, isUserLoading } = useUser();
@@ -36,6 +53,12 @@ export default function BroadcastPage() {
   useEffect(() => {
     if (!isUserLoading && !user) {
       router.push('/login');
+    } else if (user) {
+        const userStream = dummyStreams.find(s => s.streamerId === user.uid);
+        if (userStream) {
+            setStreamTitle(userStream.title);
+            setIsLive(userStream.isLive);
+        }
     }
   }, [isUserLoading, user, router]);
 
@@ -53,7 +76,7 @@ export default function BroadcastPage() {
         toast({
           variant: 'destructive',
           title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to broadcast.',
+          description: 'Please enable camera permissions in your browser to broadcast.',
         });
       }
     };
@@ -66,6 +89,19 @@ export default function BroadcastPage() {
         }
     }
   }, [toast]);
+  
+  const handleUpdateStream = useCallback((liveStatus: boolean, newTitle: string) => {
+    if(!user) return;
+    const userStream = dummyStreams.find(s => s.streamerId === user.uid);
+    if (userStream) {
+      const updatedStream = {
+        ...userStream,
+        isLive: liveStatus,
+        title: newTitle,
+      };
+      updateDummyStreams(updatedStream);
+    }
+  }, [user]);
 
   const handleGoLive = async () => {
     if (!streamTitle.trim()) {
@@ -76,6 +112,9 @@ export default function BroadcastPage() {
     // In a real app, this is where you'd set up the WebRTC connection
     // and update the stream status in Firestore.
     await new Promise(res => setTimeout(res, 1500)); 
+    
+    handleUpdateStream(true, streamTitle);
+    
     setIsLive(true);
     setIsLoading(false);
     toast({ title: 'You are now live!', description: 'Your stream has started successfully.'});
@@ -85,6 +124,9 @@ export default function BroadcastPage() {
     setIsLoading(true);
     // In a real app, close the WebRTC connection and update Firestore.
     await new Promise(res => setTimeout(res, 1000));
+    
+    handleUpdateStream(false, streamTitle);
+    
     setIsLive(false);
     setIsLoading(false);
     toast({ title: 'Stream Ended', description: 'Your broadcast has finished.'});
@@ -116,8 +158,23 @@ export default function BroadcastPage() {
             <h1 className="text-3xl font-bold mb-4">Stream Dashboard</h1>
             <Card>
               <CardHeader>
-                <CardTitle>Manage Your Broadcast</CardTitle>
-                <CardDescription>Setup your stream details and go live to your audience.</CardDescription>
+                <div className="flex justify-between items-start">
+                    <div>
+                        <CardTitle>Manage Your Broadcast</CardTitle>
+                        <CardDescription>Setup your stream details and go live to your audience.</CardDescription>
+                    </div>
+                    {isLive ? (
+                        <div className="flex items-center gap-2 text-red-500 font-semibold px-3 py-1 rounded-md bg-red-500/10">
+                            <Wifi className="h-4 w-4"/>
+                            <span>Live</span>
+                        </div>
+                    ) : (
+                         <div className="flex items-center gap-2 text-muted-foreground font-semibold px-3 py-1 rounded-md bg-secondary">
+                            <VideoOff className="h-4 w-4"/>
+                            <span>Offline</span>
+                        </div>
+                    )}
+                </div>
               </CardHeader>
               <CardContent className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
@@ -144,6 +201,12 @@ export default function BroadcastPage() {
                         </Button>
                     )}
                   </div>
+                  {isLive && (
+                     <Button onClick={() => handleUpdateStream(true, streamTitle)} variant="outline" className="w-full" disabled={isLoading}>
+                        <Check className="mr-2 h-4 w-4"/>
+                        Update Stream Info
+                    </Button>
+                  )}
                 </div>
                 <div className="flex flex-col items-center justify-center bg-muted rounded-lg p-4 aspect-video">
                     {hasCameraPermission === null && (

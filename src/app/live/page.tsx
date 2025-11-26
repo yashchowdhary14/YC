@@ -15,12 +15,32 @@ import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { dummyStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
+import { dummyStreams as initialStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [streams, setStreams] = useState(initialStreams);
+
+  useEffect(() => {
+    // This is a workaround to sync state between pages in a dummy data environment.
+    // In a real app, this would be handled by Firestore listeners.
+    const handleStorageChange = () => {
+      const updatedStreams = localStorage.getItem('dummyStreams');
+      if (updatedStreams) {
+        setStreams(JSON.parse(updatedStreams, (key, value) => {
+            if (key === 'createdAt') return new Date(value);
+            return value;
+        }));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    handleStorageChange(); // Initial load
+
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   useEffect(() => {
     setIsPageLoaded(true);
@@ -34,7 +54,7 @@ export default function LivePage() {
 
   const { liveStreams, categories, recommendedChannels, featuredStreams, justChattingStreams } = useMemo(() => {
     // Hydrate stream data with user data
-    const hydratedStreams: Stream[] = dummyStreams.map(stream => {
+    const hydratedStreams: Stream[] = streams.map(stream => {
       const streamer = dummyUsers.find(u => u.id === stream.streamerId);
       return {
         ...stream,
@@ -60,7 +80,7 @@ export default function LivePage() {
       featuredStreams: featured,
       justChattingStreams: justChatting
     };
-  }, []);
+  }, [streams]);
   
   const isLoading = isUserLoading;
 
@@ -97,14 +117,21 @@ export default function LivePage() {
                   </div>
               ) : (
                 <div className="space-y-12">
-                    <FeaturedStreamCarousel streams={featuredStreams} />
+                    {featuredStreams.length > 0 && <FeaturedStreamCarousel streams={featuredStreams} />}
 
-                    <div>
-                        <h2 className="text-xl md:text-2xl font-bold mb-4">
-                          <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
-                        </h2>
-                        <StreamGrid streams={liveStreams.slice(0,12)} />
-                    </div>
+                    {liveStreams.length > 0 ? (
+                      <div>
+                          <h2 className="text-xl md:text-2xl font-bold mb-4">
+                            <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
+                          </h2>
+                          <StreamGrid streams={liveStreams.slice(0,12)} />
+                      </div>
+                    ) : (
+                      <div className="text-center py-24 bg-zinc-800/50 rounded-lg">
+                        <h2 className="text-2xl font-bold">No Channels are Live</h2>
+                        <p className="text-muted-foreground mt-2">Check back later to see who is streaming.</p>
+                      </div>
+                    )}
 
                     <Separator className="bg-zinc-700" />
 
