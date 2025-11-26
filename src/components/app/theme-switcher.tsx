@@ -10,11 +10,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useEffect, useState } from 'react';
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // When mounted on client, now we can show the UI
+  useEffect(() => setMounted(true), []);
 
   const renderIcon = () => {
+    if (!mounted) {
+        // Render a placeholder or null on the server and initial client render
+        return <Moon className="h-5 w-5" />;
+    }
+
     switch (theme) {
       case 'light':
         return <Sun className="h-5 w-5" />;
