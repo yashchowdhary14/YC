@@ -42,6 +42,15 @@ export interface Reel {
     commentsCount: number;
 }
 
+export interface Video {
+  id: string;
+  title: string;
+  thumbnailUrl: string;
+  user: User;
+  views: number;
+  createdAt: Date;
+}
+
 export interface Message {
   id: string;
   chatId: string;

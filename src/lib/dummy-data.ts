@@ -1,5 +1,5 @@
 
-import type { Post, User, Chat, Message, Reel, ReelComment } from '@/lib/types';
+import type { Post, User, Chat, Message, Reel, ReelComment, Video } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
@@ -89,6 +89,73 @@ export const dummyReels: Reel[] = [
         comments: [],
         commentsCount: 77,
     }
+];
+
+export const dummyVideos: Video[] = [
+  {
+    id: 'vid_1',
+    title: 'How to build a Next.js app in 10 minutes',
+    thumbnailUrl: 'https://picsum.photos/seed/vid1/640/360',
+    user: { ...dummyUsers[3], avatarUrl: `https://picsum.photos/seed/${dummyUsers[3].id}/100/100` },
+    views: 150234,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+  },
+  {
+    id: 'vid_2',
+    title: 'The Secret to Perfect Sourdough',
+    thumbnailUrl: 'https://picsum.photos/seed/vid2/640/360',
+    user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
+    views: 89034,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+  },
+  {
+    id: 'vid_3',
+    title: 'My Desk Setup Tour 2024',
+    thumbnailUrl: 'https://picsum.photos/seed/vid3/640/360',
+    user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
+    views: 1200543,
+    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
+  },
+  {
+    id: 'vid_4',
+    title: 'Beginner\'s Guide to Astrophotography',
+    thumbnailUrl: 'https://picsum.photos/seed/vid4/640/360',
+    user: { ...dummyUsers[8], avatarUrl: `https://picsum.photos/seed/${dummyUsers[8].id}/100/100` },
+    views: 4523,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+  },
+  {
+    id: 'vid_5',
+    title: 'A Cinematic Journey Through Japan',
+    thumbnailUrl: 'https://picsum.photos/seed/vid5/640/360',
+    user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
+    views: 230987,
+    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1 month ago
+  },
+  {
+    id: 'vid_6',
+    title: 'My Favorite Watercolor Techniques',
+    thumbnailUrl: 'https://picsum.photos/seed/vid6/640/360',
+    user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
+    views: 76543,
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
+  },
+    {
+    id: 'vid_7',
+    title: 'Daily Workout Routine for Max Gains',
+    thumbnailUrl: 'https://picsum.photos/seed/vid7/640/360',
+    user: { ...dummyUsers[5], avatarUrl: `https://picsum.photos/seed/${dummyUsers[5].id}/100/100` },
+    views: 12345,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+  },
+  {
+    id: 'vid_8',
+    title: 'Cricket Masterclass: The Cover Drive',
+    thumbnailUrl: 'https://picsum.photos/seed/vid8/640/360',
+    user: { ...dummyUsers[0], avatarUrl: `https://picsum.photos/seed/${dummyUsers[0].id}/100/100` },
+    views: 2500000,
+    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+  },
 ];
 
 export const dummyFollows: { [key: string]: string[] } = {
