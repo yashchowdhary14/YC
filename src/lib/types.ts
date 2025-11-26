@@ -6,6 +6,7 @@ export interface User {
   username: string;
   avatarUrl: string;
   fullName: string;
+  createdAt?: Timestamp;
 }
 
 export interface Post {
@@ -34,7 +35,6 @@ export interface Chat {
   id: string;
   users: string[]; // Array of user IDs
   lastMessage?: Message;
-  // We can add user details here if needed, but for now we'll fetch them separately
-  // to keep the chat document light.
+  lastUpdated?: Timestamp;
   userDetails: User[];
 }

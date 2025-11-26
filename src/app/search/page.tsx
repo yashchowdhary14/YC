@@ -19,10 +19,9 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Post } from '@/lib/types';
+import type { Post, User } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { dummyUsers } from '@/lib/dummy-data';
 
 
 // Extend the Post type for our search grid needs
@@ -73,7 +72,7 @@ export default function SearchPage() {
         [firestore]
     );
 
-    const { data: postsData, isLoading } = useCollection(postsQuery);
+    const { data: postsData, isLoading: isLoadingPosts } = useCollection(postsQuery);
     
     // Assign random spans and types for masonry effect
     const searchPosts: SearchPost[] = (postsData || []).map((post, index) => {
@@ -100,13 +99,20 @@ export default function SearchPage() {
         } as SearchPost;
     });
 
+    const newUsersQuery = useMemoFirebase(
+      () => (firestore ? query(collection(firestore, 'users'), orderBy('createdAt', 'desc'), limit(20)) : null),
+      [firestore]
+    );
+
+    const { data: usersData, isLoading: isLoadingUsers } = useCollection<User>(newUsersQuery);
+
     const filteredUsers = useMemo(() => {
-        if (!searchTerm) return [];
-        return dummyUsers.filter(user => 
+        if (!searchTerm) return usersData || [];
+        return (usersData || []).filter(user => 
             user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm]);
+    }, [searchTerm, usersData]);
 
     const showSearchResults = isFocused && searchTerm.length > 0;
 
@@ -137,7 +143,11 @@ export default function SearchPage() {
                 />
                  {showSearchResults && (
                     <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
-                        {filteredUsers.length > 0 ? (
+                        {isLoadingUsers ? (
+                          <div className="flex items-center justify-center p-4">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                          </div>
+                        ) : filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
                                 <Link href={`/${user.username}`} key={user.id}>
                                     <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
@@ -161,8 +171,8 @@ export default function SearchPage() {
                 )}
               </div>
             </div>
-
-            {isLoading ? (
+            
+            {isLoadingPosts ? (
               <div className="flex h-64 items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
@@ -173,7 +183,7 @@ export default function SearchPage() {
                 ))}
               </div>
             )}
-             { !isLoading && searchPosts.length === 0 && (
+             { !isLoadingPosts && searchPosts.length === 0 && (
                  <div className="text-center text-muted-foreground py-16">
                      <p>No posts to display.</p>
                 </div>

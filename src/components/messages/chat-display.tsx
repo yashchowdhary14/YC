@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import type { Chat, Message } from '@/lib/types';
+import type { Chat, Message, User } from '@/lib/types';
 import { Send, Info, ArrowLeft, Paperclip, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -16,18 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
+import { addDoc, collection, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
 
 
 interface ChatDisplayProps {
-  chat: Chat;
-  messages: Message[];
-  isLoadingMessages: boolean;
+  chatId: string;
   onBack?: () => void;
 }
 
-export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack }: ChatDisplayProps) {
+export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const [messageText, setMessageText] = useState('');
@@ -35,26 +33,41 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  const partner = chat.userDetails.find(u => u.id !== currentUser?.uid);
-
-  const messagesCollectionRef = useMemoFirebase(
-    () => firestore ? collection(firestore, 'chats', chat.id, 'messages') : null,
-    [firestore, chat.id]
+  const chatDocRef = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'chats') : null),
+    [firestore]
   );
   
+  const { data: chatData, isLoading: isLoadingChat } = useDoc<Chat>(chatDocRef ? collection(firestore, 'chats', chatId) : null);
+
+  const partner = chatData?.userDetails.find(u => u.id !== currentUser?.uid);
+
+  const messagesQuery = useMemoFirebase(
+    () =>
+      chatId
+        ? query(
+            collection(firestore, 'chats', chatId, 'messages'),
+            orderBy('timestamp', 'asc'),
+            limit(50)
+          )
+        : null,
+    [firestore, chatId]
+  );
+  const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
+  
   const handleSendMessage = async () => {
-    if ((!messageText.trim() && !mediaPreview) || !currentUser || !messagesCollectionRef) return;
+    if ((!messageText.trim() && !mediaPreview) || !currentUser || !chatId) return;
+
+    const messagesCollectionRef = collection(firestore, 'chats', chatId, 'messages');
 
     const newMessage = {
-      chatId: chat.id,
+      chatId: chatId,
       senderId: currentUser.uid,
       text: messageText,
       timestamp: serverTimestamp(),
-      isRead: false, // This would be updated via a cloud function or when receiver reads
-      // mediaUrl and mediaType would be added after upload
+      isRead: false,
     };
 
-    // We use a non-blocking add so the UI updates instantly
     await addDoc(messagesCollectionRef, newMessage);
 
     setMessageText('');
@@ -65,7 +78,6 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
   };
   
   useEffect(() => {
-    // Scroll to the bottom when messages change
     if (scrollAreaRef.current) {
         const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
         if (viewport) {
@@ -77,8 +89,6 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // TODO: Implement file upload to Firebase Storage
-      // For now, we'll just show a preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setMediaPreview({
@@ -97,7 +107,7 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
     }
   }
 
-  if (!partner) {
+  if (isLoadingChat || !partner) {
     return (
         <div className="flex h-full items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
@@ -107,7 +117,6 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
 
   return (
     <div className="flex flex-col h-full">
-      {/* Chat Header */}
       <div className="flex items-center gap-4 p-4 border-b">
         {onBack && (
             <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
@@ -130,7 +139,6 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
         </div>
       </div>
 
-      {/* Messages Area */}
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
         {isLoadingMessages ? (
              <div className="flex h-full items-center justify-center">
@@ -138,7 +146,7 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
              </div>
         ) : (
             <div className="space-y-4">
-            {messages.map((message) => (
+            {(messages || []).map((message) => (
                 <div
                 key={message.id}
                 className={cn(
@@ -164,7 +172,7 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
                     {message.mediaUrl && (
                     <div className="relative rounded-lg overflow-hidden aspect-video w-64">
                         {message.mediaType === 'image' ? (
-                        <Image src={message.mediaUrl} alt="Sent media" fill objectFit="cover" />
+                        <Image src={message.mediaUrl} alt="Sent media" fill object-cover />
                         ) : (
                         <video src={message.mediaUrl} controls className="w-full h-full" />
                         )}
@@ -178,12 +186,11 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
         )}
       </ScrollArea>
 
-      {/* Message Input */}
       <div className="p-4 border-t">
          {mediaPreview && (
           <div className="relative mb-2 w-40 h-40">
             {mediaPreview.type === 'image' ? (
-              <Image src={mediaPreview.url} alt="Media preview" fill objectFit="cover" className="rounded-md" />
+              <Image src={mediaPreview.url} alt="Media preview" fill object-cover className="rounded-md" />
             ) : (
               <video src={mediaPreview.url} controls className="w-full h-full rounded-md" />
             )}
@@ -234,7 +241,7 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
             size="icon"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
             onClick={handleSendMessage}
-            disabled={(!messageText.trim() && !mediaPreview) || !messagesCollectionRef}
+            disabled={(!messageText.trim() && !mediaPreview) || !chatId}
           >
             <Send className="h-4 w-4" />
             <span className="sr-only">Send</span>
@@ -244,4 +251,3 @@ export default function ChatDisplay({ chat, messages, isLoadingMessages, onBack 
     </div>
   );
 }
-

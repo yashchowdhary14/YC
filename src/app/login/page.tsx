@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,7 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth, useUser, useFirestore, setDocumentNonBlocking } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -75,7 +76,7 @@ export default function LoginPage() {
             fullName: newUser.displayName || '',
             bio: '',
             profilePhoto: newUser.photoURL || `https://picsum.photos/seed/${newUser.uid}/150/150`,
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
             verified: false,
             followersCount: 0,
             followingCount: 0,

@@ -1,8 +1,9 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -15,7 +16,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import ChatList from '@/components/messages/chat-list';
 import ChatDisplay from '@/components/messages/chat-display';
-import type { Chat, Message, User } from '@/lib/types';
+import type { Chat } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useHydratedChats } from '@/hooks/use-hydrated-chats';
@@ -38,20 +39,6 @@ export default function MessagesPage() {
   );
   const { data: rawChatsData, isLoading: isLoadingChats } = useCollection(chatsQuery);
   const { chats, isLoading: isHydratingChats } = useHydratedChats(rawChatsData);
-
-  const messagesQuery = useMemoFirebase(
-    () =>
-      selectedChat
-        ? query(
-            collection(firestore, 'chats', selectedChat.id, 'messages'),
-            orderBy('timestamp', 'asc'),
-            limit(50)
-          )
-        : null,
-    [firestore, selectedChat]
-  );
-
-  const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
 
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
@@ -90,9 +77,7 @@ export default function MessagesPage() {
           <div className={cn('h-svh flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
             {selectedChat ? (
               <ChatDisplay
-                chat={selectedChat}
-                messages={messages || []}
-                isLoadingMessages={isLoadingMessages}
+                chatId={selectedChat.id}
                 onBack={() => setSelectedChat(null)}
               />
             ) : (
@@ -131,7 +116,7 @@ export default function MessagesPage() {
             </div>
             <div className="col-span-8">
               {selectedChat ? (
-                <ChatDisplay chat={selectedChat} messages={messages || []} isLoadingMessages={isLoadingMessages}/>
+                <ChatDisplay chatId={selectedChat.id}/>
               ) : (
                 <div className="flex h-full items-center justify-center text-muted-foreground">
                   <p>Select a chat to start messaging</p>

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where, DocumentData } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import type { Chat as ChatType, User } from '@/lib/types';
 
@@ -26,8 +26,9 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
 
   useEffect(() => {
     const hydrateChats = async () => {
-      if (!memoizedChatsData || memoizedChatsData.length === 0 || !currentUser) {
+      if (!memoizedChatsData || memoizedChatsData.length === 0 || !currentUser || !firestore) {
         setHydratedChats([]);
+        setIsLoading(false);
         return;
       }
 
@@ -54,7 +55,7 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
               const usersQuery = query(collection(firestore, 'users'), where('id', 'in', chunk));
               const userSnapshots = await getDocs(usersQuery);
               userSnapshots.forEach(userDoc => {
-                const userData = userDoc.data();
+                const userData = userDoc.data() as DocumentData;
                 usersMap.set(userDoc.id, {
                   id: userDoc.id,
                   username: userData.username || 'unknown',
