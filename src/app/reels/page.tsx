@@ -101,7 +101,7 @@ export default function ReelsPage() {
                         reel={reel} 
                         onUpdateReel={handleUpdateReel} 
                         onCommentClick={() => setSelectedReelForComments(reel)}
-                        isFollowing={followedUsers.has(reel.user.username)}
+                        isFollowing={followedUsers ? followedUsers.has(reel.user.username) : false}
                         onFollowToggle={toggleFollow}
                     />
                 </div>
