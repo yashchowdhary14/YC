@@ -31,6 +31,7 @@ export interface Post {
 
 export interface LiveBroadcast {
   id: string;
+  liveId: string;
   streamerId: string;
   streamerName: string;
   user: User; // Re-using User type for streamer details

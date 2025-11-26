@@ -10,12 +10,11 @@ import StoriesCarousel from '@/components/app/stories-carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc, startAfter, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import PostCard from '@/components/app/post-card';
 import { useIntersection } from '@/hooks/use-intersection';
 import { motion } from 'framer-motion';
 import { Skeleton } from '@/components/ui/skeleton';
+import { dummyPosts, dummyUsers } from '@/lib/dummy-data';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -111,16 +110,14 @@ function FeedSkeleton() {
 
 export default function Home() {
   const { user, isUserLoading, followedUsers, toggleFollow } = useUser();
-  const firestore = useFirestore();
   const router = useRouter();
   
   const [posts, setPosts] = useState<Post[]>([]);
   const [suggestions, setSuggestions] = useState<User[]>([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   
   const loaderRef = useRef<HTMLDivElement>(null);
   const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
@@ -131,89 +128,68 @@ export default function Home() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-  
-  const followingIds = useMemo(() => {
-    if (!user || !followedUsers) return [];
-    // A bit of a hack to ensure the current user's own posts don't appear in the feed
-    // In a real scenario, you'd likely not follow yourself, but this prevents it.
-    return Array.from(followedUsers).filter(id => id !== user.uid);
-  }, [user, followedUsers]);
-  
-  const fetchPosts = useCallback(async (lastVisible: QueryDocumentSnapshot<DocumentData> | null = null) => {
-    if (!user || followingIds.length === 0 || isLoadingMore || !hasMore) {
-        if (followingIds.length === 0) {
-            setPosts([]);
-            setHasMore(false);
-            setIsInitialLoad(false);
-        }
-        return;
-    }
-    setIsLoadingMore(true);
 
-    const postCollection = collection(firestore, 'posts');
-    const constraints = [
-        where('uploaderId', 'in', followingIds.slice(0, 10)),
-        orderBy('createdAt', 'desc'),
-        limit(POSTS_PER_PAGE)
-    ];
+  const followedUserIds = useMemo(() => {
+    const ids = new Set<string>();
+    followedUsers.forEach(username => {
+      const followedUser = dummyUsers.find(u => u.username === username);
+      if (followedUser) {
+        ids.add(followedUser.id);
+      }
+    });
+    return Array.from(ids);
+  }, [followedUsers]);
 
-    if (lastVisible) {
-        constraints.push(startAfter(lastVisible));
-    }
+  const fetchFeedContent = useCallback(() => {
+    setIsLoading(true);
+
+    // Simulate fetching posts for followed users from dummy data
+    const feedPosts = dummyPosts.filter(p => followedUserIds.includes(p.uploaderId));
     
-    const q = query(postCollection, ...constraints);
-    const postSnapshot = await getDocs(q);
-
-    const newPosts = postSnapshot.docs.map(doc => doc.data() as Post);
-    const lastVisibleDoc = postSnapshot.docs[postSnapshot.docs.length - 1];
+    setPosts(feedPosts.slice(0, POSTS_PER_PAGE));
+    setPage(1);
+    setHasMore(feedPosts.length > POSTS_PER_PAGE);
     
-    setPosts(prev => lastVisible ? [...prev, ...newPosts] : newPosts);
-    setLastDoc(lastVisibleDoc || null);
-    setHasMore(newPosts.length === POSTS_PER_PAGE);
-    setIsLoadingMore(false);
-    if(isInitialLoad) setIsInitialLoad(false);
-  }, [user, firestore, followingIds, isLoadingMore, hasMore, isInitialLoad]);
+    // Simulate fetching suggestions
+    if (user) {
+       const suggestionIds = new Set(dummyUsers.map(u => u.id));
+       suggestionIds.delete(user.uid);
+       followedUserIds.forEach(id => suggestionIds.delete(id));
+       const suggestionPool = Array.from(suggestionIds).map(id => dummyUsers.find(u => u.id === id)!);
+       setSuggestions(suggestionPool.slice(0, 5).map(u => ({...u, avatarUrl: `https://picsum.photos/seed/${u.id}/100/100` })));
+    }
 
+    // Simulate network delay
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
 
-  // Initial post fetch
+  }, [user, followedUserIds]);
+  
+  const loadMorePosts = useCallback(() => {
+    if (!hasMore || isLoading) return;
+
+    const nextPage = page + 1;
+    const feedPosts = dummyPosts.filter(p => followedUserIds.includes(p.uploaderId));
+    const newPosts = feedPosts.slice(0, nextPage * POSTS_PER_PAGE);
+    
+    setPosts(newPosts);
+    setPage(nextPage);
+    setHasMore(newPosts.length < feedPosts.length);
+  }, [page, hasMore, isLoading, followedUserIds]);
+
   useEffect(() => {
     if (user && !isUserLoading) {
-      // Simulate a slightly longer load time to make skeleton visible
-      setTimeout(() => {
-          fetchPosts();
-      }, 500);
+      fetchFeedContent();
     }
-  }, [user, isUserLoading, followedUsers]); // Depend on followedUsers to refetch if they change
+  }, [user, isUserLoading, followedUsers, fetchFeedContent]);
   
   // Infinite scroll
   useEffect(() => {
-    if (isLoaderVisible && hasMore && !isLoadingMore) {
-        fetchPosts(lastDoc);
+    if (isLoaderVisible && hasMore && !isLoading) {
+        loadMorePosts();
     }
-  }, [isLoaderVisible, hasMore, isLoadingMore, fetchPosts, lastDoc]);
-
-  // Fetch suggestions for you
-  useEffect(() => {
-    if (user && firestore) {
-      const fetchSuggestions = async () => {
-        const excludedIds = [user.uid, ...followingIds].slice(0, 10);
-        let q;
-        if (excludedIds.length > 0) {
-            q = query(collection(firestore, 'users'), where('id', 'not-in', excludedIds), limit(5));
-        } else {
-            q = query(collection(firestore, 'users'), limit(6));
-        }
-        
-        const snapshot = await getDocs(q);
-        const userSuggestions = snapshot.docs
-          .map(doc => doc.data() as User)
-          .filter(suggestion => suggestion.id !== user.uid);
-          
-        setSuggestions(userSuggestions);
-      };
-      fetchSuggestions();
-    }
-  }, [user, firestore, followingIds]);
+  }, [isLoaderVisible, hasMore, isLoading, loadMorePosts]);
 
   
   useEffect(() => {
@@ -237,10 +213,15 @@ export default function Home() {
   };
 
 
-  if (isUserLoading) {
+  if (isUserLoading || isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
+      <div className="container mx-auto max-w-screen-lg md:p-4 lg:p-8 md:pt-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <FeedSkeleton />
+           <div className="hidden lg:block lg:col-span-1">
+             {/* Keep sidebar skeleton simple or omit for initial load */}
+           </div>
+        </div>
       </div>
     );
   }
@@ -249,7 +230,6 @@ export default function Home() {
     <>
       <div className="container mx-auto max-w-screen-lg md:p-4 lg:p-8 md:pt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {isInitialLoad ? <FeedSkeleton /> : (
               <div className="lg:col-span-2">
                 <div className="flex flex-col md:gap-8">
                   <div className="md:border-b md:border-border md:pb-4">
@@ -269,19 +249,17 @@ export default function Home() {
                               <PostCard post={post} />
                           </motion.div>
                         ))}
-                        {isLoadingMore && (
-                          <div className="flex justify-center items-center py-10">
+                        {hasMore && (
+                          <div ref={loaderRef} className="flex justify-center items-center py-10">
                             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                           </div>
                         )}
-                        <div ref={loaderRef} />
                       </div>
                   ) : (
                     <EmptyFeedContent suggestions={suggestions} onFollowToggle={handleFollowToggleInSuggestion} followedUsers={followedUsers} />
                   )}
                 </div>
               </div>
-            )}
 
             <div className="hidden lg:block lg:col-span-1">
               <div className="sticky top-24">
