@@ -17,10 +17,51 @@ import { Separator } from '@/components/ui/separator';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import type { Post, User as UserType } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ProfileData {
   user: UserType;
   posts: Post[];
+}
+
+function ProfileSkeleton() {
+    return (
+        <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 pt-20">
+            <header className="flex gap-4 md:gap-16 items-start w-full">
+                <Skeleton className="rounded-full w-20 h-20 md:w-36 md:h-36 shrink-0" />
+                <div className="flex flex-col gap-4 flex-grow">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <Skeleton className="h-6 w-32" />
+                    </div>
+                    <div className="hidden md:flex items-center gap-6">
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-5 w-20" />
+                        <Skeleton className="h-5 w-20" />
+                    </div>
+                    <div className="hidden md:block space-y-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-4 w-48" />
+                    </div>
+                </div>
+            </header>
+             <div className="my-8">
+                 <div className="flex space-x-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex flex-col items-center gap-2">
+                            <Skeleton className="w-16 h-16 rounded-full" />
+                            <Skeleton className="w-14 h-4" />
+                        </div>
+                    ))}
+                </div>
+             </div>
+            <Separator />
+            <div className="grid grid-cols-3 gap-1 mt-4">
+                 {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="aspect-square" />
+                 ))}
+            </div>
+        </div>
+    )
 }
 
 export default function UserProfilePage() {
@@ -49,6 +90,7 @@ export default function UserProfilePage() {
 
         if (userSnapshot.empty) {
           setProfileData(null);
+          setIsLoading(false);
           return;
         }
 
@@ -66,7 +108,8 @@ export default function UserProfilePage() {
         console.error("Error fetching profile data:", error);
         setProfileData(null);
       } finally {
-        setIsLoading(false);
+        // Simulate a small delay for skeleton visibility
+        setTimeout(() => setIsLoading(false), 300);
       }
     };
 
@@ -96,8 +139,8 @@ export default function UserProfilePage() {
 
   if (isLoading) {
       return (
-          <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
+          <div className="bg-background">
+            <ProfileSkeleton />
           </div>
       );
   }
