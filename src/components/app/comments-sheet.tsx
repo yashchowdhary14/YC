@@ -53,7 +53,7 @@ interface CommentsSheetProps {
 export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, currentUser }: CommentsSheetProps) {
   const [commentText, setCommentText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
   
   const handleLikeToggle = useCallback((commentId: string) => {
     if (!reel) return;
@@ -85,6 +85,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
         isLiked: false
     };
 
+    // Simulate API call
     await new Promise(r => setTimeout(r, 300));
     const updatedComments = [...reel.comments, newComment];
     onUpdateComment(reel.id, updatedComments);
@@ -94,10 +95,11 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
   };
   
   useEffect(() => {
-    if (reel && scrollAreaRef.current) {
+    if (reel && scrollViewportRef.current) {
       setTimeout(() => {
-        if(scrollAreaRef.current) {
-            scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
+        if(scrollViewportRef.current) {
+            // Scroll to the bottom to show the new comment
+            scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
         }
       }, 100);
     }
@@ -115,7 +117,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
         <SheetHeader className="text-center pb-2 border-b">
           <SheetTitle>Comments</SheetTitle>
         </SheetHeader>
-        <ScrollArea className="flex-1" viewportRef={scrollAreaRef}>
+        <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
           <div className="p-4 space-y-6">
             {reel?.comments.map((comment) => (
               <CommentItem key={comment.id} comment={comment} onLikeToggle={handleLikeToggle} />
