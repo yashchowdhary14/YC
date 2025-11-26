@@ -206,7 +206,7 @@ service cloud.firestore {
      */
     match /chats/{chatId} {
       allow get: if isMemberOfChat();
-      allow list: if isSignedIn() && request.auth.uid in request.query.where.users;
+      allow list: if isSignedIn() && request.query.where.users.hasAny([request.auth.uid]);
       allow create: if isCreatingChatWithSelf();
       allow update: if isMemberOfChat() && resource != null && request.resource.data.users == resource.data.users; // Participants can update, but not the user list.
       allow delete: if false; // Chats cannot be deleted for now.
