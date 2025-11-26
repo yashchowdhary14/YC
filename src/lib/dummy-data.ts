@@ -90,3 +90,32 @@ export const dummyChats: Chat[] = [
   createChat('user_maya_creates', 'user_chloe_films'),
   createChat('user_sachin', 'user_ethan_bytes'),
 ];
+
+export function getChat(chatId: string) {
+  let chat = dummyChats.find(c => c.id === chatId);
+  if (!chat) {
+    const userIds = chatId.split('_');
+    if (userIds.length === 2 && dummyUsers.find(u => u.id === userIds[0]) && dummyUsers.find(u => u.id === userIds[1])) {
+      const newChat: Chat = {
+        id: chatId,
+        users: userIds,
+        messages: [],
+        userDetails: [],
+      };
+      dummyChats.push(newChat);
+      return newChat;
+    }
+    return undefined;
+  }
+  return chat;
+}
+
+export function addMessageToChat(chatId: string, message: Message) {
+  const chat = getChat(chatId);
+  if (chat) {
+    chat.messages.push(message);
+    chat.lastMessage = message;
+    return true;
+  }
+  return false;
+}

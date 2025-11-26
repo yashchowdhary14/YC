@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
 import AppHeader from '@/components/app/header';
@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import ChatDisplay from '@/components/messages/chat-display';
 import { Loader2 } from 'lucide-react';
-import { dummyChats } from '@/lib/dummy-data';
+import { getChat } from '@/lib/dummy-data';
 import type { Chat } from '@/lib/types';
 
 export default function ChatPage() {
@@ -29,9 +29,18 @@ export default function ChatPage() {
     }
   }, [isUserLoading, user, router]);
 
+  // We use a state to force re-renders if dummy data changes.
+  const [_, setForceRender] = useState(0);
+
   const chatData: Chat | undefined = useMemo(() => {
-    return dummyChats.find(c => c.id === chatId);
-  }, [chatId]);
+    return getChat(chatId);
+  }, [chatId, _]);
+  
+  useEffect(() => {
+    if (chatData && user && !chatData.users.includes(user.uid)) {
+      router.replace('/messages');
+    }
+  }, [chatData, user, router]);
 
   if (isUserLoading) {
     return (
@@ -41,12 +50,11 @@ export default function ChatPage() {
     );
   }
 
-  // Ensure the current user is part of the chat
+  // Ensure the current user is part of the chat, redirect if not
   if (chatData && user && !chatData.users.includes(user.uid)) {
-    router.replace('/messages');
     return (
       <div className="flex h-screen items-center justify-center">
-        <p>You are not authorized to view this chat.</p>
+        <p>You are not authorized to view this chat. Redirecting...</p>
       </div>
     );
   }

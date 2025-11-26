@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,11 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Chat, Message, User } from '@/lib/types';
-import { Send, Info, ArrowLeft, Paperclip, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
+import { Send, Info, ArrowLeft, Paperclip, X, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { dummyChats, dummyUsers } from '@/lib/dummy-data';
-import { notFound } from 'next/navigation';
+import { getChat, addMessageToChat, dummyUsers } from '@/lib/dummy-data';
 
 interface ChatDisplayProps {
   chatId: string;
@@ -32,9 +31,12 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
   
-  const chatData = useMemo(() => dummyChats.find(c => c.id === chatId), [chatId]);
+  // Use a state to force re-render when dummy data changes
+  const [_, setForceUpdate] = useState(0);
+
+  const chatData = useMemo(() => getChat(chatId), [chatId, _]);
   
-  const [messages, setMessages] = useState<Message[]>(chatData?.messages || []);
+  const messages = chatData?.messages || [];
 
   const partner = useMemo(() => {
     if (!chatData || !currentUser) return null;
@@ -64,7 +66,11 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
       mediaUrl: mediaPreview || undefined,
     };
     
-    setMessages(prev => [...prev, newMessage]);
+    const success = addMessageToChat(chatId, newMessage);
+    if (success) {
+      setForceUpdate(val => val + 1); // Trigger re-render
+    }
+
 
     setMessageText('');
     setMediaFile(null);
