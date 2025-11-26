@@ -4,7 +4,7 @@
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { X, Loader2, Video, FileCheck2, AlertCircle } from 'lucide-react';
+import { X, Loader2, Video, FileCheck2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +20,7 @@ export default function CreateReelPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Trigger file input on component mount if no file is selected
@@ -41,7 +42,7 @@ export default function CreateReelPage() {
         return;
       }
       
-      setIsLoading(true);
+      setIsProcessing(true);
       
       // Validate video duration
       const videoElement = document.createElement('video');
@@ -54,21 +55,23 @@ export default function CreateReelPage() {
                 title: 'Video Too Long',
                 description: `Please select a video under ${MAX_DURATION_SECONDS / 60} minutes.`
            });
-           setIsLoading(false);
+           setIsProcessing(false);
            if (fileInputRef.current) {
                fileInputRef.current.value = '';
            }
         } else {
            setSelectedFile(file);
            setPreviewUrl(URL.createObjectURL(file));
-           setIsLoading(false);
+           setIsProcessing(false);
         }
       };
       videoElement.src = URL.createObjectURL(file);
 
     } else {
         // If user cancels file selection, go back to create page.
-        router.back();
+        if (!selectedFile) {
+            router.back();
+        }
     }
   };
 
@@ -77,8 +80,8 @@ export default function CreateReelPage() {
         toast({ variant: 'destructive', title: 'No video selected' });
         return;
     }
-    // TODO: Implement the actual upload and post creation logic here
     setIsLoading(true);
+    // Simulate the upload and post creation logic
     await new Promise(r => setTimeout(r, 2000));
     setIsLoading(false);
     toast({ title: 'Reel posted!', description: 'Your reel is now live (simulation).' });
@@ -93,12 +96,12 @@ export default function CreateReelPage() {
         </div>
   )
 
-  if (isLoading) {
+  if (isProcessing) {
       return <PageLoader />;
   }
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
+    <div className="w-full min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 pt-20">
         {/* Hidden File Input */}
         <input 
             type="file" 
@@ -108,7 +111,7 @@ export default function CreateReelPage() {
             accept="video/*" 
         />
 
-        <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+        <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4 bg-background border-b">
              <h1 className="text-xl font-bold">New Reel</h1>
              <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-auto p-2">
                 <X className="h-6 w-6" />
@@ -116,7 +119,7 @@ export default function CreateReelPage() {
         </header>
         
         {previewUrl ? (
-             <div className="w-full max-w-lg space-y-6 mt-16">
+             <div className="w-full max-w-lg space-y-6">
                  <Card>
                     <CardContent className="p-4">
                         <div className="aspect-video bg-black rounded-md overflow-hidden">
