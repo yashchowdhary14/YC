@@ -1,20 +1,33 @@
 
 import { collection, writeBatch, doc, Firestore } from "firebase/firestore";
-import { dummyCategories, dummyUsers, dummyVideos } from "./dummy-data";
-import { Stream } from "./types";
+import { dummyUsers } from "./dummy-data";
+import { LiveBroadcast, Category, Post } from "./types";
 
-// This is a simplified version of the dummyStreams data for seeding purposes
-const streamsToSeed = [
-    { id: 'user_sachin', streamerId: 'user_sachin', title: 'Cricket Practice', category: 'Sports', tags: ['Cricket', 'Training'], isLive: true, viewerCount: 75000 },
-    { id: 'user_sakshi', streamerId: 'user_sakshi', title: 'Workout Session', category: 'Fitness', tags: ['Wrestling', 'Training'], isLive: true, viewerCount: 52000 },
-    { id: 'user_wanderlust_lila', streamerId: 'user_wanderlust_lila', title: 'Exploring Tokyo', category: 'Travel', tags: ['Japan', 'Vlog'], isLive: false, viewerCount: 0 },
-    { id: 'user_ethan_bytes', streamerId: 'user_ethan_bytes', title: 'Coding a new project', category: 'Tech', tags: ['Programming', 'Rust'], isLive: true, viewerCount: 1200 },
-    { id: 'user_maya_creates', streamerId: 'user_maya_creates', title: 'Live Painting Session', category: 'Art', tags: ['Illustration', 'Creative'], isLive: true, viewerCount: 9800 },
-    { id: 'user_sam_reviews', streamerId: 'user_sam_reviews', title: 'Unboxing the new phone!', category: 'Tech', tags: ['Unboxing', 'Gadgets'], isLive: false, viewerCount: 0 },
+const streamsToSeed: Omit<LiveBroadcast, 'id' | 'user' >[] = [
+    { streamerId: 'user_sachin', streamerName: 'sachin', title: 'Cricket Practice', category: 'Sports', isLive: true, viewerCount: 75000, liveThumbnail: 'https://picsum.photos/seed/stream_sachin/640/360' },
+    { streamerId: 'user_sakshi', streamerName: 'sakshi', title: 'Workout Session', category: 'Fitness', isLive: true, viewerCount: 52000, liveThumbnail: 'https://picsum.photos/seed/stream_sakshi/640/360' },
+    { streamerId: 'user_wanderlust_lila', streamerName: 'wanderlust_lila', title: 'Exploring Tokyo', category: 'Travel', isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_lila/640/360' },
+    { streamerId: 'user_ethan_bytes', streamerName: 'ethan_bytes', title: 'Coding a new project', category: 'Tech', isLive: true, viewerCount: 1200, liveThumbnail: 'https://picsum.photos/seed/stream_ethan/640/360' },
+    { streamerId: 'user_maya_creates', streamerName: 'maya_creates', title: 'Live Painting Session', category: 'Art', isLive: true, viewerCount: 9800, liveThumbnail: 'https://picsum.photos/seed/stream_maya/640/360' },
+    { streamerId: 'user_sam_reviews', streamerName: 'sam_reviews', title: 'Unboxing the new phone!', category: 'Tech', isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_sam/640/360' },
 ];
 
+const dummyCategories: Category[] = [
+    { id: 'just-chatting', name: 'Just Chatting', thumbnailUrl: 'https://picsum.photos/seed/cat_chat/300/400' },
+    { id: 'games', name: 'Games', thumbnailUrl: 'https://picsum.photos/seed/cat_games/300/400' },
+    { id: 'music', name: 'Music', thumbnailUrl: 'https://picsum.photos/seed/cat_music/300/400' },
+    { id: 'art', name: 'Art', thumbnailUrl: 'https://picsum.photos/seed/cat_art/300/400' },
+    { id: 'tech', name: 'Tech', thumbnailUrl: 'https://picsum.photos/seed/cat_tech/300/400' },
+    { id: 'sports', name: 'Sports', thumbnailUrl: 'https://picsum.photos/seed/cat_sports/300/400' },
+    { id: 'travel', name: 'Travel', thumbnailUrl: 'https://picsum.photos/seed/cat_travel/300/400' },
+    { id: 'food', name: 'Food', thumbnailUrl: 'https://picsum.photos/seed/cat_food/300/400' },
+];
 
 export async function seedDatabase(db: Firestore) {
+  if(!db) {
+    console.error("Firestore instance is not available. Skipping seeding.");
+    return;
+  }
   const batch = writeBatch(db);
 
   // Seed Streams
@@ -23,15 +36,9 @@ export async function seedDatabase(db: Firestore) {
     const user = dummyUsers.find(u => u.id === streamData.streamerId);
     if (!user) return;
     
-    const streamDoc: Omit<Stream, 'id'> = {
-      streamerId: user.id,
-      title: streamData.title,
-      category: streamData.category,
-      tags: streamData.tags,
-      viewerCount: streamData.viewerCount,
-      isLive: streamData.isLive,
-      thumbnailUrl: `https://picsum.photos/seed/${streamData.id}/640/360`,
-      user: { // Nest the user object
+    const streamDoc: Omit<LiveBroadcast, 'id'> = {
+      ...streamData,
+      user: {
           id: user.id,
           username: user.username,
           avatarUrl: `https://picsum.photos/seed/${user.id}/100/100`,
@@ -42,7 +49,7 @@ export async function seedDatabase(db: Firestore) {
           verified: user.verified
       }
     };
-    const docRef = doc(streamsCol, streamData.id);
+    const docRef = doc(streamsCol, streamData.streamerId);
     batch.set(docRef, streamDoc);
   });
 
@@ -60,15 +67,10 @@ export async function seedDatabase(db: Firestore) {
     batch.set(docRef, user);
   });
 
-  // Seed Videos
-  const videosCol = collection(db, "videos");
-  dummyVideos.forEach((video) => {
-      const docRef = doc(videosCol, video.id);
-      batch.set(docRef, video);
-  });
-
-  await batch.commit();
-  console.log("Database seeded successfully!");
+  try {
+    await batch.commit();
+    console.log("Database seeded successfully!");
+  } catch (error) {
+    console.error("Error seeding database:", error);
+  }
 }
-
-    

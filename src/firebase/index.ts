@@ -4,6 +4,7 @@ import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
+import { seedDatabase } from '@/lib/seed-db';
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -23,6 +24,12 @@ export function initializeFirebase() {
         console.warn('Automatic initialization failed. Falling back to firebase config object.', e);
       }
       firebaseApp = initializeApp(firebaseConfig);
+    }
+
+    // Seed the database in development
+    if (process.env.NODE_ENV === 'development') {
+      const db = getFirestore(firebaseApp);
+      seedDatabase(db).catch(console.error);
     }
 
     return getSdks(firebaseApp);

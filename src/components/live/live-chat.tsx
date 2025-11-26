@@ -1,17 +1,19 @@
 
 'use client';
 
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { useUser } from '@/firebase';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Crown, Bot, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { User, LiveBroadcast, LiveChatMessage } from '@/lib/types';
+import type { LiveBroadcast, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { WithId } from '@/firebase/firestore/use-collection';
+import { addDocumentNonBlocking } from '@/firebase';
 
-// Helper function to generate a random color from a predefined list
 const userColors = [
   'text-red-400', 'text-green-400', 'text-blue-400', 
   'text-yellow-400', 'text-purple-400', 'text-pink-400',
@@ -25,9 +27,9 @@ const getUserColor = (userId: string) => {
     return assignedColors[userId];
 };
 
-
-export default function LiveChat({ stream, messages, setMessages }: { stream: LiveBroadcast, messages: LiveChatMessage[], setMessages: React.Dispatch<React.SetStateAction<LiveChatMessage[]>> }) {
+export default function LiveChat({ stream, messages }: { stream: WithId<LiveBroadcast>, messages: WithId<LiveChatMessage>[] }) {
   const { user: currentUser } = useUser();
+  const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
@@ -48,7 +50,11 @@ export default function LiveChat({ stream, messages, setMessages }: { stream: Li
 
   useEffect(() => {
     if (scrollViewportRef.current) {
-      scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+      setTimeout(() => {
+        if(scrollViewportRef.current) {
+          scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+        }
+      }, 100);
     }
   }, [displayedMessages]);
 
@@ -58,18 +64,16 @@ export default function LiveChat({ stream, messages, setMessages }: { stream: Li
     
     setIsSending(true);
 
-    const messageData: LiveChatMessage = {
-      id: `msg-${Date.now()}`,
+    const messageData: Omit<LiveChatMessage, 'id'> = {
       userId: currentUser.uid,
       username: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
       text: newMessage,
-      timestamp: new Date(),
+      timestamp: serverTimestamp(),
     };
-    
-    // Simulate network delay
-    await new Promise(res => setTimeout(res, 200));
 
-    setMessages(prev => [...prev, messageData]);
+    const messagesCol = collection(firestore, 'streams', stream.id, 'live-chat-messages');
+    addDocumentNonBlocking(messagesCol, messageData);
+
     setNewMessage('');
     setIsSending(false);
   };

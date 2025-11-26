@@ -16,13 +16,14 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { WithId } from '@/firebase';
 
 
 interface FeaturedStreamCarouselProps {
-    streams: LiveBroadcast[];
+    streams: WithId<LiveBroadcast>[];
 }
 
-function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
+function FeaturedStreamCard({ stream }: { stream: WithId<LiveBroadcast> }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
@@ -76,7 +77,7 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
       >
         <CarouselContent className="-ml-4">
           {streams.map((stream) => (
-            <CarouselItem key={stream.liveId} className="pl-4">
+            <CarouselItem key={stream.id} className="pl-4">
               <Link href={`/live/${stream.streamerName}`} className="block">
                 <FeaturedStreamCard stream={stream} />
               </Link>

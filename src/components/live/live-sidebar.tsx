@@ -8,13 +8,14 @@ import type { LiveBroadcast, Category } from '@/lib/types';
 import Link from 'next/link';
 import { formatCompactNumber } from '@/lib/utils';
 import { useSidebar } from '../ui/sidebar';
+import { WithId } from '@/firebase';
 
 interface LiveSidebarProps {
-  recommendedChannels: LiveBroadcast[];
-  recommendedCategories: Category[];
+  recommendedChannels: WithId<LiveBroadcast>[];
+  recommendedCategories: WithId<Category>[];
 }
 
-function ChannelItem({ channel }: { channel: LiveBroadcast }) {
+function ChannelItem({ channel }: { channel: WithId<LiveBroadcast> }) {
   const { setOpen } = useSidebar();
   return (
     <Link 
@@ -38,7 +39,7 @@ function ChannelItem({ channel }: { channel: LiveBroadcast }) {
   );
 }
 
-function CategoryItem({ category }: { category: Category }) {
+function CategoryItem({ category }: { category: WithId<Category> }) {
     const { setOpen } = useSidebar();
     return (
      <Link 
@@ -54,6 +55,7 @@ function CategoryItem({ category }: { category: Category }) {
       </div>
       <div className="flex items-center gap-1.5 text-xs">
         <div className="h-2 w-2 rounded-full bg-red-500" />
+        {/* In a real app, this would be a sum of viewers in the category */}
         <span>{formatCompactNumber(Math.floor(Math.random() * 100000))}</span>
       </div>
     </Link>
@@ -82,7 +84,7 @@ export default function LiveSidebar({ recommendedChannels, recommendedCategories
                 <h3 className="text-sm font-semibold uppercase text-zinc-400 px-2 mb-2">Live Channels</h3>
                 <div className="space-y-1">
                     {recommendedChannels.map(channel => (
-                        <ChannelItem key={channel.liveId} channel={channel} />
+                        <ChannelItem key={channel.id} channel={channel} />
                     ))}
                     <Button variant="link" size="sm" className="text-xs p-0 text-primary">Show More</Button>
                 </div>

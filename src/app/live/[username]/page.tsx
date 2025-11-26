@@ -3,51 +3,53 @@
 
 import { useMemo, useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useFirestore, useUser, useCollection, useDoc, useMemoFirebase } from '@/firebase';
 import { Loader2 } from 'lucide-react';
+import { doc, collection, query, orderBy } from 'firebase/firestore';
 import LiveStreamPlayer from '@/components/live/live-stream-player';
 import LiveChat from '@/components/live/live-chat';
 import StreamInfo from '@/components/live/stream-info';
 import { Separator } from '@/components/ui/separator';
 import type { LiveBroadcast, User, LiveChatMessage } from '@/lib/types';
-import { dummyLiveBroadcasts } from '@/lib/dummy-data';
+import { WithId } from '@/firebase/firestore/use-collection';
 
 export default function LiveWatchPage() {
   const { username } = useParams<{ username: string }>();
+  const firestore = useFirestore();
   const { user: currentUser, isUserLoading } = useUser();
-  const [streams, setStreams] = useState(dummyLiveBroadcasts);
-  const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
 
-  useEffect(() => {
-    // Effect to listen for storage changes to update live status
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'dummyLiveBroadcasts' && event.newValue) {
-        setStreams(JSON.parse(event.newValue));
-      }
-    };
-    
-    const storedStreams = localStorage.getItem('dummyLiveBroadcasts');
-    if (storedStreams) {
-        setStreams(JSON.parse(storedStreams));
-    }
+  // Find the stream document ID based on the streamer's username.
+  // This is not ideal for performance. In a real app, you'd likely have a direct lookup.
+  const streamsQuery = useMemoFirebase(() => query(collection(firestore, 'streams')), [firestore]);
+  const { data: streams, isLoading: streamsLoading } = useCollection<LiveBroadcast>(streamsQuery);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const stream = useMemo(() => {
-    const s = streams.find(s => s.streamerName === username);
-    if (!s) return null;
-    return s;
+  const streamId = useMemo(() => {
+    return streams?.find(s => s.streamerName === username)?.id;
   }, [streams, username]);
 
+  const streamDocRef = useMemoFirebase(() => {
+    if (!streamId) return null;
+    return doc(firestore, 'streams', streamId);
+  }, [firestore, streamId]);
+  
+  const { data: stream, isLoading: streamLoading } = useDoc<LiveBroadcast>(streamDocRef);
 
+  const chatMessagesQuery = useMemoFirebase(() => {
+    if (!streamId) return null;
+    return query(
+        collection(firestore, 'streams', streamId, 'live-chat-messages'),
+        orderBy('timestamp', 'asc')
+    );
+  }, [firestore, streamId]);
+
+  const { data: chatMessages, isLoading: chatLoading } = useCollection<LiveChatMessage>(chatMessagesQuery);
+  
   const streamer: User | null = useMemo(() => {
     if (!stream) return null;
     return stream.user;
   }, [stream]);
 
-  if (isUserLoading) {
+  if (isUserLoading || streamsLoading || streamLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -76,7 +78,7 @@ export default function LiveWatchPage() {
           </div>
         </main>
         <aside className="lg:col-span-3 lg:border-l lg:flex flex-col hidden">
-          <LiveChat stream={stream} messages={chatMessages} setMessages={setChatMessages} />
+          <LiveChat stream={stream as WithId<LiveBroadcast>} messages={chatMessages || []} />
         </aside>
       </div>
     </div>
