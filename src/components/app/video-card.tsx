@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -14,7 +15,7 @@ interface VideoCardProps {
 export default function VideoCard({ video }: VideoCardProps) {
   return (
     <div className="flex flex-col gap-3">
-      <Link href="#">
+      <Link href={`/watch/${video.id}`}>
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted transition-transform hover:scale-105">
           <Image
             src={video.thumbnailUrl}
@@ -34,7 +35,7 @@ export default function VideoCard({ video }: VideoCardProps) {
         </Link>
         <div className="flex flex-col">
           <h3 className="font-semibold text-base leading-tight">
-            <Link href="#">{video.title}</Link>
+            <Link href={`/watch/${video.id}`}>{video.title}</Link>
           </h3>
           <p className="text-sm text-muted-foreground mt-1">{video.user.username}</p>
           <p className="text-sm text-muted-foreground">
