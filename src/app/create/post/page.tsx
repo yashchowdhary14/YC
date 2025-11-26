@@ -40,9 +40,10 @@ export default function CreatePostPage() {
     finishCaptionGeneration,
     startSubmitting,
     finishSubmitting,
+    reset,
   } = usePostCreationStore();
   
-  const [step, setStep] = useState<PostCreationStep>('crop');
+  const [step, setStep] = useState<PostCreationStep>('edit');
 
   useEffect(() => {
     // If there's no media in the store AND no media was just captured,
@@ -86,12 +87,15 @@ export default function CreatePostPage() {
   const handleBack = () => {
     if (step === 'details') setStep('edit');
     else if (step === 'edit') setStep('crop');
-    else if (step === 'crop') router.back();
+    else if (step === 'crop') {
+        reset();
+        router.back();
+    }
   };
 
   const handleShare = async () => {
-    const { caption } = usePostCreationStore.getState();
-    if (!user || !firestore) {
+    const { caption, media } = usePostCreationStore.getState();
+    if (!user) {
       toast({ variant: 'destructive', title: 'You must be logged in to share a post.'});
       return;
     }
@@ -103,29 +107,22 @@ export default function CreatePostPage() {
     setStep('sharing');
 
     try {
-      // In a real app, this would be a multi-file upload. We simulate with the first media item.
-      const firstMedia = media[0];
-      const imageUrl = await uploadFile(firstMedia.file, `posts/${user.uid}/${Date.now()}_${firstMedia.file.name}`);
-
-      await addDoc(collection(firestore, 'posts'), {
-        type: 'photo', // Or 'video' or 'carousel'
-        mediaUrl: imageUrl,
-        thumbnailUrl: imageUrl,
-        uploaderId: user.uid,
-        caption: caption,
-        tags: [],
-        views: 0,
-        likes: 0,
-        commentsCount: 0,
-        createdAt: serverTimestamp(),
-      });
+      // Simulate upload and Firestore document creation
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast({ title: 'Post Shared!', description: 'Your post is now live.'});
-      router.push(`/${user.displayName || user.email?.split('@')[0]}`);
+      // In a real app, you would upload each file in `media` to storage
+      // and then create a post document with all the media URLs.
+      // const imageUrl = await uploadFile(media[0].file, `posts/${user.uid}/${Date.now()}_${media[0].file.name}`);
+      // await addDoc(collection(firestore, 'posts'), { ... });
+      
+      toast({ title: 'Post Shared! (Simulation)', description: 'Your post is now live on your profile.'});
+      reset();
+      const username = user.displayName || user.email?.split('@')[0];
+      router.push(`/${username}`);
 
     } catch(error) {
       console.error("Error sharing post:", error);
-      toast({ variant: 'destructive', title: 'Failed to share post.'});
+      toast({ variant: 'destructive', title: 'Failed to share post.', description: 'An unexpected error occurred.' });
       setStep('details'); // Go back to details screen on failure
     } finally {
       finishSubmitting();
@@ -142,6 +139,12 @@ export default function CreatePostPage() {
         const dataUri = await fileToDataUri(media[0].file);
         const input: GenerateAiCaptionInput = {
             mediaDataUri: dataUri,
+            userProfile: {
+                username: user?.displayName || 'user',
+                bio: '',
+                followers: [],
+                following: []
+            }
         };
         const result = await generateAiCaption(input);
         setCaption(result.caption);
@@ -160,8 +163,29 @@ export default function CreatePostPage() {
     details: <DetailsForm onGenerateCaption={handleGenerateCaption} />,
     sharing: (
       <div className="flex flex-col items-center justify-center h-full text-foreground">
-        <Loader2 className="h-16 w-16 animate-spin" />
-        <p className="mt-4 text-lg">Sharing your post...</p>
+        <div className="w-full aspect-square bg-black flex items-center justify-center relative">
+            <AnimatePresence>
+                {media.length > 0 && (
+                    <motion.div
+                        key={media[0].id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="w-full h-full"
+                    >
+                        <Image 
+                            src={media[0].previewUrl} 
+                            alt="final preview" 
+                            fill 
+                            className="object-contain filter blur-sm"
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-4">
+                <Loader2 className="h-16 w-16 animate-spin text-white" />
+                <p className="text-lg text-white">Sharing your post...</p>
+            </div>
+        </div>
       </div>
     )
   };
@@ -184,7 +208,7 @@ export default function CreatePostPage() {
           <h1 className="font-semibold text-lg">{headerText}</h1>
           {step === 'details' ? (
             <Button variant="link" onClick={handleShare} disabled={isSubmitting}>Share</Button>
-          ) : step === 'crop' || step === 'edit' ? (
+          ) : step !== 'sharing' ? (
             <Button variant="link" onClick={handleNext}>Next</Button>
           ) : <div className="w-14" />}
         </header>
@@ -195,10 +219,10 @@ export default function CreatePostPage() {
              <AnimatePresence mode="wait">
                   <motion.div
                       key={step}
-                      initial={{ opacity: 0, x: 50 }}
+                      initial={{ opacity: 0, x: step === 'details' ? 50 : -50 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -50 }}
-                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      exit={{ opacity: 0, x: step === 'edit' ? 50 : -50 }}
+                      transition={{ duration: 0.3, ease: 'easeInOut' }}
                       className="w-full h-full"
                   >
                       {steps[step]}
@@ -206,6 +230,11 @@ export default function CreatePostPage() {
               </AnimatePresence>
           </div>
           {step === 'edit' && <EditControls />}
+           {step === 'crop' && (
+              <div className="h-24 flex-shrink-0 text-center flex items-center justify-center">
+                  <p>Crop controls here</p>
+              </div>
+            )}
         </main>
       </div>
   );
