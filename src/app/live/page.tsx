@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -12,9 +11,19 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wifi, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
+import LiveStreamPlayer from '@/components/live/live-stream-player';
+import LiveChat from '@/components/live/live-chat';
+import StreamInfo from '@/components/live/stream-info';
+import type { User, Video } from '@/lib/types';
+import { dummyUsers, dummyVideos } from '@/lib/dummy-data';
+import { Separator } from '@/components/ui/separator';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+
+// Let's pick a user and a video to be our "featured streamer"
+const FEATURED_STREAMER_USERNAME = 'ethan_bytes';
+const FEATURED_VIDEO_ID = 'vid_1';
 
 export default function LiveStreamPage() {
   const { user, isUserLoading } = useUser();
@@ -26,13 +35,34 @@ export default function LiveStreamPage() {
     }
   }, [isUserLoading, user, router]);
 
-  if (isUserLoading || !user) {
+  const streamData = useMemo(() => {
+    const streamer = dummyUsers.find(u => u.username === FEATURED_STREAMER_USERNAME) as User;
+    const video = dummyVideos.find(v => v.id === FEATURED_VIDEO_ID);
+    if (!streamer || !video) return null;
+    
+    return {
+      streamer: {
+        ...streamer,
+        avatarUrl: `https://picsum.photos/seed/${streamer.id}/150/150`,
+      },
+      stream: {
+        title: video.title,
+        videoUrl: video.videoUrl,
+        category: video.category,
+        viewers: Math.floor(video.views / 100) + 500, // Make up a viewer count
+      },
+    };
+  }, []);
+
+  if (isUserLoading || !user || !streamData) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+
+  const { streamer, stream } = streamData;
 
   return (
     <SidebarProvider>
@@ -46,19 +76,20 @@ export default function LiveStreamPage() {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="flex justify-center items-center min-h-[calc(100vh-4rem)] bg-background">
-          <Card className="w-full max-w-md p-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wifi className="h-6 w-6 text-red-500" />
-                Live Stream
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center gap-4 h-96">
-                <Loader2 className="h-16 w-16 animate-spin text-primary" />
-                <p className="text-muted-foreground">Searching for live streams...</p>
-            </CardContent>
-          </Card>
+        <main className="h-[calc(100vh-3.5rem)]">
+           <div className="grid grid-cols-12 h-full">
+              <div className="col-span-12 xl:col-span-9 flex flex-col">
+                <div className="flex-grow p-4">
+                  <AspectRatio ratio={16 / 9}>
+                    <LiveStreamPlayer src={stream.videoUrl} />
+                  </AspectRatio>
+                  <StreamInfo streamer={streamer} stream={stream} />
+                </div>
+              </div>
+              <div className="hidden xl:block xl:col-span-3 border-l h-full">
+                 <LiveChat streamer={streamer} />
+              </div>
+           </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
