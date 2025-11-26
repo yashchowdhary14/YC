@@ -6,15 +6,13 @@ import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Loader2, ArrowUp } from 'lucide-react';
 import type { Post, User } from '@/lib/types';
-import PostCard from '@/components/app/post-card';
+import PostTile from '@/components/app/post-tile'; // Changed from PostCard
 import StoriesCarousel from '@/components/app/stories-carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
-
-const POSTS_PER_PAGE = 5;
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -33,7 +31,7 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
           <p className="text-xs text-muted-foreground">Suggested for you</p>
         </div>
       </Link>
-      <Button variant="link" size="sm" className="p-0 h-auto text-blue-400 font-semibold text-xs" onClick={handleFollowToggle}>
+      <Button variant="link" size="sm" className="p-0 h-auto text-primary font-semibold text-xs" onClick={handleFollowToggle}>
         {isFollowing ? 'Unfollow' : 'Follow'}
       </Button>
     </div>
@@ -99,8 +97,6 @@ export default function Home() {
 
   useEffect(() => {
     if (posts) {
-      // In a real app, you might do hydration here (e.g., fetch user details for each post)
-      // For now, we assume the Post type from Firestore is sufficient.
       setDisplayedPosts(posts);
     }
   }, [posts]);
@@ -151,29 +147,31 @@ export default function Home() {
     <>
       <div className="container mx-auto max-w-screen-lg md:p-4 lg:p-8 md:pt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
+            <div className="lg:col-span-2">
               <div className="flex flex-col md:gap-8">
-              <div className="md:border-b md:border-border md:pb-4">
-                <StoriesCarousel />
-              </div>
-              {displayedPosts.length > 0 ? (
-                  displayedPosts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                  ))
-              ) : (
-                  <div className="text-center py-16 text-muted-foreground bg-background rounded-lg hidden md:block">
-                  <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
-                  <p className="mt-2">Your feed is empty.</p>
-                  <p>Start following people to see their posts here.</p>
-                  <Button asChild className="mt-4">
-                      <Link href="/explore">Find People to Follow</Link>
-                  </Button>
+                <div className="md:border-b md:border-border md:pb-4">
+                  <StoriesCarousel />
+                </div>
+                {displayedPosts.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-0">
+                    {displayedPosts.map((post) => (
+                      <PostTile key={post.id} post={post} />
+                    ))}
                   </div>
-              )}
+                ) : (
+                  <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
+                    <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
+                    <p className="mt-2">Your feed is empty.</p>
+                    <p>Start following people to see their posts here.</p>
+                    <Button asChild className="mt-4">
+                        <Link href="/explore">Find People to Follow</Link>
+                    </Button>
+                  </div>
+                )}
               </div>
-          </div>
+            </div>
 
-          <div className="hidden lg:block lg:col-span-1">
+            <div className="hidden lg:block lg:col-span-1">
               <div className="sticky top-24">
                 {user && (
                   <div className="flex items-center gap-4 mb-6">
@@ -187,24 +185,24 @@ export default function Home() {
                     </div>
                   </div>
                 )}
-              <div className="flex items-center justify-between mb-4">
-                  <p className="font-semibold text-muted-foreground text-sm">Suggestions for you</p>
-                  <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                    <Link href="/explore">See All</Link>
-                  </Button>
+                <div className="flex items-center justify-between mb-4">
+                    <p className="font-semibold text-muted-foreground text-sm">Suggestions for you</p>
+                    <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                      <Link href="/explore">See All</Link>
+                    </Button>
+                </div>
+                <div className="flex flex-col gap-4">
+                    {suggestions.map((s) => (
+                        <SuggestionCard 
+                          key={s.id} 
+                          suggestion={s} 
+                          onFollowToggle={handleFollowToggle}
+                          isFollowing={followingIds.includes(s.id)}
+                        />
+                    ))}
+                </div>
               </div>
-              <div className="flex flex-col gap-4">
-                  {suggestions.map((s) => (
-                      <SuggestionCard 
-                        key={s.id} 
-                        suggestion={s} 
-                        onFollowToggle={handleFollowToggle}
-                        isFollowing={followingIds.includes(s.id)}
-                      />
-                  ))}
-              </div>
-              </div>
-          </div>
+            </div>
           </div>
       </div>
       {showBackToTop && (
