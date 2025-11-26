@@ -31,7 +31,7 @@ function ChannelItem({ channel }: { channel: LiveBroadcast }) {
         <p className="text-xs text-muted-foreground truncate">{channel.category}</p>
       </div>
       <div className="flex items-center gap-1.5 text-xs">
-        <div className="h-2 w-2 rounded-full bg-red-500" />
+        <div className="h-2 w-2 rounded-full bg-destructive" />
         <span>{formatCompactNumber(channel.viewerCount)}</span>
       </div>
     </Link>
@@ -53,7 +53,7 @@ function CategoryItem({ category }: { category: Category }) {
         <p className="text-sm font-semibold truncate">{category.name}</p>
       </div>
       <div className="flex items-center gap-1.5 text-xs">
-        <div className="h-2 w-2 rounded-full bg-red-500" />
+        <div className="h-2 w-2 rounded-full bg-destructive" />
         {/* In a real app, this would be a sum of viewers in the category */}
         <span>{formatCompactNumber(Math.floor(Math.random() * 100000))}</span>
       </div>

@@ -31,7 +31,7 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
   return (
     <Link href={getLinkHref(item)} className="block w-full h-full group">
         <motion.div
-            className="absolute inset-0 bg-zinc-800"
+            className="absolute inset-0 bg-muted"
             animate={{ opacity: isLoaded ? 0 : 1 }}
             transition={{ duration: 0.5, delay: 0.2 }}
         />

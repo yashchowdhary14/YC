@@ -11,19 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import type { LiveBroadcast, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const userColors = [
-  'text-red-400', 'text-green-400', 'text-blue-400', 
-  'text-yellow-400', 'text-purple-400', 'text-pink-400',
-  'text-indigo-400', 'text-teal-400'
-];
-const assignedColors: { [userId: string]: string } = {};
-const getUserColor = (userId: string) => {
-    if (!assignedColors[userId]) {
-        assignedColors[userId] = userColors[Math.floor(Math.random() * userColors.length)];
-    }
-    return assignedColors[userId];
-};
-
 export default function LiveChat({ stream, messages, setMessages }: { stream: LiveBroadcast, messages: LiveChatMessage[], setMessages: (messages: LiveChatMessage[]) => void }) {
   const { user: currentUser } = useUser();
   const [newMessage, setNewMessage] = useState('');
@@ -89,8 +76,9 @@ export default function LiveChat({ stream, messages, setMessages }: { stream: Li
               {!msg.isBot && (
                 <span className={cn(
                   "font-bold shrink-0", 
-                  getUserColor(msg.userId),
-                  msg.userId === currentUser?.uid && 'text-primary'
+                  msg.userId === stream.streamerId && 'text-foreground',
+                  msg.userId === currentUser?.uid && 'text-primary',
+                  (msg.userId !== stream.streamerId && msg.userId !== currentUser?.uid) && 'text-muted-foreground'
                 )}>
                   {msg.userId === stream.streamerId && <Crown className="inline-block h-4 w-4 mr-1 text-amber-400" />}
                   {msg.username}:
