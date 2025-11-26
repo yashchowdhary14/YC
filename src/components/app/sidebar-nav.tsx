@@ -13,6 +13,7 @@ import {
   Users,
   Video,
   Wifi,
+  RadioTower
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -26,6 +27,7 @@ const links = [
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/videos', label: 'Videos', icon: Video },
   { href: '/live', label: 'Live', icon: Wifi },
+  { href: '/studio/broadcast', label: 'Broadcast', icon: RadioTower},
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/following', label: 'Following', icon: Users },
   { href: '/create', label: 'Create', icon: PlusSquare },
