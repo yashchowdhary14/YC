@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 
 const creationOptions = [
   {
-    href: '/create/post',
+    href: '/studio',
     title: 'Post',
     description: 'Share a photo or text with your followers.',
     icon: (
