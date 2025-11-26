@@ -45,7 +45,7 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="absolute top-8 flex items-center gap-2 text-2xl font-semibold">
-        <h1 className="text-3xl font-bold font-serif">YC</h1>
+        <h1 className="text-3xl font-bold font-serif">YCP</h1>
       </div>
       <Card className="w-full max-w-sm">
         <CardHeader>

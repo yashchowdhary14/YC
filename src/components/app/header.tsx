@@ -58,7 +58,7 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
            </SidebarTrigger>
           {showLogoAndTrigger && (
             <NextLink href="/" className="hidden font-serif text-2xl font-bold md:block">
-              YC
+              YCP
             </NextLink>
           )}
           {children}
