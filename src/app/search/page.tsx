@@ -22,7 +22,15 @@ import { cn } from '@/lib/utils';
 import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { dummyUsers } from '@/lib/dummy-data';
+
+
+const dummyUsers = [
+    { id: 'user1', username: 'code_wizard', fullName: 'Alex Coder', avatarUrl: 'https://picsum.photos/seed/user1/100/100' },
+    { id: 'user2', username: 'design_diva', fullName: 'Brenda Designer', avatarUrl: 'https://picsum.photos/seed/user2/100/100' },
+    { id: 'user3', username: 'photo_phan', fullName: 'Chris Photographer', avatarUrl: 'https://picsum.photos/seed/user3/100/100' },
+    { id: 'user4', username: 'travel_bug', fullName: 'Diana Traveler', avatarUrl: 'https://picsum.photos/seed/user4/100/100' },
+    { id: 'user5', username: 'foodie_fiesta', fullName: 'Evan Eater', avatarUrl: 'https://picsum.photos/seed/user5/100/100' },
+];
 
 
 // Extend the Post type for our search grid needs
@@ -139,7 +147,7 @@ export default function SearchPage() {
                     <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
                         {filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
-                                <Link href={`/${user.username}`} key={user.id}>
+                                <Link href={`/profile`} key={user.id}>
                                     <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
                                         <Avatar>
                                             <AvatarImage src={user.avatarUrl} alt={user.username} />
