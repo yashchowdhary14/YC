@@ -65,7 +65,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                                 asChild
                                 variant="ghost"
                                 className={cn(
-                                    "w-full justify-center gap-4 p-3 text-base h-auto aspect-square",
+                                    "w-full justify-center gap-4 p-3 text-base h-auto aspect-square text-foreground",
                                     pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href ? 'bg-accent' : ''
                                 )}
                                 >
@@ -95,8 +95,8 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
               asChild
               variant="ghost"
               className={cn(
-                "w-full justify-start gap-4 px-3 py-6 text-base h-auto",
-                pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href ? 'font-bold' : ''
+                "w-full justify-start gap-4 px-3 py-6 text-base h-auto text-foreground",
+                (pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href ? 'font-bold' : ''
               )}
             >
               <NextLink href={link.href} className="flex items-center">
