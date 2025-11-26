@@ -20,6 +20,7 @@ const navLinks = [
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
+  const profileHref = `/${user?.displayName || user?.email?.split('@')[0]}`;
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-background border-t z-50 md:hidden">
@@ -36,9 +37,9 @@ export default function BottomNav() {
           );
         })}
         {user && (
-          <NextLink href="/" passHref>
+          <NextLink href={profileHref} passHref>
             <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
-              <Avatar className={cn("h-6 w-6")}>
+              <Avatar className={cn("h-6 w-6", pathname === profileHref && "border-2 border-foreground")}>
                 <AvatarImage src={user.photoURL || ''} />
                 <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>

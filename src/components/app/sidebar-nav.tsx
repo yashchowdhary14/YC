@@ -42,9 +42,20 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
   const { user } = useUser();
 
+  const profileLink = user ? { href: `/${user.displayName || user.email?.split('@')[0]}`, label: 'Profile', icon: (props: any) => (
+      <Avatar {...props}>
+          <AvatarImage src={user.photoURL || ''} />
+          <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+  )} : null;
+
   const allLinks = [
     ...mainLinks,
   ];
+
+  if(profileLink){
+    allLinks.push(profileLink);
+  }
 
   if (isCollapsed) {
     return (
