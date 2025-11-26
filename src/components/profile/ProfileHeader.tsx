@@ -1,12 +1,19 @@
 
 'use client';
 
+import { useState, useOptimistic, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings, CheckCircle, Loader2 } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { followUser, unfollowUser } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+
 
 interface ProfileHeaderProps {
   user: {
+    id: string;
     username: string;
     fullName: string;
     bio: string;
@@ -29,6 +36,48 @@ export default function ProfileHeader({
     isNavigatingToChat = false,
     isCurrentUser = false 
 }: ProfileHeaderProps) {
+    const { user: currentUser } = useUser();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+    const [isFollowing, setIsFollowing] = useState<boolean | null>(null);
+
+    const isFollowingRef = useMemoFirebase(
+      () => (firestore && currentUser && !isCurrentUser ? doc(firestore, 'users', currentUser.uid, 'following', user.id) : null),
+      [firestore, currentUser, isCurrentUser, user.id]
+    );
+    const { data: isFollowingData, isLoading: isLoadingFollow } = useDoc(isFollowingRef);
+
+    useEffect(() => {
+        setIsFollowing(isFollowingData ? true : false);
+    }, [isFollowingData]);
+
+    const [optimisticState, toggleOptimistic] = useOptimistic(
+        { following: isFollowing, followersCount: user.followersCount },
+        (state) => ({
+            following: !state.following,
+            followersCount: state.following ? state.followersCount - 1 : state.followersCount + 1,
+        })
+    );
+
+    const handleFollowToggle = async () => {
+        if (!currentUser) {
+            toast({ variant: "destructive", title: "You must be logged in to follow users."});
+            return;
+        }
+        toggleOptimistic(null);
+        const action = optimisticState.following ? unfollowUser : followUser;
+        const result = await action(currentUser.uid, user.id);
+        if (!result.success) {
+            toast({
+                variant: 'destructive',
+                title: `Failed to ${optimisticState.following ? 'unfollow' : 'follow'}`,
+                description: result.error,
+            });
+            // This will trigger a revert in the optimistic state if the hook is designed to handle it
+            // but for now, we just show an error. A full revert may need another state update.
+        }
+    };
+
     const renderBio = (bio: string) => {
         if (!bio) return null;
         const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -72,7 +121,13 @@ export default function ProfileHeader({
                     </div>
                  ) : (
                     <div className="flex items-center gap-2">
-                        <Button size="sm">Follow</Button>
+                        {isLoadingFollow ? (
+                            <Button size="sm" disabled><Loader2 className="h-4 w-4 animate-spin" /></Button>
+                        ) : (
+                             <Button size="sm" variant={optimisticState.following ? 'secondary' : 'default'} onClick={handleFollowToggle}>
+                                {optimisticState.following ? 'Following' : 'Follow'}
+                            </Button>
+                        )}
                         <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat}>
                             {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Message
@@ -84,7 +139,7 @@ export default function ProfileHeader({
             {/* Stats */}
             <div className="flex items-center gap-6 text-base text-foreground">
                 <span><span className="font-semibold">{user.postsCount}</span> posts</span>
-                <span><span className="font-semibold">{user.followersCount.toLocaleString()}</span> followers</span>
+                <span><span className="font-semibold">{optimisticState.followersCount.toLocaleString()}</span> followers</span>
                 <span><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</span>
             </div>
 

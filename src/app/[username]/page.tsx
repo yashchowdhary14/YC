@@ -21,43 +21,40 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useUser } from '@/firebase';
-import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
+import { useUser, useFirestore, useDoc, useCollection, useMemoFirebase } from '@/firebase';
 import type { Post, User } from '@/lib/types';
 import { createOrGetChat } from '@/app/actions';
+import { doc, query, collection, where } from 'firebase/firestore';
+
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { user: currentUser } = useUser();
+  const { user: currentUser, isUserLoading: isCurrentUserLoading } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+  const firestore = useFirestore();
 
-  const profileUser = useMemo(() => {
-    return dummyUsers.find(u => u.username === username);
-  }, [username]);
+  const userQuery = useMemoFirebase(
+    () => (firestore && username ? query(collection(firestore, 'users'), where('username', '==', username)) : null),
+    [firestore, username]
+  );
+  const { data: userData, isLoading: isUserLoading } = useCollection(userQuery);
+  const profileUserDoc = useMemo(() => userData?.[0], [userData]);
+  
+  const postsQuery = useMemoFirebase(
+    () => (firestore && profileUserDoc ? query(collection(firestore, 'users', profileUserDoc.id, 'posts')) : null),
+    [firestore, profileUserDoc]
+  );
+  const { data: postsData, isLoading: arePostsLoading } = useCollection(postsQuery);
+  
 
-  const posts = useMemo(() => {
-    if (!profileUser) return [];
-    return dummyPosts
-      .filter(p => p.userId === profileUser.id)
-      .map(p => ({
-        ...p,
-        user: { 
-          id: p.userId,
-          username: profileUser.username,
-          avatarUrl: profileUser.avatarUrl,
-          fullName: profileUser.fullName,
-        },
-      }));
-  }, [profileUser]);
-
-  const isCurrentUser = currentUser?.uid === profileUser?.id;
-
+  const isCurrentUser = currentUser?.uid === profileUserDoc?.id;
+  
   const handleMessageClick = async () => {
-    if (!currentUser || !profileUser || isCurrentUser) return;
+    if (!currentUser || !profileUserDoc || isCurrentUser) return;
     setIsNavigating(true);
-    const result = await createOrGetChat(profileUser.id, currentUser.uid);
+    const result = await createOrGetChat(profileUserDoc.id, currentUser.uid);
     if (result.success && result.chatId) {
       router.push(`/chat/${result.chatId}`);
     } else {
@@ -66,20 +63,42 @@ export default function UserProfilePage() {
     }
   };
 
+  const profileUser = useMemo(() => {
+    if (!profileUserDoc) return null;
+    return {
+      id: profileUserDoc.id,
+      ...profileUserDoc
+    }
+  }, [profileUserDoc]);
 
-  if (!profileUser) {
-     return notFound();
+  const posts = useMemo(() => {
+    if (!postsData) return [];
+    return postsData.map(p => ({...p}));
+  }, [postsData]);
+
+
+  if (isUserLoading || isCurrentUserLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
+  if (!isUserLoading && !profileUser) {
+     return notFound();
+  }
+  
   const headerUser = {
-      username: profileUser.username,
-      fullName: profileUser.fullName,
-      bio: profileUser.bio,
-      profilePhoto: profileUser.avatarUrl,
+      id: profileUser!.id,
+      username: profileUser!.username,
+      fullName: profileUser!.fullName,
+      bio: profileUser!.bio,
+      profilePhoto: profileUser!.avatarUrl || profileUser!.profilePhoto,
       postsCount: posts.length,
-      followersCount: profileUser.followersCount,
-      followingCount: profileUser.followingCount,
-      verified: profileUser.verified,
+      followersCount: profileUser!.followersCount,
+      followingCount: profileUser!.followingCount,
+      verified: profileUser!.verified,
   };
   
   const emptyState = (
@@ -117,14 +136,14 @@ export default function UserProfilePage() {
             </div>
             <Separator />
             <TabSwitcher
-              postsContent={<PostsGrid posts={posts} />}
+              postsContent={<PostsGrid posts={posts as any} />}
               reelsContent={emptyState}
               taggedContent={emptyState}
             />
           </div>
         </main>
       </SidebarInset>
-      {isCurrentUser && (
+      {isCurrentUser && profileUser && (
         <EditProfileDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}

@@ -16,14 +16,12 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit, where } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Post } from '@/lib/types';
+import type { Post, User } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { dummyUsers } from '@/lib/dummy-data';
-import { User } from '@/lib/types';
 
 
 // Extend the Post type for our search grid needs
@@ -74,7 +72,18 @@ export default function SearchPage() {
         [firestore]
     );
 
+    const usersQuery = useMemoFirebase(
+      () => (firestore && searchTerm ? query(
+        collection(firestore, 'users'), 
+        where('username', '>=', searchTerm),
+        where('username', '<=', searchTerm + '\uf8ff'),
+        limit(10)
+        ) : null),
+      [firestore, searchTerm]
+    );
+
     const { data: postsData, isLoading: isLoadingPosts } = useCollection(postsQuery);
+    const { data: filteredUsers, isLoading: isLoadingUsers } = useCollection<User>(usersQuery);
     
     // Assign random spans and types for masonry effect
     const searchPosts: SearchPost[] = (postsData || []).map((post, index) => {
@@ -100,14 +109,6 @@ export default function SearchPage() {
             span
         } as SearchPost;
     });
-
-    const filteredUsers = useMemo(() => {
-        if (!searchTerm) return [];
-        return dummyUsers.filter(user => 
-            user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-    }, [searchTerm]);
 
     const showSearchResults = isFocused && searchTerm.length > 0;
 
@@ -138,12 +139,13 @@ export default function SearchPage() {
                 />
                  {showSearchResults && (
                     <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
-                        {filteredUsers.length > 0 ? (
+                        {isLoadingUsers && <div className="p-4 text-center text-sm text-muted-foreground"><Loader2 className="mx-auto h-5 w-5 animate-spin" /></div>}
+                        {!isLoadingUsers && filteredUsers && filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
                                 <Link href={`/${user.username}`} key={user.id}>
                                     <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
                                         <Avatar>
-                                            <AvatarImage src={user.avatarUrl} alt={user.username} />
+                                            <AvatarImage src={user.avatarUrl || user.profilePhoto} alt={user.username} />
                                             <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
                                         </Avatar>
                                         <div>
@@ -154,7 +156,7 @@ export default function SearchPage() {
                                 </Link>
                             ))
                         ) : (
-                            <div className="p-4 text-center text-sm text-muted-foreground">
+                           !isLoadingUsers && <div className="p-4 text-center text-sm text-muted-foreground">
                                 No users found.
                             </div>
                         )}
@@ -185,4 +187,3 @@ export default function SearchPage() {
     </SidebarProvider>
   );
 }
-
