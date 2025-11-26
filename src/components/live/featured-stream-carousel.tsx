@@ -67,6 +67,7 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
         opts={{
           align: 'start',
           loop: true,
+          dragFree: true,
         }}
         className="w-full"
       >
