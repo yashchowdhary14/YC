@@ -5,7 +5,6 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc, limit } from 'firebase/firestore';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
 import EditProfileDialog from '@/components/app/edit-profile';
@@ -14,10 +13,11 @@ import HighlightsCarousel from '@/components/profile/HighlightsCarousel';
 import TabSwitcher from '@/components/profile/TabSwitcher';
 import PostsGrid from '@/components/profile/PostsGrid';
 import { Separator } from '@/components/ui/separator';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { useCollection } from '@/firebase/firestore/use-collection';
+import { useUser } from '@/firebase';
 import type { Post, User as UserType } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
+
 
 interface ProfileData {
   user: UserType;
@@ -67,7 +67,6 @@ function ProfileSkeleton() {
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const { user: currentUser } = useUser();
-  const firestore = useFirestore();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -79,51 +78,40 @@ export default function UserProfilePage() {
   const headerOpacity = useTransform(scrollYProgress, [0, 0.05, 0.1], [1, 0.5, 0]);
 
   useEffect(() => {
-    if (!firestore || !username) return;
-
     setIsLoading(true);
-    const fetchUserAndPosts = async () => {
-      try {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('username', '==', username), limit(1));
-        const userSnapshot = await getDocs(q);
 
-        if (userSnapshot.empty) {
-          setProfileData(null);
-          setIsLoading(false);
-          return;
-        }
+    const profileUser = dummyUsers.find(u => u.username === username);
 
-        const profileUserDoc = userSnapshot.docs[0];
-        const profileUserData = profileUserDoc.data() as UserType;
-        
-        const postsRef = collection(firestore, 'posts');
-        const postsQuery = query(postsRef, where('userId', '==', profileUserDoc.id));
-        const postsSnapshot = await getDocs(postsQuery);
-        const userPosts = postsSnapshot.docs.map(doc => doc.data() as Post);
+    if (!profileUser) {
+      setProfileData(null);
+      setIsLoading(false);
+      return;
+    }
 
-        setProfileData({ user: profileUserData, posts: userPosts });
-
-      } catch (error) {
-        console.error("Error fetching profile data:", error);
-        setProfileData(null);
-      } finally {
-        // Simulate a small delay for skeleton visibility
-        setTimeout(() => setIsLoading(false), 300);
-      }
+    const userPosts = dummyPosts.filter(p => p.uploaderId === profileUser.id);
+    
+    // Hydrate avatar URL
+    const hydratedUser = {
+      ...profileUser,
+      avatarUrl: `https://picsum.photos/seed/${profileUser.id}/150/150`
     };
 
-    fetchUserAndPosts();
-  }, [firestore, username]);
+    setProfileData({ user: hydratedUser as UserType, posts: userPosts });
+
+    // Simulate network delay for skeleton
+    setTimeout(() => setIsLoading(false), 300);
+
+  }, [username]);
 
   const { profileUser, posts } = useMemo(() => {
     if (!profileData) return { profileUser: null, posts: [] };
 
     const hydratedProfileUser = {
       ...profileData.user,
+      profilePhoto: `https://picsum.photos/seed/${profileData.user.id}/150/150`,
       postsCount: profileData.posts.length,
-      followersCount: profileData.user.followers?.length || 0,
-      followingCount: profileData.user.following?.length || 0,
+      followersCount: profileData.user.followers?.length || Math.floor(Math.random() * 5000), // Use dummy data or random
+      followingCount: profileData.user.following?.length || Math.floor(Math.random() * 500),
     };
 
     return { profileUser: hydratedProfileUser, posts: profileData.posts };
