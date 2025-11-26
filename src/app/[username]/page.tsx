@@ -80,41 +80,39 @@ export default function UserProfilePage() {
   useEffect(() => {
     setIsLoading(true);
 
-    const profileUser = dummyUsers.find(u => u.username === username);
+    const foundUser = dummyUsers.find(u => u.username === username);
 
-    if (!profileUser) {
+    if (!foundUser) {
       setProfileData(null);
-      setIsLoading(false);
-      return;
+    } else {
+        const userPosts = dummyPosts.filter(p => p.uploaderId === foundUser.id);
+        setProfileData({ user: foundUser as UserType, posts: userPosts });
     }
-
-    const userPosts = dummyPosts.filter(p => p.uploaderId === profileUser.id);
     
-    // Hydrate avatar URL
-    const hydratedUser = {
-      ...profileUser,
-      avatarUrl: `https://picsum.photos/seed/${profileUser.id}/150/150`
-    };
-
-    setProfileData({ user: hydratedUser as UserType, posts: userPosts });
-
     // Simulate network delay for skeleton
-    setTimeout(() => setIsLoading(false), 300);
+    const timer = setTimeout(() => setIsLoading(false), 300);
+    return () => clearTimeout(timer);
 
   }, [username]);
 
   const { profileUser, posts } = useMemo(() => {
-    if (!profileData) return { profileUser: null, posts: [] };
+    if (!profileData) {
+      return { profileUser: null, posts: [] };
+    }
 
+    const { user, posts } = profileData;
+    
     const hydratedProfileUser = {
-      ...profileData.user,
-      profilePhoto: `https://picsum.photos/seed/${profileData.user.id}/150/150`,
-      postsCount: profileData.posts.length,
-      followersCount: profileData.user.followers?.length || Math.floor(Math.random() * 5000), // Use dummy data or random
-      followingCount: profileData.user.following?.length || Math.floor(Math.random() * 500),
+      ...user,
+      id: user.id, // Ensure id is present
+      profilePhoto: user.profilePhoto || `https://picsum.photos/seed/${user.id}/150/150`,
+      postsCount: posts.length,
+      followersCount: user.followers?.length || Math.floor(Math.random() * 5000), // Use dummy data or random
+      followingCount: user.following?.length || Math.floor(Math.random() * 500),
+      verified: user.verified || false
     };
 
-    return { profileUser: hydratedProfileUser, posts: profileData.posts };
+    return { profileUser: hydratedProfileUser, posts };
   }, [profileData]);
 
 
@@ -153,7 +151,7 @@ export default function UserProfilePage() {
       <div className="bg-background">
         <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 pt-20">
           <ProfileHeader
-            user={profileUser as any}
+            user={profileUser}
             onEditClick={() => setIsEditDialogOpen(true)}
             onMessageClick={handleMessageClick}
             isNavigatingToChat={false} 
@@ -176,7 +174,7 @@ export default function UserProfilePage() {
         <EditProfileDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
-          userProfile={profileUser as any}
+          userProfile={profileUser}
         />
       )}
     </>
