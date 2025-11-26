@@ -26,6 +26,7 @@ export default function ReelsPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const [reels, setReels] = useState<Reel[]>(dummyReels);
     const [selectedReelForComments, setSelectedReelForComments] = useState<Reel | null>(null);
+    const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -71,6 +72,18 @@ export default function ReelsPage() {
                  return { ...prev, comments: updatedComments, commentsCount: updatedComments.length };
             });
         }
+    };
+
+    const handleFollowToggle = (username: string) => {
+        setFollowedUsers(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(username)) {
+                newSet.delete(username);
+            } else {
+                newSet.add(username);
+            }
+            return newSet;
+        });
     };
 
     useEffect(() => {
@@ -138,6 +151,8 @@ export default function ReelsPage() {
                         reel={reel} 
                         onUpdateReel={handleUpdateReel} 
                         onCommentClick={() => setSelectedReelForComments(reel)}
+                        isFollowing={followedUsers.has(reel.user.username)}
+                        onFollowToggle={handleFollowToggle}
                     />
                 </div>
               ))}

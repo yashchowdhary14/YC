@@ -15,15 +15,16 @@ interface ReelCardProps {
     reel: Reel;
     onUpdateReel: (updatedReel: Reel) => void;
     onCommentClick: () => void;
+    isFollowing: boolean;
+    onFollowToggle: (username: string) => void;
 }
 
-export default function ReelCard({ reel, onUpdateReel, onCommentClick }: ReelCardProps) {
+export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowing, onFollowToggle }: ReelCardProps) {
     const { user } = useUser();
     const { toast } = useToast();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
     const [showBigHeart, setShowBigHeart] = useState(false);
-    const [isFollowing, setIsFollowing] = useState(false);
 
     const handleLikeToggle = useCallback(() => {
         const newLikedState = !reel.isLiked;
@@ -52,7 +53,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick }: ReelCar
 
     const handleFollow = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsFollowing(prev => !prev);
+        onFollowToggle(reel.user.username);
     };
 
     return (
@@ -88,9 +89,11 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick }: ReelCar
                     <Button 
                         variant={isFollowing ? 'secondary' : 'outline'} 
                         size="sm" 
-                        className="h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto data-[following=true]:bg-white/90 data-[following=true]:text-black"
+                        className={cn(
+                            "h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto",
+                            isFollowing && "bg-white/90 text-black hover:bg-white/80"
+                        )}
                         onClick={handleFollow}
-                        data-following={isFollowing}
                     >
                         {isFollowing ? 'Following' : 'Follow'}
                     </Button>
