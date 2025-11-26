@@ -42,6 +42,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_1',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/reel1/400/700',
         user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` } as User,
         caption: 'Living my best life in the mountains! 🏔️',
         likes: 1234,
@@ -52,6 +53,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_2',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/reel2/400/700',
         user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` } as User,
         caption: 'City lights and late nights ✨',
         likes: 567,
@@ -62,6 +64,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_3',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/reel3/400/700',
         user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` } as User,
         caption: 'The art of filmmaking.',
         likes: 8910,
@@ -72,6 +75,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_4',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/reel4/400/700',
         user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` } as User,
         caption: 'Just another unboxing. You HAVE to see this!',
         likes: 11200,
@@ -82,6 +86,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_5',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        thumbnailUrl: 'https://picsum.photos/seed/reel5/400/700',
         user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` } as User,
         caption: 'Best tacos I have ever had. Period. 🌮',
         likes: 432,

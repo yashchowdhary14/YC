@@ -104,6 +104,9 @@ export default {
         'spin-slow': 'spin-slow 3s linear infinite',
         'heart-pop': 'heart-pop 0.8s ease-out forwards',
       },
+      gridTemplateRows: {
+        'auto': 'auto',
+      }
     },
   },
   plugins: [require('tailwindcss-animate')],

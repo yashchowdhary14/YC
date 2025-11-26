@@ -34,6 +34,7 @@ export interface ReelComment {
 export interface Reel {
     id: string;
     videoUrl: string;
+    thumbnailUrl?: string;
     user: User;
     caption: string;
     likes: number;

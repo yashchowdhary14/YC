@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
-import Image from 'next/image';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, PlayCircle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -15,49 +14,109 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Post, User as UserType } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
+import { Button } from '@/components/ui/button';
+import { useUser } from '@/firebase';
+import { useIntersection } from '@/hooks/use-intersection';
+import { dummyUsers, dummyPosts, dummyReels, dummyVideos, dummyStreams } from '@/lib/dummy-data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import type { User as UserType } from '@/lib/types';
+import ExploreGrid from '@/components/explore/ExploreGrid';
+import type { ExploreItem } from '@/components/explore/ExploreGrid';
 
-interface SearchPost extends Omit<Post, 'user'> {
-    type: 'photo' | 'video' | 'reel';
-    span: 'row-span-1' | 'row-span-2' | 'col-span-1' | 'col-span-2';
-}
+const ITEMS_PER_PAGE = 18;
 
-function PostCard({ post }: { post: SearchPost }) {
-    const isVideo = post.type === 'video' || post.type === 'reel';
-    return (
-        <Link href={`/p/${post.id}`}>
-        <div
-            className={cn(
-            'group relative aspect-square w-full overflow-hidden rounded-md',
-            post.span
-            )}
-        >
-            <Image
-                src={post.imageUrl}
-                alt={post.caption || 'Explore page post'}
-                fill
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-            {isVideo && (
-                <PlayCircle className="h-12 w-12 text-white" />
-            )}
-            </div>
-        </div>
-        </Link>
-    );
-}
+// Function to shuffle an array
+const shuffleArray = (array: any[]) => {
+  let currentIndex = array.length, randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
+};
+
 
 export default function SearchPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isFocused, setIsFocused] = useState(false);
+    const { user } = useUser();
+    
+    const [displayedItems, setDisplayedItems] = useState<ExploreItem[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+
+    const allExploreItems: ExploreItem[] = useMemo(() => {
+        const photos = dummyPosts.map(p => {
+            const image = PlaceHolderImages.find(img => img.id === p.imageId)!;
+            return {
+                id: p.id,
+                type: 'photo' as const,
+                imageUrl: image.imageUrl,
+                imageHint: image.imageHint,
+                likes: p.likes.length,
+                comments: p.commentsCount,
+            }
+        });
+        const reels = dummyReels.map(r => ({
+            id: r.id,
+            type: 'reel' as const,
+            imageUrl: r.thumbnailUrl || `https://picsum.photos/seed/${r.id}/400/700`,
+            imageHint: 'reel video',
+            likes: r.likes,
+            comments: r.commentsCount,
+        }));
+        const videos = dummyVideos.map(v => ({
+            id: v.id,
+            type: 'video' as const,
+            imageUrl: v.thumbnailUrl,
+            imageHint: 'video content',
+            likes: v.views, // Using views as likes for variety
+            comments: Math.floor(v.views / 100),
+        }));
+        const liveStreams = dummyStreams.filter(s => s.isLive).map(s => ({
+            id: s.id,
+            type: 'live' as const,
+            imageUrl: s.thumbnailUrl || `https://picsum.photos/seed/${s.id}/640/360`,
+            imageHint: 'live stream',
+            viewerCount: s.viewerCount,
+            streamer: s.user
+        }));
+
+        // Combine and shuffle for a mixed feed
+        return shuffleArray([...photos, ...reels, ...videos, ...liveStreams]);
+    }, []);
+
+    // Initial items load
+    useEffect(() => {
+        setDisplayedItems(allExploreItems.slice(0, ITEMS_PER_PAGE));
+        setPage(1);
+        setHasMore(allExploreItems.length > ITEMS_PER_PAGE);
+    }, [allExploreItems]);
+    
+    const loadMoreItems = () => {
+        if (!hasMore) return;
+        const nextPage = page + 1;
+        const newItems = allExploreItems.slice(0, nextPage * ITEMS_PER_PAGE);
+        setDisplayedItems(newItems);
+        setPage(nextPage);
+        setHasMore(newItems.length < allExploreItems.length);
+    };
+
+    const loaderRef = useRef<HTMLDivElement>(null);
+    const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
+
+    useEffect(() => {
+        if (isLoaderVisible && hasMore) {
+            const timer = setTimeout(() => {
+                loadMoreItems();
+            }, 300);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoaderVisible, hasMore]);
+
 
     const filteredUsers = useMemo(() => {
         if (!searchTerm) return [];
@@ -66,31 +125,6 @@ export default function SearchPage() {
             user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
         ).slice(0, 10);
     }, [searchTerm]);
-
-    const searchPosts: SearchPost[] = useMemo(() => {
-        return dummyPosts.map((post, index) => {
-            const image = PlaceHolderImages.find(img => img.id === post.imageId)!;
-            let type: SearchPost['type'] = 'photo';
-            let span: SearchPost['span'] = 'col-span-1';
-
-            if(index % 7 === 0) {
-                type = 'reel';
-                span = 'row-span-2';
-            } else if (index % 11 === 0) {
-                span = 'col-span-2';
-            } else if(index % 5 === 0) {
-                span = 'row-span-2';
-            }
-
-            return {
-                ...post,
-                imageUrl: image.imageUrl,
-                imageHint: image.imageHint,
-                type,
-                span,
-            };
-        });
-    }, []);
 
     const showSearchResults = isFocused && searchTerm.length > 0;
 
@@ -108,7 +142,7 @@ export default function SearchPage() {
         <AppHeader />
         <main className="bg-background min-h-[calc(100vh-4rem)]">
           <div className="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
-            <div className="sticky top-[calc(4rem+1px)] z-20 bg-background py-4 mb-4 -mt-4">
+            <div className="sticky top-[calc(3.5rem)] z-20 bg-background py-4 mb-4 -mt-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -146,11 +180,12 @@ export default function SearchPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-3 md:grid-cols-4 gap-1 auto-rows-fr">
-                {searchPosts.map((post) => (
-                  <PostCard key={post.id} post={post} />
-                ))}
+            <ExploreGrid items={displayedItems} />
+
+            <div ref={loaderRef} className="flex justify-center items-center py-8">
+                {hasMore && <Button onClick={loadMoreItems} variant="secondary">Load More</Button>}
             </div>
+
           </div>
         </main>
       </SidebarInset>
