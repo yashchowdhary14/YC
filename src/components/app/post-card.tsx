@@ -4,7 +4,7 @@
 import { useOptimistic, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageCircle, Send, MoreHorizontal, Bookmark } from 'lucide-react';
 import type { Post } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,8 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
     }
   );
 
+  const [isBookmarked, setIsBookmarked] = useState(false);
+
   const handleLike = async () => {
     if (!user) {
       toast({
@@ -51,9 +53,20 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       return;
     }
     toggleOptimisticLike(null);
-    // In a real app, a server action would be here.
-    // For the dummy version, the optimistic update is all we need.
   };
+  
+  const handleBookmark = () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication required',
+        description: 'You must be logged in to save a post.',
+      });
+      return;
+    }
+    setIsBookmarked(!isBookmarked);
+  };
+
 
   const isLiked = user ? optimisticPost.likes.includes(user.uid) : false;
 
@@ -99,7 +112,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
         </CardContent>
       )}
       <CardFooter className="flex flex-col items-start gap-3 p-4">
-        <div className="flex w-full items-center gap-1">
+        <div className="flex w-full items-center">
           <Button variant="ghost" size="icon" onClick={handleLike}>
             <Heart className={cn("h-6 w-6", isLiked && "fill-red-500 text-red-500")} />
             <span className="sr-only">Like</span>
@@ -113,6 +126,10 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           <Button variant="ghost" size="icon">
             <Send className="h-6 w-6" />
             <span className="sr-only">Share</span>
+          </Button>
+           <Button variant="ghost" size="icon" className="ml-auto" onClick={handleBookmark}>
+            <Bookmark className={cn("h-6 w-6", isBookmarked && "fill-foreground text-foreground")} />
+            <span className="sr-only">Save</span>
           </Button>
         </div>
         <div className="text-sm font-semibold">
