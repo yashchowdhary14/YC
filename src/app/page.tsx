@@ -14,6 +14,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc, startAfter, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
 import PostCard from '@/components/app/post-card';
 import { useIntersection } from '@/hooks/use-intersection';
+import { motion } from 'framer-motion';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -42,7 +43,7 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
 const POSTS_PER_PAGE = 5;
 
 export default function Home() {
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading, followedUsers, toggleFollow } = useUser();
   const firestore = useFirestore();
   const router = useRouter();
   
@@ -62,14 +63,13 @@ export default function Home() {
       router.push('/login');
     }
   }, [user, isUserLoading, router]);
-
-  // Fetch users the current user is following
-  const followingQuery = useMemoFirebase(() => {
-    if (!user) return null;
-    return collection(firestore, `users/${user.uid}/following`);
-  }, [user, firestore]);
-  const { data: followingList, isLoading: followingLoading } = useCollection<{id: string}>(followingQuery);
-  const followingIds = useMemo(() => followingList?.map(f => f.id) || [], [followingList]);
+  
+  const followingIds = useMemo(() => {
+    if (!user || !followedUsers) return [];
+    // A bit of a hack to ensure the current user's own posts don't appear in the feed
+    // In a real scenario, you'd likely not follow yourself, but this prevents it.
+    return Array.from(followedUsers).filter(id => id !== user.uid);
+  }, [user, followedUsers]);
   
   const fetchPosts = useCallback(async (lastVisible: QueryDocumentSnapshot<DocumentData> | null = null) => {
     if (!user || followingIds.length === 0 || isLoadingMore || !hasMore) return;
@@ -115,7 +115,7 @@ export default function Home() {
 
   // Fetch suggestions for you
   useEffect(() => {
-    if (user && firestore && !followingLoading) {
+    if (user && firestore) {
       const fetchSuggestions = async () => {
         const excludedIds = [user.uid, ...followingIds].slice(0, 10);
         let q;
@@ -134,7 +134,7 @@ export default function Home() {
       };
       fetchSuggestions();
     }
-  }, [user, firestore, followingIds, followingLoading]);
+  }, [user, firestore, followingIds]);
 
   
   useEffect(() => {
@@ -153,27 +153,18 @@ export default function Home() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleFollowToggleInSuggestion = async (targetUser: User) => {
+    toggleFollow(targetUser.username);
+  };
 
-  if (isUserLoading || (followingLoading && posts.length === 0)) {
+
+  if (isUserLoading || (followingIds.length > 0 && posts.length === 0)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
-
-  const handleFollowToggle = async (targetUser: User) => {
-    if (!user || !firestore) return;
-
-    const isCurrentlyFollowing = followingIds.includes(targetUser.id);
-    const followRef = doc(firestore, `users/${user.uid}/following`, targetUser.id);
-
-    if (isCurrentlyFollowing) {
-        await deleteDoc(followRef);
-    } else {
-        await setDoc(followRef, { id: targetUser.id });
-    }
-  };
 
   return (
     <>
@@ -186,8 +177,17 @@ export default function Home() {
                 </div>
                 {posts.length > 0 ? (
                     <div className="flex flex-col items-center gap-8 mt-4 md:mt-0">
-                      {posts.map(post => (
-                        <PostCard key={post.id} post={post} />
+                      {posts.map((post, index) => (
+                         <motion.div
+                            key={post.id}
+                            className="w-full"
+                            initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                            viewport={{ once: true, amount: 0.3 }}
+                            transition={{ duration: 0.5, delay: index * 0.05 }}
+                        >
+                            <PostCard post={post} />
+                        </motion.div>
                       ))}
                       {isLoadingMore && (
                         <div className="flex justify-center items-center py-10">
@@ -234,8 +234,8 @@ export default function Home() {
                         <SuggestionCard 
                           key={s.id} 
                           suggestion={s} 
-                          onFollowToggle={handleFollowToggle}
-                          isFollowing={followingIds.includes(s.id)}
+                          onFollowToggle={handleFollowToggleInSuggestion}
+                          isFollowing={followedUsers.has(s.username)}
                         />
                     ))}
                 </div>
