@@ -328,4 +328,22 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         viewerCount: 4200,
         isLive: true,
     },
+    {
+        id: 'stream_7',
+        streamerId: 'user_urban_eats',
+        title: 'Taco Tuesday! Rating local taquerias.',
+        category: 'Just Chatting',
+        tags: ['Food', 'IRL', 'Rating'],
+        viewerCount: 1200,
+        isLive: true,
+    },
+    {
+        id: 'stream_8',
+        streamerId: 'user_chloe_films',
+        title: 'Editing my latest short film - AMA',
+        category: 'Art',
+        tags: ['Filmmaking', 'Editing', 'Creative'],
+        viewerCount: 3400,
+        isLive: true,
+    },
 ];
