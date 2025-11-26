@@ -57,7 +57,7 @@ export default function RootLayout({
 
               {/* Mobile Sliding Sidebar (No longer primary nav) */}
               <Sidebar>
-                <StyledSidebarHeader>
+                <StyledSidebarHeader className="text-foreground">
                   <h1 className="text-2xl font-bold p-2 px-4 font-instagram">YCP</h1>
                 </StyledSidebarHeader>
                 <StyledSidebarContent>
