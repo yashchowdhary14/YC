@@ -15,7 +15,7 @@ export interface TextElement {
 }
 
 export interface DrawingElement {
-  id: string;
+  id:string;
   brush: 'pen' | 'highlighter' | 'neon';
   color: string;
   points: { x: number; y: number }[];

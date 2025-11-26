@@ -3,18 +3,28 @@
 
 import { useStoryCreationStore, useActiveStorySlide } from '@/lib/story-creation-store';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Type } from 'lucide-react';
 
-// This is a placeholder for the editor UI.
-// It will be expanded in future steps.
 export default function StoryEditor() {
   const activeSlide = useActiveStorySlide();
   const reset = useStoryCreationStore((s) => s.reset);
+  const router = useRouter();
+
+  const handleBack = () => {
+    reset();
+    router.back();
+  }
 
   if (!activeSlide) {
+    // This case should ideally not be hit if navigation is handled correctly
+    // but as a fallback, we can redirect.
+    if (typeof window !== 'undefined') {
+       router.replace('/create');
+    }
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4">
-        <p>No active story slide.</p>
-        <button onClick={reset} className="text-primary">Start Over</button>
+        <p>Loading story editor...</p>
       </div>
     );
   }
@@ -41,20 +51,27 @@ export default function StoryEditor() {
         )}
       </div>
 
-      {/* Placeholder for Editor Tools */}
-      <div className="absolute top-4 left-4">
-        <button onClick={reset} className="bg-black/50 p-2 rounded-full text-white">
-          Back
-        </button>
+      {/* Header Tools */}
+      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+        <div className="flex items-center justify-between">
+           <button onClick={handleBack} className="p-2 text-white">
+              <ArrowLeft className="h-7 w-7" />
+           </button>
+            <div className="flex items-center gap-4">
+                <button className="p-2 text-white">
+                    <Type className="h-7 w-7" />
+                </button>
+            </div>
+        </div>
       </div>
-      <div className="absolute top-4 right-4 text-white">
-        <p>Editor Tools Here</p>
-      </div>
-
-       <div className="absolute bottom-4 right-4 text-white">
-        <button className="bg-white text-black font-bold py-2 px-4 rounded-full">
-            Post Story
-        </button>
+      
+      {/* Footer / Sharing Tools */}
+       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
+          <div className="flex items-center justify-end">
+            <button className="bg-white text-black font-bold py-2 px-6 rounded-full">
+                Post
+            </button>
+          </div>
       </div>
     </div>
   );
