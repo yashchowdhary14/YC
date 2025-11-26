@@ -1,10 +1,9 @@
-
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { Loader2, VideoOff, Camera, Check } from 'lucide-react';
+import { Loader2, VideoOff, Camera, Check, SwitchCamera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +19,7 @@ export default function StudioPage() {
 
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -28,6 +28,13 @@ export default function StudioPage() {
       router.push('/login');
     }
   }, [isUserLoading, user, router]);
+
+  const stopStream = useCallback(() => {
+    if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     const getCameraPermission = async () => {
@@ -40,9 +47,13 @@ export default function StudioPage() {
         });
         return;
       }
+      
+      stopStream();
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: facingMode } 
+        });
         streamRef.current = stream;
         setHasPermission(true);
         if (videoRef.current) {
@@ -62,11 +73,9 @@ export default function StudioPage() {
     getCameraPermission();
 
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
+      stopStream();
     };
-  }, [toast]);
+  }, [toast, facingMode, stopStream]);
   
   const handleCapture = () => {
     if (!videoRef.current) return;
@@ -92,6 +101,10 @@ export default function StudioPage() {
     }
   };
 
+  const handleFlipCamera = () => {
+      setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  }
+
   if (isUserLoading || hasPermission === null) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-foreground">
@@ -103,9 +116,14 @@ export default function StudioPage() {
 
   return (
     <main className="h-screen w-full bg-black flex flex-col">
-        <div className="absolute top-4 left-4 z-10">
-            <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white bg-black/50 hover:bg-black/70 hover:text-white">
+        <div className="absolute top-4 left-4 z-20">
+            <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white bg-black/50 hover:bg-black/70 hover:text-white rounded-full">
                 <X />
+            </Button>
+        </div>
+         <div className="absolute top-4 right-4 z-20">
+            <Button variant="ghost" size="icon" onClick={handleFlipCamera} className="text-white bg-black/50 hover:bg-black/70 hover:text-white rounded-full">
+                <SwitchCamera />
             </Button>
         </div>
       {hasPermission ? (
@@ -121,7 +139,7 @@ export default function StudioPage() {
              <div className="flex items-center justify-center mb-4">
                 <motion.div
                     whileTap={{ scale: 0.9 }}
-                    className="w-20 h-20 rounded-full bg-transparent border-4 border-white flex items-center justify-center"
+                    className="w-20 h-20 rounded-full bg-transparent border-4 border-white flex items-center justify-center cursor-pointer"
                     onClick={handleCapture}
                 >
                     <div className="w-[60px] h-[60px] rounded-full bg-white/90"></div>
@@ -129,9 +147,9 @@ export default function StudioPage() {
              </div>
              <Tabs defaultValue="post" className="w-full">
                 <TabsList className="grid w-full grid-cols-3 bg-transparent">
-                    <TabsTrigger value="post" className="text-white/60 data-[state=active]:text-white">Post</TabsTrigger>
-                    <TabsTrigger value="story" className="text-white/60 data-[state=active]:text-white">Story</TabsTrigger>
-                    <TabsTrigger value="reel" className="text-white/60 data-[state=active]:text-white">Reel</TabsTrigger>
+                    <TabsTrigger value="post" className="text-white/60 data-[state=active]:text-white data-[state=active]:font-bold">Post</TabsTrigger>
+                    <TabsTrigger value="story" className="text-white/60 data-[state=active]:text-white data-[state=active]:font-bold">Story</TabsTrigger>
+                    <TabsTrigger value="reel" className="text-white/60 data-[state=active]:text-white data-[state=active]:font-bold">Reel</TabsTrigger>
                 </TabsList>
             </Tabs>
           </div>
@@ -158,5 +176,3 @@ export default function StudioPage() {
 const X = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
 );
-
-    
