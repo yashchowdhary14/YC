@@ -3,8 +3,7 @@
 
 import { useMemo, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -16,14 +15,12 @@ import {
 } from '@/components/ui/sidebar';
 import ChatDisplay from '@/components/messages/chat-display';
 import { Loader2 } from 'lucide-react';
-import { useDoc } from '@/firebase/firestore/use-doc';
+import { dummyChats } from '@/lib/dummy-data';
 import type { Chat } from '@/lib/types';
-
 
 export default function ChatPage() {
   const { chatId } = useParams<{ chatId: string }>();
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const router = useRouter();
 
   useEffect(() => {
@@ -32,14 +29,11 @@ export default function ChatPage() {
     }
   }, [isUserLoading, user, router]);
 
-  const chatRef = useMemoFirebase(
-    () => (firestore && chatId ? doc(firestore, 'chats', chatId as string) : null),
-    [firestore, chatId]
-  );
-  
-  const { data: chatData, isLoading } = useDoc<Chat>(chatRef);
+  const chatData: Chat | undefined = useMemo(() => {
+    return dummyChats.find(c => c.id === chatId);
+  }, [chatId]);
 
-  if (isLoading || isUserLoading) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -49,8 +43,7 @@ export default function ChatPage() {
 
   // Ensure the current user is part of the chat
   if (chatData && user && !chatData.users.includes(user.uid)) {
-    // Or redirect to a "not found" or "unauthorized" page
-    router.replace('/messages'); 
+    router.replace('/messages');
     return (
       <div className="flex h-screen items-center justify-center">
         <p>You are not authorized to view this chat.</p>

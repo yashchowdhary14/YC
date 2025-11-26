@@ -1,6 +1,4 @@
 
-import type { Timestamp } from 'firebase/firestore';
-
 export interface User {
   id: string;
   username: string;
@@ -10,7 +8,6 @@ export interface User {
   followersCount: number;
   followingCount: number;
   verified: boolean;
-  createdAt?: Timestamp;
 }
 
 export interface Post {
@@ -29,7 +26,7 @@ export interface Message {
   chatId: string;
   senderId: string;
   text: string;
-  timestamp: Timestamp | Date;
+  timestamp: Date;
   isRead: boolean;
   mediaUrl?: string;
   mediaType?: 'image' | 'video';
@@ -38,7 +35,7 @@ export interface Message {
 export interface Chat {
   id: string;
   users: string[]; // Array of user IDs
+  messages: Message[];
   lastMessage?: Message;
-  lastUpdated?: Timestamp;
   userDetails: User[];
 }

@@ -21,102 +21,59 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
+import { useUser } from '@/firebase';
 import type { Post } from '@/lib/types';
-import { createOrGetChat } from '@/app/actions';
-import { doc, query, collection, where, getDocs } from 'firebase/firestore';
-
+import { dummyUsers, dummyPosts, dummyFollows, dummyChats } from '@/lib/dummy-data';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { user: currentUser, isUserLoading: isCurrentUserLoading } = useUser();
+  const { user: currentUser } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const router = useRouter();
-  const [isNavigating, setIsNavigating] = useState(false);
-  const firestore = useFirestore();
 
-  const [profileUser, setProfileUser] = useState<any>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  const { profileUser, posts, isCurrentUser } = useMemo(() => {
+    const userFromSlug = dummyUsers.find(u => u.username === username);
+    if (!userFromSlug) return { profileUser: null, posts: [], isCurrentUser: false };
 
-  // Fetch user by username
-  useEffect(() => {
-    if (!firestore || !username) return;
+    const userPosts = dummyPosts
+      .filter(p => p.userId === userFromSlug.id)
+      .map(p => {
+        const image = PlaceHolderImages.find(img => img.id === p.imageId)!;
+        return {
+          ...p,
+          imageUrl: image.imageUrl,
+          imageHint: image.imageHint,
+        };
+      });
 
-    const fetchUser = async () => {
-      setIsUserLoading(true);
-      try {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('username', '==', username));
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) {
-          setProfileUser(null);
-        } else {
-          const userDoc = querySnapshot.docs[0];
-          setProfileUser({ id: userDoc.id, ...userDoc.data() });
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        setProfileUser(null);
-      } finally {
-        setIsUserLoading(false);
-      }
+    const followersCount = Object.values(dummyFollows).filter(followingList => followingList.includes(userFromSlug.id)).length;
+    const followingCount = dummyFollows[userFromSlug.id]?.length || 0;
+    
+    const hydratedProfileUser = {
+      ...userFromSlug,
+      profilePhoto: `https://picsum.photos/seed/${userFromSlug.id}/150/150`,
+      postsCount: userPosts.length,
+      followersCount,
+      followingCount,
     };
 
-    fetchUser();
-  }, [firestore, username]);
-  
-  const postsQuery = useMemoFirebase(
-    () => (firestore && profileUser ? query(collection(firestore, 'users', profileUser.id, 'posts')) : null),
-    [firestore, profileUser]
-  );
-  const { data: postsData, isLoading: arePostsLoading } = useCollection(postsQuery);
-  
+    const isCurrentUser = currentUser?.uid === hydratedProfileUser.id;
 
-  const isCurrentUser = currentUser?.uid === profileUser?.id;
-  
-  const handleMessageClick = async () => {
+    return { profileUser: hydratedProfileUser, posts: userPosts, isCurrentUser };
+  }, [username, currentUser]);
+
+  const handleMessageClick = () => {
     if (!currentUser || !profileUser || isCurrentUser) return;
-    setIsNavigating(true);
-    const result = await createOrGetChat(profileUser.id, currentUser.uid);
-    if (result.success && result.chatId) {
-      router.push(`/chat/${result.chatId}`);
-    } else {
-      console.error(result.error);
-      setIsNavigating(false);
-    }
+    const sortedIds = [currentUser.uid, profileUser.id].sort();
+    const chatId = sortedIds.join('_');
+    router.push(`/chat/${chatId}`);
   };
 
-  const posts = useMemo(() => {
-    if (!postsData) return [];
-    return postsData.map(p => ({...p}));
-  }, [postsData]);
-
-
-  if (isUserLoading || isCurrentUserLoading || arePostsLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  if (!profileUser) {
+    return notFound();
   }
 
-  if (!isUserLoading && !profileUser) {
-     return notFound();
-  }
-  
-  const headerUser = {
-      id: profileUser!.id,
-      username: profileUser!.username,
-      fullName: profileUser!.fullName,
-      bio: profileUser!.bio,
-      profilePhoto: profileUser!.profilePhoto,
-      postsCount: posts.length,
-      followersCount: profileUser!.followersCount,
-      followingCount: profileUser!.followingCount,
-      verified: profileUser!.verified,
-  };
-  
   const emptyState = (
     <div className="text-center p-8">
       <h3 className="font-semibold text-lg">No content yet</h3>
@@ -141,10 +98,10 @@ export default function UserProfilePage() {
         <main className="bg-background">
           <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
             <ProfileHeader
-              user={headerUser}
+              user={profileUser}
               onEditClick={() => setIsEditDialogOpen(true)}
               onMessageClick={handleMessageClick}
-              isNavigatingToChat={isNavigating}
+              isNavigatingToChat={false} // This is just for UI, not critical for dummy data
               isCurrentUser={isCurrentUser}
             />
             <div className="my-8">

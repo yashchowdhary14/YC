@@ -19,8 +19,6 @@ export default function ChatListItem({ chat, isSelected, onSelect }: ChatListIte
   const lastMessage = chat.lastMessage;
 
   if (!partner) {
-    // This could be a group chat or a chat where the user is alone.
-    // Or data is still loading.
     return (
         <div className="flex w-full items-center gap-3 p-4 text-left">
             <Avatar className="h-12 w-12">
@@ -50,7 +48,7 @@ export default function ChatListItem({ chat, isSelected, onSelect }: ChatListIte
           <p className="font-semibold truncate">{partner.fullName}</p>
           {lastMessage?.timestamp && (
              <time className="text-xs text-muted-foreground ml-2 flex-shrink-0">
-                {formatDistanceToNow( (lastMessage.timestamp as any).toDate ? (lastMessage.timestamp as any).toDate() : new Date(lastMessage.timestamp), { addSuffix: true })}
+                {formatDistanceToNow(new Date(lastMessage.timestamp), { addSuffix: true })}
             </time>
           )}
         </div>
@@ -66,6 +64,9 @@ export default function ChatListItem({ chat, isSelected, onSelect }: ChatListIte
                     <div className="h-2 w-2 rounded-full bg-primary ml-auto flex-shrink-0"></div>
                 )}
             </div>
+        )}
+        {!lastMessage && (
+            <p className="text-sm text-muted-foreground truncate">No messages yet</p>
         )}
       </div>
     </button>

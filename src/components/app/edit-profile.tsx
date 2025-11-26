@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,8 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirestore, useUser, setDocumentNonBlocking } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
@@ -49,7 +49,6 @@ interface EditProfileDialogProps {
 }
 
 export default function EditProfileDialog({ open, onOpenChange, userProfile }: EditProfileDialogProps) {
-  const firestore = useFirestore();
   const { user } = useUser();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
@@ -63,7 +62,7 @@ export default function EditProfileDialog({ open, onOpenChange, userProfile }: E
   });
 
   const onSubmit = async (data: ProfileFormValues) => {
-    if (!user || !firestore) {
+    if (!user) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -73,32 +72,17 @@ export default function EditProfileDialog({ open, onOpenChange, userProfile }: E
     }
 
     setIsSaving(true);
-    try {
-      const userDocRef = doc(firestore, 'users', user.uid);
-      
-      // For now, we'll just update the text fields.
-      // Image upload would require Firebase Storage.
-      const updatedData = {
-        fullName: data.fullName,
-        bio: data.bio,
-      };
-
-      setDocumentNonBlocking(userDocRef, updatedData, { merge: true });
-
-      toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated.',
-      });
-      onOpenChange(false);
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Update Failed',
-        description: error.message || 'Could not update your profile.',
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    await new Promise(r => setTimeout(r, 500)); // Simulate API call
+    
+    // In a real app, you would update the backend data.
+    // For the dummy version, we just show a success toast.
+    
+    toast({
+      title: 'Profile Updated',
+      description: 'Your profile has been successfully updated (simulation).',
+    });
+    onOpenChange(false);
+    setIsSaving(false);
   };
 
   return (

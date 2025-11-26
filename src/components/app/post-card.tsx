@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useOptimistic } from 'react';
+import { useOptimistic, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Send, MoreHorizontal } from 'lucide-react';
@@ -16,10 +16,8 @@ import {
 } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { useUser } from '@/firebase';
-import { toggleLike } from '@/app/actions';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-
 
 interface PostCardProps {
   post: Post;
@@ -34,15 +32,14 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   const [optimisticPost, toggleOptimisticLike] = useOptimistic(
     post,
     (state, _) => {
-        if (!user) return state;
-        const isLiked = state.likes.includes(user.uid);
-        const newLikes = isLiked
-            ? state.likes.filter(id => id !== user.uid)
-            : [...state.likes, user.uid];
-        return { ...state, likes: newLikes };
+      if (!user) return state;
+      const isLiked = state.likes.includes(user.uid);
+      const newLikes = isLiked
+        ? state.likes.filter(id => id !== user.uid)
+        : [...state.likes, user.uid];
+      return { ...state, likes: newLikes };
     }
   );
-
 
   const handleLike = async () => {
     if (!user) {
@@ -53,20 +50,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       });
       return;
     }
-    
     toggleOptimisticLike(null);
-
-    const result = await toggleLike(post.id, user.uid);
-
-    if (!result.success) {
-       toast({
-        variant: 'destructive',
-        title: 'Something went wrong',
-        description: 'Your like could not be saved. Please try again.',
-      });
-    }
+    // In a real app, a server action would be here.
+    // For the dummy version, the optimistic update is all we need.
   };
-  
+
   const isLiked = user ? optimisticPost.likes.includes(user.uid) : false;
 
   return (
@@ -82,38 +70,38 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
           {post.createdAt && (
             <time
-              dateTime={post.createdAt.toISOString()}
+              dateTime={new Date(post.createdAt).toISOString()}
               className="text-muted-foreground"
             >
-              {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+              {formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })}
             </time>
           )}
         </div>
-         <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-5 w-5" />
-            <span className="sr-only">More options</span>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="h-5 w-5" />
+          <span className="sr-only">More options</span>
         </Button>
       </CardHeader>
-      { isCard && (
-          <CardContent className="p-0">
-            <Link href={`/p/${post.id}`}>
-              <div className="relative aspect-square">
-                <Image
-                  src={post.imageUrl}
-                  alt={post.imageHint}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                  data-ai-hint={post.imageHint}
-                />
-              </div>
-            </Link>
-          </CardContent>
+      {isCard && (
+        <CardContent className="p-0">
+          <Link href={`/p/${post.id}`}>
+            <div className="relative aspect-square">
+              <Image
+                src={post.imageUrl}
+                alt={post.imageHint || 'post image'}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                data-ai-hint={post.imageHint}
+              />
+            </div>
+          </Link>
+        </CardContent>
       )}
       <CardFooter className="flex flex-col items-start gap-3 p-4">
         <div className="flex w-full items-center gap-1">
           <Button variant="ghost" size="icon" onClick={handleLike}>
-             <Heart className={cn("h-6 w-6", isLiked && "fill-red-500 text-red-500")}/>
+            <Heart className={cn("h-6 w-6", isLiked && "fill-red-500 text-red-500")} />
             <span className="sr-only">Like</span>
           </Button>
           <Button variant="ghost" size="icon" asChild>

@@ -10,17 +10,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Chat, Message, User } from '@/lib/types';
 import { Send, Info, ArrowLeft, Paperclip, X, Image as ImageIcon, Video, Loader2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit, doc, getDoc, Timestamp } from 'firebase/firestore';
-import { handleSendMessage } from '@/app/actions';
+import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { dummyChats, dummyUsers } from '@/lib/dummy-data';
+import { notFound } from 'next/navigation';
 
 interface ChatDisplayProps {
   chatId: string;
@@ -29,7 +23,6 @@ interface ChatDisplayProps {
 
 export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const { user: currentUser } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const [messageText, setMessageText] = useState('');
@@ -38,81 +31,46 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
-  const [partner, setPartner] = useState<User | null>(null);
-
-
-  const chatDocRef = useMemoFirebase(
-    () => (firestore && chatId ? doc(firestore, 'chats', chatId) : null),
-    [firestore, chatId]
-  );
-  const { data: chatData, isLoading: isLoadingChat } = useDoc<Chat>(chatDocRef);
   
-  useEffect(() => {
-      const fetchPartner = async () => {
-          if (chatData?.users && currentUser && firestore) {
-              const partnerId = chatData.users.find(id => id !== currentUser.uid);
-              if (partnerId) {
-                  const userDoc = await getDoc(doc(firestore, 'users', partnerId));
-                  if (userDoc.exists()) {
-                      const partnerData = userDoc.data();
-                      setPartner({
-                          id: userDoc.id,
-                          username: partnerData.username,
-                          fullName: partnerData.fullName,
-                          avatarUrl: partnerData.profilePhoto,
-                          bio: partnerData.bio,
-                          followersCount: partnerData.followersCount,
-                          followingCount: partnerData.followingCount,
-                          verified: partnerData.verified,
-                      } as User);
-                  }
-              }
-          }
-      }
-      fetchPartner();
-  }, [chatData, currentUser, firestore]);
+  const chatData = useMemo(() => dummyChats.find(c => c.id === chatId), [chatId]);
+  
+  const [messages, setMessages] = useState<Message[]>(chatData?.messages || []);
 
-  const messagesQuery = useMemoFirebase(
-    () =>
-      chatId && firestore
-        ? query(
-            collection(firestore, 'chats', chatId, 'messages'),
-            orderBy('timestamp', 'asc'),
-            limit(50)
-          )
-        : null,
-    [firestore, chatId]
-  );
-  const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
+  const partner = useMemo(() => {
+    if (!chatData || !currentUser) return null;
+    const partnerId = chatData.users.find(id => id !== currentUser.uid);
+    if (!partnerId) return null;
+    const partnerData = dummyUsers.find(u => u.id === partnerId);
+    if (!partnerData) return null;
+    return {
+      ...partnerData,
+      avatarUrl: `https://picsum.photos/seed/${partnerData.id}/100/100`,
+    } as User;
+  }, [chatData, currentUser]);
   
   const onSendMessage = async () => {
     if ((!messageText.trim() && !mediaFile) || !currentUser || !chatId) return;
 
     setIsSending(true);
+    await new Promise(r => setTimeout(r, 300)); // Simulate network latency
 
-    const formData = new FormData();
-    formData.append('chatId', chatId);
-    formData.append('senderId', currentUser.uid);
-    formData.append('text', messageText);
-    if (mediaFile) {
-        formData.append('image', mediaFile);
-    }
+    const newMessage: Message = {
+      id: `msg_${Date.now()}`,
+      chatId,
+      senderId: currentUser.uid,
+      text: messageText,
+      timestamp: new Date(),
+      isRead: false,
+      mediaUrl: mediaPreview || undefined,
+    };
     
-    const result = await handleSendMessage(formData);
+    setMessages(prev => [...prev, newMessage]);
 
-    if (result.success) {
-        setMessageText('');
-        setMediaFile(null);
-        setMediaPreview(null);
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error sending message',
-            description: result.error,
-        });
+    setMessageText('');
+    setMediaFile(null);
+    setMediaPreview(null);
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
     }
 
     setIsSending(false);
@@ -144,13 +102,6 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     }
   };
   
-  const handleMediaSelect = (type: 'image' | 'video') => {
-    if (fileInputRef.current) {
-      fileInputRef.current.accept = type === 'image' ? 'image/*' : 'video/*';
-      fileInputRef.current.click();
-    }
-  }
-
   const clearMedia = () => {
     setMediaFile(null);
     setMediaPreview(null);
@@ -159,16 +110,10 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     }
   }
 
-  const getMessageTime = (timestamp: Timestamp | Date | undefined) => {
-    if (!timestamp) return '';
-    const date = (timestamp as Timestamp).toDate ? (timestamp as Timestamp).toDate() : new Date(timestamp as Date);
-    return formatDistanceToNow(date, { addSuffix: true });
-  }
-
-  if (isLoadingChat || !partner) {
+  if (!chatData || !partner) {
     return (
         <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <p>Chat not found.</p>
         </div>
     )
   }
@@ -189,34 +134,26 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
           <p className="font-semibold">{partner.fullName}</p>
           <p className="text-sm text-muted-foreground">@{partner.username}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <Info className="h-5 w-5" />
-            <span className="sr-only">Details</span>
-          </Button>
-        </div>
+        <Button variant="ghost" size="icon">
+          <Info className="h-5 w-5" />
+          <span className="sr-only">Details</span>
+        </Button>
       </div>
 
       <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
         <div className="p-4 space-y-4">
-        {isLoadingMessages ? (
-             <div className="flex h-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-             </div>
-        ) : (
-            <>
-            {(messages || []).map((message) => (
+            {messages.map((message) => (
                 <div
-                key={message.id}
-                className={cn(
-                    'flex items-end gap-2',
-                    message.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'
-                )}
+                  key={message.id}
+                  className={cn(
+                      'flex items-end gap-2',
+                      message.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'
+                  )}
                 >
                 {message.senderId !== currentUser?.uid && (
                     <Avatar className="h-6 w-6 self-end">
-                    <AvatarImage src={partner.avatarUrl} />
-                    <AvatarFallback>{partner.username.charAt(0)}</AvatarFallback>
+                      <AvatarImage src={partner.avatarUrl} />
+                      <AvatarFallback>{partner.username.charAt(0)}</AvatarFallback>
                     </Avatar>
                 )}
                 <div
@@ -235,13 +172,11 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
                     )}
                     {message.text && <p className="text-sm px-2 py-1 break-words">{message.text}</p>}
                      <time className={cn("text-xs opacity-70 px-2", message.senderId === currentUser?.uid ? "text-right" : "text-left")}>
-                          {getMessageTime(message.timestamp)}
+                          {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
                     </time>
                 </div>
                 </div>
             ))}
-            </>
-        )}
         </div>
       </ScrollArea>
 
@@ -260,27 +195,13 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
           </div>
         )}
         <div className="relative flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0 rounded-full">
-                  <Paperclip className="h-5 w-5" />
-                  <span className="sr-only">Attach media</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleMediaSelect('image')}>
-                  <ImageIcon className="mr-2 h-4 w-4" />
-                  <span>Image</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleMediaSelect('video')} disabled>
-                  <Video className="mr-2 h-4 w-4" />
-                  <span>Video (soon)</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+              <Paperclip className="h-5 w-5" />
+          </Button>
            <input
             ref={fileInputRef}
             type="file"
+            accept="image/*"
             className="hidden"
             onChange={handleFileChange}
           />
@@ -297,7 +218,7 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
             size="icon"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
             onClick={onSendMessage}
-            disabled={isSending || (!messageText.trim() && !mediaFile) || !chatId}
+            disabled={isSending || (!messageText.trim() && !mediaFile)}
           >
             {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             <span className="sr-only">Send</span>

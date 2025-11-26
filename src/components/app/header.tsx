@@ -13,21 +13,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
-import { useUser, useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
+import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 
 export default function AppHeader() {
-  const { user } = useUser();
-  const auth = useAuth();
+  const { user, logout } = useUser();
   const router = useRouter();
 
-  const handleSignOut = async () => {
-    if (auth) {
-      await signOut(auth);
+  const handleSignOut = () => {
+    if (logout) {
+      logout();
       router.push('/login');
     }
   };
@@ -49,8 +47,10 @@ export default function AppHeader() {
         </div>
 
         <div className="relative hidden w-full max-w-xs items-center md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search" className="pl-9" />
+          <NextLink href="/search">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search" className="pl-9 cursor-pointer" readOnly/>
+          </NextLink>
         </div>
 
         <div className="flex items-center gap-2">

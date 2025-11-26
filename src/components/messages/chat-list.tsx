@@ -11,58 +11,33 @@ import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { useFirestore, useUser } from '@/firebase';
-import { collection, query, where, limit, getDocs, doc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { createOrGetChat } from '@/app/actions';
+import { dummyUsers, dummyChats } from '@/lib/dummy-data';
 
 function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => void }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [isSearching, setIsSearching] = useState(false);
     const [searchResults, setSearchResults] = useState<User[]>([]);
-    const [isCreatingChat, setIsCreatingChat] = useState(false);
-    const firestore = useFirestore();
     const { user: currentUser } = useUser();
     const router = useRouter();
 
-    const handleSearch = async (term: string) => {
-        if (!firestore || !currentUser) return;
+    const handleSearch = (term: string) => {
         setSearchTerm(term);
-        if (term.trim().length < 2) {
+        if (term.trim().length < 1) {
             setSearchResults([]);
             return;
         }
-        setIsSearching(true);
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('username', '>=', term), where('username', '<=', term + '\uf8ff'), limit(10));
-        
-        try {
-            const querySnapshot = await getDocs(q);
-            const users = querySnapshot.docs
-                .map(doc => ({ id: doc.id, ...doc.data() } as User))
-                .filter(u => u.id !== currentUser.uid);
-            setSearchResults(users);
-        } catch (error) {
-            console.error("Error searching users:", error);
-            setSearchResults([]);
-        } finally {
-            setIsSearching(false);
-        }
+        const users = dummyUsers.filter(u => 
+            u.username.toLowerCase().includes(term.toLowerCase()) && u.id !== currentUser?.uid
+        ).map(u => ({...u, avatarUrl: `https://picsum.photos/seed/${u.id}/100/100`}));
+        setSearchResults(users);
     };
 
-    const handleSelectUser = async (targetUser: User) => {
+    const handleSelectUser = (targetUser: User) => {
         if (!currentUser) return;
-        setIsCreatingChat(true);
-        const result = await createOrGetChat(currentUser.uid, targetUser.id);
-        if (result.success && result.chatId) {
-            // Here, instead of calling onChatSelected, we navigate.
-            // The messages page will then handle selecting this chat.
-            router.push(`/chat/${result.chatId}`);
-        } else {
-             // Handle error, maybe with a toast
-            console.error(result.error);
-        }
-        setIsCreatingChat(false);
+        const sortedIds = [currentUser.uid, targetUser.id].sort();
+        const chatId = sortedIds.join('_');
+        router.push(`/chat/${chatId}`);
     };
 
     return (
@@ -82,16 +57,10 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
                         value={searchTerm}
                         onChange={(e) => handleSearch(e.target.value)}
                     />
-                    {isSearching && <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin" />}
                 </div>
                 <ScrollArea className="max-h-64">
                     <div className="space-y-2">
-                        {isCreatingChat && (
-                             <div className="flex items-center justify-center p-4">
-                                <Loader2 className="h-6 w-6 animate-spin" />
-                            </div>
-                        )}
-                        {!isCreatingChat && searchResults.map(user => (
+                        {searchResults.map(user => (
                             <div key={user.id} onClick={() => handleSelectUser(user)} className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer">
                                 <Avatar>
                                     <AvatarImage src={user.avatarUrl} alt={user.username} />
@@ -118,6 +87,15 @@ interface ChatListProps {
 }
 
 export default function ChatList({ chats, selectedChat, onSelectChat, isMobile }: ChatListProps) {
+  const [filter, setFilter] = useState('');
+  
+  const filteredChats = chats.filter(chat => {
+    const partner = chat.userDetails.find(u => u.id !== 'current_user_id'); // dummy id
+    if (!partner) return false;
+    return partner.username.toLowerCase().includes(filter.toLowerCase()) || 
+           partner.fullName.toLowerCase().includes(filter.toLowerCase());
+  });
+
   return (
     <div className="flex flex-col h-full">
       {!isMobile && (
@@ -128,13 +106,18 @@ export default function ChatList({ chats, selectedChat, onSelectChat, isMobile }
             </div>
             <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search messages..." className="pl-8 bg-muted border-none" />
+                <Input 
+                    placeholder="Search messages..." 
+                    className="pl-8 bg-muted border-none" 
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value)}
+                />
             </div>
         </div>
       )}
       <ScrollArea className="flex-1">
         <div className={cn(!isMobile && 'p-2')}>
-          {chats.map((chat) => (
+          {filteredChats.map((chat) => (
             <ChatListItem
               key={chat.id}
               chat={chat}

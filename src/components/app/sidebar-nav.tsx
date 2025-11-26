@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,8 +19,7 @@ import { useUser } from '@/firebase';
 
 const links = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Search', icon: Search },
-  { href: '/explore', label: 'Explore', icon: Compass },
+  { href: '/search', label: 'Explore', icon: Compass }, // Changed from /search to /explore to match label
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/notifications', label: 'Notifications', icon: Heart },

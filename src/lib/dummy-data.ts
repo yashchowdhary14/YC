@@ -1,82 +1,92 @@
 
-import type { Post, User } from '@/lib/types';
+import type { Post, User, Chat, Message } from '@/lib/types';
 
-export const dummyUsers: User[] = [
-  { id: 'user_sachin', username: 'sachin', fullName: 'Sachin Tendulkar', avatarUrl: 'https://picsum.photos/seed/sachin/100/100', bio: 'Living and breathing cricket. 🏏', followersCount: 1000000, followingCount: 50, verified: true },
-  { id: 'user_sakshi', username: 'sakshi', fullName: 'Sakshi Malik', avatarUrl: 'https://picsum.photos/seed/sakshi/100/100', bio: 'Wrestler | Olympian 🇮🇳', followersCount: 500000, followingCount: 25, verified: true },
-  { id: 'user_wanderlust_lila', username: 'wanderlust_lila', fullName: 'Lila Kim', avatarUrl: 'https://picsum.photos/seed/lila/100/100', bio: 'Chasing sunsets & city lights. ✈️\nProduct Designer @ Google.', followersCount: 1250, followingCount: 430, verified: true },
-  { id: 'user_ethan_bytes', username: 'ethan_bytes', fullName: 'Ethan Byte', avatarUrl: 'https://picsum.photos/seed/ethan/100/100', bio: 'Building the future, one line of code at a time. Rust Evangelist. Coffee Addict.', followersCount: 2800, followingCount: 150, verified: false },
-  { id: 'user_maya_creates', username: 'maya_creates', fullName: 'Maya Singh', avatarUrl: 'https://picsum.photos/seed/maya/100/100', bio: 'Illustrator & storyteller. Painting my world with color.', followersCount: 15200, followingCount: 300, verified: true },
-  { id: 'user_leo_the_lion', username: 'leo_the_lion', fullName: 'Leo Chen', avatarUrl: 'https://picsum.photos/seed/leo/100/100', bio: 'Fitness, finance, and philosophy. Striving for 1% better every day.', followersCount: 890, followingCount: 890, verified: false },
-  { id: 'user_chloe_films', username: 'chloe_films', fullName: 'Chloé Dubois', avatarUrl: 'https://picsum.photos/seed/chloe/100/100', bio: 'Cinematographer. Seeing the world through a lens.', followersCount: 45000, followingCount: 120, verified: true },
-  { id: 'user_sam_reviews', username: 'sam_reviews', fullName: 'Sam Jones', avatarUrl: 'https://picsum.photos/seed/sam/100/100', bio: 'Unboxing the latest tech gadgets. YouTuber. ⬇️', followersCount: 120000, followingCount: 95, verified: true },
-  { id: 'user_astro_gaze', username: 'astro_gaze', fullName: 'Dr. Aris Thorne', avatarUrl: 'https://picsum.photos/seed/aris/100/100', bio: 'Astrophysicist. Exploring the cosmos from my backyard telescope. ✨', followersCount: 730, followingCount: 210, verified: false },
-  { id: 'user_urban_eats', username: 'urban_eats', fullName: 'Javier Rodriguez', avatarUrl: 'https://picsum.photos/seed/javier/100/100', bio: 'Food blogger on a quest to find the best tacos in every city. 🌮', followersCount: 9800, followingCount: 650, verified: false },
+export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
+  { id: 'user_sachin', username: 'sachin', fullName: 'Sachin Tendulkar', bio: 'Living and breathing cricket. 🏏', followersCount: 1000000, followingCount: 50, verified: true },
+  { id: 'user_sakshi', username: 'sakshi', fullName: 'Sakshi Malik', bio: 'Wrestler | Olympian 🇮🇳', followersCount: 500000, followingCount: 25, verified: true },
+  { id: 'user_wanderlust_lila', username: 'wanderlust_lila', fullName: 'Lila Kim', bio: 'Chasing sunsets & city lights. ✈️\nProduct Designer @ Google.', followersCount: 1250, followingCount: 430, verified: true },
+  { id: 'user_ethan_bytes', username: 'ethan_bytes', fullName: 'Ethan Byte', bio: 'Building the future, one line of code at a time. Rust Evangelist. Coffee Addict.', followersCount: 2800, followingCount: 150, verified: false },
+  { id: 'user_maya_creates', username: 'maya_creates', fullName: 'Maya Singh', bio: 'Illustrator & storyteller. Painting my world with color.', followersCount: 15200, followingCount: 300, verified: true },
+  { id: 'user_leo_the_lion', username: 'leo_the_lion', fullName: 'Leo Chen', bio: 'Fitness, finance, and philosophy. Striving for 1% better every day.', followersCount: 890, followingCount: 890, verified: false },
+  { id: 'user_chloe_films', username: 'chloe_films', fullName: 'Chloé Dubois', bio: 'Cinematographer. Seeing the world through a lens.', followersCount: 45000, followingCount: 120, verified: true },
+  { id: 'user_sam_reviews', username: 'sam_reviews', fullName: 'Sam Jones', bio: 'Unboxing the latest tech gadgets. YouTuber. ⬇️', followersCount: 120000, followingCount: 95, verified: true },
+  { id: 'user_astro_gaze', username: 'astro_gaze', fullName: 'Dr. Aris Thorne', bio: 'Astrophysicist. Exploring the cosmos from my backyard telescope. ✨', followersCount: 730, followingCount: 210, verified: false },
+  { id: 'user_urban_eats', username: 'urban_eats', fullName: 'Javier Rodriguez', bio: 'Food blogger on a quest to find the best tacos in every city. 🌮', followersCount: 9800, followingCount: 650, verified: false },
 ];
 
-
-export const dummyPosts: (Omit<Post, 'user' | 'createdAt'> & { userId: string, createdAt: Date })[] = [
+export const dummyPosts: (Omit<Post, 'user' | 'createdAt' | 'imageUrl' | 'imageHint' > & { userId: string, createdAt: Date, imageId: string })[] = [
   // Sachin's Posts
-  {
-    id: 'sachin_post_1',
-    userId: 'user_sachin',
-    imageUrl: 'https://picsum.photos/seed/sachin_post1/500/500',
-    imageHint: 'cricket stadium',
-    caption: 'Another great day on the field!',
-    likes: ['user1', 'user2', 'user3'],
-    commentsCount: 150,
-    createdAt: new Date('2023-10-26T10:00:00Z'),
-  },
-  {
-    id: 'sachin_post_2',
-    userId: 'user_sachin',
-    imageUrl: 'https://picsum.photos/seed/sachin_post2/500/500',
-    imageHint: 'trophy award',
-    caption: 'Throwback to a memorable win.',
-    likes: ['user1', 'user4', 'user5'],
-    commentsCount: 200,
-    createdAt: new Date('2023-10-25T15:30:00Z'),
-  },
-   {
-    id: 'sachin_post_3',
-    userId: 'user_sachin',
-    imageUrl: 'https://picsum.photos/seed/sachin_post3/500/500',
-    imageHint: 'team huddle',
-    caption: 'Teamwork makes the dream work.',
-    likes: [],
-    commentsCount: 95,
-    createdAt: new Date('2023-10-24T11:00:00Z'),
-  },
-
+  { id: 'sachin_post_1', userId: 'user_sachin', imageId: "1", caption: 'Another great day on the field!', likes: ['user_sakshi', 'user_ethan_bytes'], commentsCount: 150, createdAt: new Date('2023-10-26T10:00:00Z') },
+  { id: 'sachin_post_2', userId: 'user_sachin', imageId: "2", caption: 'Throwback to a memorable win.', likes: ['user_wanderlust_lila', 'user_maya_creates'], commentsCount: 200, createdAt: new Date('2023-10-25T15:30:00Z') },
+  { id: 'sachin_post_3', userId: 'user_sachin', imageId: "3", caption: 'Teamwork makes the dream work.', likes: [], commentsCount: 95, createdAt: new Date('2023-10-24T11:00:00Z') },
   // Sakshi's Posts
-  {
-    id: 'sakshi_post_1',
-    userId: 'user_sakshi',
-    imageUrl: 'https://picsum.photos/seed/sakshi_post1/500/500',
-    imageHint: 'gym workout',
-    caption: 'Putting in the work. #NoPainNoGain',
-    likes: ['user2', 'user3'],
-    commentsCount: 80,
-    createdAt: new Date('2023-10-26T09:00:00Z'),
-  },
-  {
-    id: 'sakshi_post_2',
-    userId: 'user_sakshi',
-    imageUrl: 'https://picsum.photos/seed/sakshi_post2/500/500',
-    imageHint: 'wrestling match',
-    caption: 'Focused and ready for the next challenge.',
-    likes: ['user1', 'user_sachin'],
-    commentsCount: 120,
-    createdAt: new Date('2023-10-25T18:00:00Z'),
-  },
-   {
-    id: 'sakshi_post_3',
-    userId: 'user_sakshi',
-    imageUrl: 'https://picsum.photos/seed/sakshi_post3/500/500',
-    imageHint: 'medals olympic',
-    caption: 'Proud moment for the country!',
-    likes: ['user1', 'user2', 'user3', 'user4', 'user5'],
-    commentsCount: 350,
-    createdAt: new Date('2023-10-22T12:00:00Z'),
-  },
+  { id: 'sakshi_post_1', userId: 'user_sakshi', imageId: "4", caption: 'Putting in the work. #NoPainNoGain', likes: ['user_ethan_bytes', 'user_sachin'], commentsCount: 80, createdAt: new Date('2023-10-26T09:00:00Z') },
+  { id: 'sakshi_post_2', userId: 'user_sakshi', imageId: "5", caption: 'Focused and ready for the next challenge.', likes: ['user_sachin'], commentsCount: 120, createdAt: new Date('2023-10-25T18:00:00Z') },
+  { id: 'sakshi_post_3', userId: 'user_sakshi', imageId: "6", caption: 'Proud moment for the country!', likes: ['user_sachin', 'user_ethan_bytes', 'user_leo_the_lion'], commentsCount: 350, createdAt: new Date('2023-10-22T12:00:00Z') },
+  // Wanderlust Lila's Posts
+  { id: 'lila_post_1', userId: 'user_wanderlust_lila', imageId: "7", caption: 'Paris is always a good idea.', likes: ['user_maya_creates'], commentsCount: 45, createdAt: new Date('2023-10-27T12:00:00Z') },
+  { id: 'lila_post_2', userId: 'user_wanderlust_lila', imageId: "8", caption: 'Tokyo vibes 🌃', likes: ['user_ethan_bytes', 'user_sam_reviews'], commentsCount: 60, createdAt: new Date('2023-10-20T19:00:00Z') },
+  // Ethan's Posts
+  { id: 'ethan_post_1', userId: 'user_ethan_bytes', imageId: "9", caption: 'New setup, who dis?', likes: ['user_sam_reviews', 'user_leo_the_lion'], commentsCount: 110, createdAt: new Date('2023-10-26T14:00:00Z') },
+];
+
+export const dummyFollows: { [key: string]: string[] } = {
+  'user_sachin': ['user_sakshi', 'user_wanderlust_lila'],
+  'user_sakshi': ['user_sachin'],
+  'user_wanderlust_lila': ['user_maya_creates', 'user_ethan_bytes'],
+  'user_ethan_bytes': ['user_wanderlust_lila', 'user_sam_reviews'],
+  'user_maya_creates': ['user_wanderlust_lila', 'user_chloe_films'],
+  'user_leo_the_lion': ['user_ethan_bytes'],
+  'user_chloe_films': [],
+  'user_sam_reviews': ['user_ethan_bytes'],
+  'user_astro_gaze': [],
+  'user_urban_eats': [],
+};
+
+const generateMessages = (chatId: string, user1Id: string, user2Id: string): Message[] => {
+  const messages: Message[] = [];
+  const conversation = [
+    { sender: user1Id, text: 'Hey, how are you?' },
+    { sender: user2Id, text: 'I am good, thanks! How about you?' },
+    { sender: user1Id, text: 'Doing great! Just saw your latest post, awesome shot!' },
+    { sender: user2Id, text: 'Thanks so much! Glad you liked it.' },
+    { sender: user1Id, text: 'We should catch up sometime.' },
+    { sender: user2Id, text: 'Definitely! Next week?' },
+    { sender: user1Id, text: 'Sounds good to me.' },
+    { sender: user2Id, text: 'Cool, talk to you then! 👋' },
+    { sender: user1Id, text: '👍' },
+    { sender: user1Id, text: 'Oh, check this out!', mediaUrl: 'https://picsum.photos/seed/chat_media_1/400/400' },
+  ];
+  conversation.forEach((msg, index) => {
+    messages.push({
+      id: `${chatId}-msg-${index}`,
+      chatId,
+      senderId: msg.sender,
+      text: msg.text,
+      mediaUrl: msg.mediaUrl,
+      timestamp: new Date(Date.now() - (10 - index) * 60000), // Mins ago
+      isRead: true,
+    });
+  });
+  return messages;
+};
+
+const createChat = (user1Id: string, user2Id: string): Chat => {
+  const sortedIds = [user1Id, user2Id].sort();
+  const chatId = sortedIds.join('_');
+  const messages = generateMessages(chatId, user1Id, user2Id);
+  return {
+    id: chatId,
+    users: sortedIds,
+    messages: messages,
+    lastMessage: messages[messages.length - 1],
+    userDetails: [],
+  };
+};
+
+export const dummyChats: Chat[] = [
+  createChat('user_sachin', 'user_sakshi'),
+  createChat('user_wanderlust_lila', 'user_ethan_bytes'),
+  createChat('user_maya_creates', 'user_chloe_films'),
+  createChat('user_sachin', 'user_ethan_bytes'),
 ];
