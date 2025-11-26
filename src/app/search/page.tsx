@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { dummyUsers } from '@/lib/dummy-data';
 
 
 // Extend the Post type for our search grid needs
@@ -29,16 +30,6 @@ interface SearchPost extends Post {
     type: 'photo' | 'video' | 'reel';
     span: 'row-span-1' | 'row-span-2' | 'col-span-1' | 'col-span-2';
 }
-
-// Dummy user data for search suggestions
-const dummyUsers = [
-  { id: 'user1', username: 'code_wizard', fullName: 'Alex Coder', avatarUrl: 'https://picsum.photos/seed/user1/100/100' },
-  { id: 'user2', username: 'design_diva', fullName: 'Brenda Designer', avatarUrl: 'https://picsum.photos/seed/user2/100/100' },
-  { id: 'user3', username: 'photo_phan', fullName: 'Chris Photographer', avatarUrl: 'https://picsum.photos/seed/user3/100/100' },
-  { id: 'user4', username: 'travel_bug', fullName: 'Diana Traveler', avatarUrl: 'https://picsum.photos/seed/user4/100/100' },
-  { id: 'user5', username: 'foodie_fiesta', fullName: 'Evan Eater', avatarUrl: 'https://picsum.photos/seed/user5/100/100' },
-  { id: 'user6', username: 'art_aficionado', fullName: 'Fiona Artist', avatarUrl: 'https://picsum.photos/seed/user6/100/100' },
-];
 
 
 function PostCard({ post }: { post: SearchPost }) {
