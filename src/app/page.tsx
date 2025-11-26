@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc, startAfter, orderBy, DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
-import ExploreGrid from '@/components/explore/ExploreGrid';
+import PostCard from '@/components/app/post-card';
 import { useIntersection } from '@/hooks/use-intersection';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
@@ -39,7 +39,7 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
   )
 }
 
-const POSTS_PER_PAGE = 12;
+const POSTS_PER_PAGE = 5;
 
 export default function Home() {
   const { user, isUserLoading } = useUser();
@@ -72,7 +72,7 @@ export default function Home() {
   const followingIds = useMemo(() => followingList?.map(f => f.id) || [], [followingList]);
   
   const fetchPosts = useCallback(async (lastVisible: QueryDocumentSnapshot<DocumentData> | null = null) => {
-    if (!user || followingIds.length === 0 || isLoadingMore) return;
+    if (!user || followingIds.length === 0 || isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
 
     const postCollection = collection(firestore, 'posts');
@@ -96,7 +96,7 @@ export default function Home() {
     setLastDoc(lastVisibleDoc || null);
     setHasMore(newPosts.length === POSTS_PER_PAGE);
     setIsLoadingMore(false);
-  }, [user, firestore, followingIds, isLoadingMore]);
+  }, [user, firestore, followingIds, isLoadingMore, hasMore]);
 
 
   // Initial post fetch
@@ -104,7 +104,7 @@ export default function Home() {
     if (user && followingIds.length > 0 && posts.length === 0) {
       fetchPosts();
     }
-  }, [user, followingIds, fetchPosts, posts.length]);
+  }, [user, followingIds.length, posts.length]);
   
   // Infinite scroll
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || followingLoading && posts.length === 0) {
+  if (isUserLoading || (followingLoading && posts.length === 0)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -185,16 +185,17 @@ export default function Home() {
                   <StoriesCarousel />
                 </div>
                 {posts.length > 0 ? (
-                    <>
-                        <div className="mt-4 md:mt-0">
-                            <ExploreGrid items={posts} />
+                    <div className="flex flex-col items-center gap-8 mt-4 md:mt-0">
+                      {posts.map(post => (
+                        <PostCard key={post.id} post={post} />
+                      ))}
+                      {isLoadingMore && (
+                        <div className="flex justify-center items-center py-10">
+                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                         </div>
-                        {hasMore && (
-                            <div ref={loaderRef} className="flex justify-center items-center py-10">
-                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                            </div>
-                        )}
-                    </>
+                      )}
+                      <div ref={loaderRef} />
+                    </div>
                 ) : (
                   <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
                     <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
