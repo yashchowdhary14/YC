@@ -87,7 +87,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
             {showBigHeart && (
-                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-white/90 fill-white/90 animate-heart-pop pointer-events-none" />
+                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-destructive/90 fill-destructive/90 animate-heart-pop pointer-events-none" />
             )}
             
             <div onClick={handleToggleMute} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
@@ -107,10 +107,8 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                         variant={isFollowing ? 'secondary' : 'default'} 
                         size="sm" 
                         className={cn(
-                            "h-7 text-xs px-3 py-1 rounded-md pointer-events-auto",
-                            isFollowing 
-                                ? "bg-zinc-800 hover:bg-zinc-700 text-white font-semibold"
-                                : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                            "h-7 text-xs px-3 py-1 rounded-md pointer-events-auto font-semibold",
+                            isFollowing && "bg-secondary/80 text-secondary-foreground"
                         )}
                         onClick={handleFollow}
                     >
@@ -122,7 +120,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                     <Music className="h-4 w-4" />
                     <p className="text-sm truncate w-40">{reel.user.username} - Original audio</p>
                     <div className="ml-auto flex items-center gap-2">
-                         <div className="w-6 h-6 bg-gray-700 rounded-full border-2 border-white animate-spin-slow">
+                         <div className="w-6 h-6 bg-muted/50 rounded-full border-2 border-white animate-spin-slow">
                             <Music className="h-4 w-4 text-white m-auto mt-0.5" />
                         </div>
                     </div>
@@ -131,7 +129,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
 
             <div className="absolute bottom-4 right-2 flex flex-col items-center gap-4 text-white">
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); handleLikeToggle(); }}>
-                    <Heart className={cn("h-7 w-7", isLiked && "fill-red-500 text-red-500")} />
+                    <Heart className={cn("h-7 w-7", isLiked && "fill-destructive text-destructive")} />
                     <span className="text-xs font-semibold">{likesCount.toLocaleString()}</span>
                 </Button>
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); onCommentClick(); }}>

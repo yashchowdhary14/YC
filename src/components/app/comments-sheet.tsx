@@ -35,7 +35,7 @@ function CommentItem({ comment, onLikeToggle }: CommentItemProps) {
             </div>
              <div className="flex flex-col items-center">
                 <button onClick={() => onLikeToggle(comment.id)}>
-                    <Heart className={cn("h-4 w-4 text-muted-foreground", comment.isLiked && "fill-red-500 text-red-500")} />
+                    <Heart className={cn("h-4 w-4 text-muted-foreground", comment.isLiked && "fill-destructive text-destructive")} />
                 </button>
                 <span className="text-xs text-muted-foreground">{comment.likes > 0 && comment.likes}</span>
             </div>
@@ -113,12 +113,12 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
     <Sheet open={!!reel} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="h-[60vh] flex flex-col rounded-t-2xl bg-zinc-900 border-none p-0"
+        className="h-[60vh] flex flex-col rounded-t-2xl bg-background border-t p-0"
         >
         <div className="w-full pt-3 pb-2 flex justify-center">
-          <div className="w-8 h-1 bg-zinc-700 rounded-full" />
+          <div className="w-8 h-1 bg-muted rounded-full" />
         </div>
-        <SheetHeader className="text-center pb-2 border-b border-zinc-800">
+        <SheetHeader className="text-center pb-2 border-b">
           <SheetTitle>Comments</SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
@@ -134,7 +134,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
              )}
           </div>
         </ScrollArea>
-        <SheetFooter className="p-2 border-t border-zinc-800 bg-zinc-900">
+        <SheetFooter className="p-2 border-t bg-background">
           <div className="flex items-center gap-2 w-full">
             <Avatar className="h-9 w-9">
               <AvatarImage src={currentUser?.photoURL || ''} />
@@ -143,7 +143,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
             <div className="flex-1 relative">
                 <TextareaAutosize
                     placeholder={`Add a comment for ${reel?.user.username}...`}
-                    className="w-full bg-zinc-800 rounded-2xl py-2 pl-3 pr-10 resize-none text-sm ring-offset-zinc-900 focus:ring-zinc-500 border-transparent focus:border-transparent"
+                    className="w-full bg-secondary rounded-2xl py-2 pl-3 pr-10 resize-none text-sm ring-offset-background focus:ring-primary/50 border-transparent focus:border-transparent"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendComment())}
@@ -154,7 +154,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
                 <Button
                     size="sm"
                     variant="ghost"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-white hover:bg-zinc-700"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-foreground hover:bg-accent"
                     onClick={handleSendComment}
                     disabled={!commentText.trim() || isSending}
                 >

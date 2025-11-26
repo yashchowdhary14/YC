@@ -78,7 +78,7 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
         <div className="absolute top-2 right-2 pointer-events-none">
             {item.type === 'reel' && <Clapperboard className="h-5 w-5 text-white shadow-lg" />}
             {item.type === 'video' && <PlayCircle className="h-5 w-5 text-white shadow-lg" />}
-            {item.type === 'live' && <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-xs">Live</Badge>}
+            {item.type === 'live' && <Badge variant="destructive" className="font-bold uppercase text-xs">Live</Badge>}
         </div>
     </Link>
   );
