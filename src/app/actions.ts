@@ -87,35 +87,37 @@ export async function handleCreatePost(formData: FormData) {
 export async function toggleLike(postId: string, userId: string) {
   const { firestore } = initializeFirebase();
   const postRef = doc(firestore, 'posts', postId);
-  const userPostRef = doc(firestore, 'users', userId, 'posts', postId);
 
   try {
-    await runTransaction(firestore, async (transaction) => {
-      const postDoc = await transaction.get(postRef);
-      if (!postDoc.exists()) {
-        throw "Document does not exist!";
-      }
+    const postDoc = await getDoc(postRef);
+    if (!postDoc.exists()) {
+      throw new Error("Post does not exist!");
+    }
+    const postData = postDoc.data();
+    const likes: string[] = postData.likes || [];
+    const isLiked = likes.includes(userId);
 
-      const postData = postDoc.data();
-      const likes: string[] = postData.likes || [];
-      
-      const isLiked = likes.includes(userId);
-      let newLikes: string[];
-      
-      if (isLiked) {
-        newLikes = likes.filter(id => id !== userId);
+    if (isLiked) {
+      // Unlike
+      await runTransaction(firestore, async (transaction) => {
+        const userPostDoc = await getDoc(doc(firestore, 'users', postData.userId, 'posts', postId));
+        const userPostRef = userPostDoc.ref;
         transaction.update(postRef, { likes: arrayRemove(userId) });
-        transaction.update(userPostRef, { likes: arrayRemove(userId) });
-      } else {
-        newLikes = [...likes, userId];
+        if(userPostRef) transaction.update(userPostRef, { likes: arrayRemove(userId) });
+      });
+    } else {
+      // Like
+      await runTransaction(firestore, async (transaction) => {
+        const userPostDoc = await getDoc(doc(firestore, 'users', postData.userId, 'posts', postId));
+        const userPostRef = userPostDoc.ref;
         transaction.update(postRef, { likes: arrayUnion(userId) });
-        transaction.update(userPostRef, { likes: arrayUnion(userId) });
-      }
-    });
+        if(userPostRef) transaction.update(userPostRef, { likes: arrayUnion(userId) });
+      });
+    }
 
     revalidatePath('/');
     revalidatePath(`/p/${postId}`);
-    revalidatePath('/profile');
+    revalidatePath(`/${postData.userId}`);
     return { success: true };
   } catch (error: any) {
     console.error('Error toggling like:', error);
@@ -141,11 +143,22 @@ export async function addComment(postId: string, userId: string, text: string) {
     };
 
     await runTransaction(firestore, async (transaction) => {
+      const postDoc = await transaction.get(postRef);
+      if (!postDoc.exists()) {
+          throw new Error("Post does not exist.");
+      }
       const newCommentRef = doc(commentsRef);
       transaction.set(newCommentRef, { ...newComment, id: newCommentRef.id });
+
+      const userPostRef = doc(firestore, 'users', postDoc.data().userId, 'posts', postId);
+      
       transaction.update(postRef, {
         commentsCount: increment(1),
       });
+       transaction.update(userPostRef, {
+        commentsCount: increment(1),
+      });
+
     });
     
     revalidatePath(`/p/${postId}`);

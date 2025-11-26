@@ -34,10 +34,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   const [optimisticPost, toggleOptimisticLike] = useOptimistic(
     post,
     (state, _) => {
-        const isLiked = state.likes.includes(user!.uid);
+        if (!user) return state;
+        const isLiked = state.likes.includes(user.uid);
         const newLikes = isLiked
-            ? state.likes.filter(id => id !== user!.uid)
-            : [...state.likes, user!.uid];
+            ? state.likes.filter(id => id !== user.uid)
+            : [...state.likes, user.uid];
         return { ...state, likes: newLikes };
     }
   );
@@ -79,12 +80,14 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
         </Link>
         <div className="grid gap-0.5 text-sm flex-1">
           <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
-          <time
-            dateTime={post.createdAt.toISOString()}
-            className="text-muted-foreground"
-          >
-            {formatDistanceToNow(post.createdAt, { addSuffix: true })}
-          </time>
+          {post.createdAt && (
+            <time
+              dateTime={post.createdAt.toISOString()}
+              className="text-muted-foreground"
+            >
+              {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+            </time>
+          )}
         </div>
          <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-5 w-5" />
@@ -114,7 +117,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
             <span className="sr-only">Like</span>
           </Button>
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/p/${post.id}#comments`}>
+            <Link href={`/p/${post.id}`}>
               <MessageCircle className="h-6 w-6" />
               <span className="sr-only">Comment</span>
             </Link>
@@ -132,7 +135,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           {post.caption}
         </p>
         {post.commentsCount > 0 && (
-          <Link href={`/p/${post.id}#comments`}>
+          <Link href={`/p/${post.id}`}>
             <div className="text-sm text-muted-foreground">
               View all {post.commentsCount.toLocaleString()} comments
             </div>

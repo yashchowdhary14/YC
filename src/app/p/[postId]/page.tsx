@@ -206,7 +206,7 @@ export default function PostPage() {
                                                 {' '}{comment.text}
                                             </p>
                                             <time className="text-xs text-muted-foreground mt-1">
-                                                {formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true })}
+                                                {comment.createdAt?.toDate ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : ''}
                                             </time>
                                         </div>
                                     </div>
