@@ -42,7 +42,9 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
       if (storedUser) {
         const user = JSON.parse(storedUser);
         setUserAuthState({ user, isUserLoading: false });
-        const initialFollows = new Set(dummyFollows[user.uid] || []);
+        // Also load followed users from localStorage
+        const storedFollows = localStorage.getItem(`followedUsers_${user.uid}`);
+        const initialFollows = storedFollows ? new Set(JSON.parse(storedFollows)) : new Set(dummyFollows[user.uid] || []);
         setFollowedUsers(initialFollows);
       } else {
         setUserAuthState({ user: null, isUserLoading: false });
@@ -58,7 +60,9 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
   const login = useCallback((user: MockUser) => {
     localStorage.setItem('dummyUser', JSON.stringify(user));
     setUserAuthState({ user, isUserLoading: false });
-    const initialFollows = new Set(dummyFollows[user.uid] || []);
+    // Also load followed users from localStorage or default
+    const storedFollows = localStorage.getItem(`followedUsers_${user.uid}`);
+    const initialFollows = storedFollows ? new Set(JSON.parse(storedFollows)) : new Set(dummyFollows[user.uid] || []);
     setFollowedUsers(initialFollows);
   }, []);
 
@@ -76,9 +80,13 @@ export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }
         } else {
             newSet.add(username);
         }
+        // Persist to localStorage
+        if (userAuthState.user) {
+             localStorage.setItem(`followedUsers_${userAuthState.user.uid}`, JSON.stringify(Array.from(newSet)));
+        }
         return newSet;
     });
-  }, []);
+  }, [userAuthState.user]);
 
   const contextValue = useMemo(() => ({
     ...userAuthState,

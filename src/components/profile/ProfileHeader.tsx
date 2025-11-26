@@ -1,13 +1,12 @@
 
 'use client';
 
-import { useState, useOptimistic } from 'react';
+import { useState, useOptimistic, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Settings, CheckCircle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { dummyFollows } from '@/lib/dummy-data';
 
 interface ProfileHeaderProps {
   user: {
@@ -34,29 +33,29 @@ export default function ProfileHeader({
   isNavigatingToChat = false,
   isCurrentUser = false
 }: ProfileHeaderProps) {
-  const { user: currentUser } = useUser();
+  const { user: currentUser, followedUsers, toggleFollow } = useUser();
   const { toast } = useToast();
 
-  const isInitiallyFollowing = currentUser ? (dummyFollows[currentUser.uid] || []).includes(user.id) : false;
+  const isFollowing = followedUsers.has(user.username);
+  const [optimisticFollowers, setOptimisticFollowers] = useState(user.followersCount);
 
-  const [optimisticState, toggleOptimistic] = useOptimistic(
-    { following: isInitiallyFollowing, followersCount: user.followersCount },
-    (state) => ({
-      following: !state.following,
-      followersCount: state.following ? state.followersCount - 1 : state.followersCount + 1,
-    })
-  );
+  useEffect(() => {
+    setOptimisticFollowers(user.followersCount);
+  }, [user.followersCount]);
 
   const handleFollowToggle = () => {
     if (!currentUser) {
       toast({ variant: "destructive", title: "You must be logged in to follow users." });
       return;
     }
-    toggleOptimistic(null);
-    // In a real app, this would call a server action.
-    // For dummy data, the optimistic update is sufficient.
-  };
+    
+    // Optimistically update follower count
+    setOptimisticFollowers(prev => isFollowing ? prev - 1 : prev + 1);
 
+    // Call the global state toggle
+    toggleFollow(user.username);
+  };
+  
   const renderBio = (bio: string) => {
     if (!bio) return null;
     const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -97,8 +96,8 @@ export default function ProfileHeader({
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant={optimisticState.following ? 'secondary' : 'default'} onClick={handleFollowToggle}>
-                {optimisticState.following ? 'Following' : 'Follow'}
+              <Button size="sm" variant={isFollowing ? 'secondary' : 'default'} onClick={handleFollowToggle}>
+                {isFollowing ? 'Following' : 'Follow'}
               </Button>
               <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat}>
                 {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -110,7 +109,7 @@ export default function ProfileHeader({
 
         <div className="flex items-center gap-6 text-base text-foreground">
           <span><span className="font-semibold">{user.postsCount}</span> posts</span>
-          <span><span className="font-semibold">{optimisticState.followersCount.toLocaleString()}</span> followers</span>
+          <span><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</span>
           <span><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</span>
         </div>
 

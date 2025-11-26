@@ -27,6 +27,10 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     const [showBigHeart, setShowBigHeart] = useState(false);
 
     const handleLikeToggle = useCallback(() => {
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Please log in to like reels.' });
+            return;
+        }
         const newLikedState = !reel.isLiked;
         const newLikesCount = newLikedState ? reel.likes + 1 : reel.likes - 1;
         onUpdateReel({ ...reel, isLiked: newLikedState, likes: newLikesCount });
@@ -36,7 +40,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
             setTimeout(() => setShowBigHeart(false), 800);
         }
 
-    }, [reel, onUpdateReel]);
+    }, [reel, onUpdateReel, user, toast]);
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         // Check if the click is on the video element itself, not on buttons
@@ -56,6 +60,10 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
 
     const handleFollow = (e: React.MouseEvent) => {
         e.stopPropagation();
+        if (!user) {
+            toast({ variant: 'destructive', title: 'Please log in to follow users.' });
+            return;
+        }
         onFollowToggle(reel.user.username);
     };
 
@@ -94,8 +102,10 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                         variant={isFollowing ? 'secondary' : 'outline'} 
                         size="sm" 
                         className={cn(
-                            "h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto",
-                            isFollowing && "bg-white/90 text-black hover:bg-white/80"
+                            "h-7 text-xs px-3 py-1 rounded-md pointer-events-auto",
+                            isFollowing 
+                                ? "bg-zinc-800 hover:bg-zinc-700 text-white font-semibold"
+                                : "bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                         )}
                         onClick={handleFollow}
                     >

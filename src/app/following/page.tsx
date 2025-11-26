@@ -26,6 +26,7 @@ export default function FollowingPage() {
   const router = useRouter();
 
   const followingList = useMemo(() => {
+    // In dummy data, followedUsers is a Set of usernames. We find the full user object.
     return dummyUsers.filter(u => followedUsers.has(u.username));
   }, [followedUsers]);
 
