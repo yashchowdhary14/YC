@@ -136,7 +136,7 @@ export default function WatchPage() {
                               <p className="font-semibold">{video!.user.username}</p>
                               <p className="text-sm text-muted-foreground">{formatCompactNumber(video!.user.followersCount || 0)} followers</p>
                           </div>
-                          <Button variant="secondary" className="ml-4 rounded-full font-bold">Subscribe</Button>
+                          <Button variant="secondary" className="ml-4 rounded-full font-bold">Follow</Button>
                       </div>
                        <div className="flex items-center gap-2">
                           <div className="flex items-center rounded-full bg-secondary">
