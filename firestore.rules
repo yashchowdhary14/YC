@@ -41,7 +41,7 @@ service cloud.firestore {
 
     // users
     match /users/{userId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId) 
         && resource != null
@@ -65,7 +65,7 @@ service cloud.firestore {
     
     // posts
     match /posts/{postId} {
-        allow read: if true;
+        allow get, list: if true;
         allow create: if isSignedIn() && isAuthor();
         allow update: if isExistingOwner(resource.data.userId) 
                       && request.resource.data.userId == resource.data.userId;
@@ -74,7 +74,7 @@ service cloud.firestore {
 
     // stories
     match /stories/{storyId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
@@ -82,7 +82,7 @@ service cloud.firestore {
 
     // reels
     match /reels/{reelId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
       allow update: if isExistingOwner(resource.data.userId)
                     && request.resource.data.userId == resource.data.userId;
@@ -91,7 +91,7 @@ service cloud.firestore {
     
     // comments
     match /comments/{commentId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
       allow update: if isExistingOwner(resource.data.userId)
                     && request.resource.data.userId == resource.data.userId;
@@ -131,7 +131,7 @@ service cloud.firestore {
 
     // streams
     match /streams/{streamId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create: if isSignedIn() && request.resource.data.streamerId == request.auth.uid;
       allow update: if isExistingOwner(resource.data.streamerId) 
                       && request.resource.data.streamerId == resource.data.streamerId;
@@ -147,18 +147,18 @@ service cloud.firestore {
 
     // categories
     match /categories/{categoryId} {
-      allow read: if true;
+      allow get, list: if true;
       allow create, update, delete: if false; // Admin-only
     }
     
     // videos
     match /videos/{videoId} {
-        allow read: if true;
+        allow get, list: if true;
         allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
         allow update, delete: if isExistingOwner(resource.data.user.id);
 
         match /comments/{commentId} {
-            allow read: if true;
+            allow get, list: if true;
             allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
             allow update, delete: if isExistingOwner(resource.data.user.id);
         }
