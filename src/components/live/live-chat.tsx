@@ -12,7 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import type { LiveBroadcast, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { WithId } from '@/firebase/firestore/use-collection';
-import { addDocumentNonBlocking } from '@/firebase';
+import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const userColors = [
   'text-red-400', 'text-green-400', 'text-blue-400', 
@@ -27,7 +27,7 @@ const getUserColor = (userId: string) => {
     return assignedColors[userId];
 };
 
-export default function LiveChat({ stream, messages }: { stream: WithId<LiveBroadcast>, messages: WithId<LiveChatMessage>[] }) {
+export default function LiveChat({ stream, messages, setMessages }: { stream: WithId<LiveBroadcast>, messages: WithId<LiveChatMessage>[], setMessages?: (messages: WithId<LiveChatMessage>[]) => void }) {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
