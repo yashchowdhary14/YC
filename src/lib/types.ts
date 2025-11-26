@@ -2,11 +2,14 @@
 export interface User {
   id: string;
   username: string;
-  avatarUrl: string;
+  avatarUrl?: string; // Made optional as it might not be present everywhere
+  profilePhoto?: string;
   fullName: string;
   bio: string;
   followersCount: number;
   followingCount: number;
+  followers?: string[];
+  following?: string[];
   verified: boolean;
 }
 
@@ -22,7 +25,7 @@ export interface Post {
   views: number;
   likes: number;
   commentsCount: number;
-  createdAt: Date;
+  createdAt: any; // Can be Date or Timestamp
   comments?: ReelComment[]; // Optional for reels
 }
 
