@@ -9,24 +9,24 @@ body {
 
 @layer base {
   :root {
-    --background: 0 0% 3.9%; /* zinc-950 */
+    --background: 240 6% 10%; /* zinc-900 */
     --foreground: 0 0% 98%;
-    --card: 0 0% 10%;
+    --card: 240 6% 12%; /* Slightly lighter than background */
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
+    --popover: 240 6% 8%;
     --popover-foreground: 0 0% 98%;
     --primary: 262 80% 58%; /* Twitch Purple */
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 20%; /* Darker Gray for buttons */
+    --secondary: 240 4% 20%; /* Darker Gray for buttons */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
+    --muted: 240 4% 16%;
     --muted-foreground: 0 0% 65%;
     --accent: 262 80% 58%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
+    --border: 240 4% 25%;
+    --input: 240 4% 15%;
     --ring: 262 80% 58%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -36,48 +36,25 @@ body {
     --radius: 0.5rem; /* Rounded-lg */
   }
   .dark {
-    --background: 60 0% 6%; /* zinc-900 */
+    --background: 240 6% 10%; /* zinc-900 */
     --foreground: 0 0% 98%;
-    --card: 0 0% 10%;
+    --card: 240 6% 12%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
+    --popover: 240 6% 8%;
     --popover-foreground: 0 0% 98%;
     --primary: 262 80% 58%; /* Twitch Purple */
     --primary-foreground: 0 0% 100%;
     --secondary: 240 4% 20%; /* Darker Gray for buttons */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
+    --muted: 240 4% 16%;
     --muted-foreground: 0 0% 65%;
     --accent: 262 80% 58%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
+    --border: 240 4% 25%;
+    --input: 240 4% 15%;
     --ring: 262 80% 58%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer utilities {
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    --radius: 0.5rem;
   }
 }
