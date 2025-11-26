@@ -131,17 +131,25 @@ service cloud.firestore {
 
     // streams
     match /streams/{streamId} {
-      allow read: if true; // allow get + list publicly
+      // Allow everyone to view streams (just like Twitch)
+      allow read: if true;
+
+      // Only logged-in users can create a stream
       allow create: if request.auth != null;
+
+      // Only the true owner can update/delete a stream
       allow update, delete: if request.auth != null
             && request.auth.uid == resource.data.streamerId;
 
-      // Live Chat Messages
+      // Live chat messages inside a stream
       match /live-chat-messages/{messageId} {
-        allow read: if true; // Publicly readable
+        allow read: if true;
+
+        // must be signed in AND must be the author
         allow create: if request.auth != null 
-            && request.resource.data.userId == request.auth.uid; // Must be signed in and be the author
-        allow update, delete: if false; // Messages are immutable
+            && request.resource.data.userId == request.auth.uid;
+
+        allow update, delete: if false; // messages cannot be edited or deleted
       }
     }
 
