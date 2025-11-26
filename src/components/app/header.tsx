@@ -62,13 +62,13 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
         <div className="flex h-14 items-center justify-between px-4">
           <h1 className="font-instagram text-3xl">YCP</h1>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" asChild className="text-foreground">
               <NextLink href="/create">
                 <PlusSquare />
                 <span className="sr-only">Create Post</span>
               </NextLink>
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="text-foreground">
               <Heart />
               <span className="sr-only">Notifications</span>
             </Button>
