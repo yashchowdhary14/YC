@@ -2,8 +2,8 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'next/navigation';
-import { Loader2, Settings2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import EditProfileDialog from '@/components/app/edit-profile';
@@ -23,13 +23,15 @@ import {
 } from '@/components/ui/sidebar';
 import { useUser } from '@/firebase';
 import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
-import { Post, User } from '@/lib/types';
-import { Button } from '@/components/ui/button';
+import type { Post, User } from '@/lib/types';
+import { createOrGetChat } from '@/app/actions';
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
   const { user: currentUser } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const router = useRouter();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const profileUser = useMemo(() => {
     return dummyUsers.find(u => u.username === username);
@@ -41,7 +43,7 @@ export default function UserProfilePage() {
       .filter(p => p.userId === profileUser.id)
       .map(p => ({
         ...p,
-        user: { // We don't need full user object here for the grid
+        user: { 
           id: p.userId,
           username: profileUser.username,
           avatarUrl: profileUser.avatarUrl,
@@ -50,14 +52,24 @@ export default function UserProfilePage() {
       }));
   }, [profileUser]);
 
+  const handleMessageClick = async () => {
+    if (!currentUser || !profileUser || isCurrentUser) return;
+    setIsNavigating(true);
+    const result = await createOrGetChat(profileUser.id, currentUser.uid);
+    if (result.success && result.chatId) {
+      router.push(`/chat/${result.chatId}`);
+    } else {
+      console.error(result.error);
+      setIsNavigating(false);
+    }
+  };
+
+
   if (!profileUser) {
-     // You can render a loading state here until you confirm user doesn't exist
-    // For this dummy data example, we can assume notFound if not in the array.
-    // In a real app, you'd have a loading state while fetching from Firestore.
      return notFound();
   }
 
-  const isCurrentUser = currentUser?.uid === profileUser.id; // This will be false for dummy data
+  const isCurrentUser = currentUser?.uid === profileUser.id;
 
   const headerUser = {
       username: profileUser.username,
@@ -96,6 +108,8 @@ export default function UserProfilePage() {
             <ProfileHeader
               user={headerUser}
               onEditClick={() => setIsEditDialogOpen(true)}
+              onMessageClick={handleMessageClick}
+              isNavigatingToChat={isNavigating}
               isCurrentUser={isCurrentUser}
             />
             <div className="my-8">

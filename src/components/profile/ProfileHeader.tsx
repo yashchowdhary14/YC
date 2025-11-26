@@ -3,7 +3,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, CheckCircle } from 'lucide-react';
+import { Settings, CheckCircle, Loader2 } from 'lucide-react';
 
 interface ProfileHeaderProps {
   user: {
@@ -17,10 +17,18 @@ interface ProfileHeaderProps {
     verified: boolean;
   };
   onEditClick: () => void;
+  onMessageClick: () => void;
+  isNavigatingToChat?: boolean;
   isCurrentUser?: boolean;
 }
 
-export default function ProfileHeader({ user, onEditClick, isCurrentUser = true }: ProfileHeaderProps) {
+export default function ProfileHeader({ 
+    user, 
+    onEditClick, 
+    onMessageClick,
+    isNavigatingToChat = false,
+    isCurrentUser = false 
+}: ProfileHeaderProps) {
     const renderBio = (bio: string) => {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         const parts = bio.split(urlRegex);
@@ -64,7 +72,10 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
                  ) : (
                     <div className="flex items-center gap-2">
                         <Button size="sm">Follow</Button>
-                        <Button size="sm" variant="secondary">Message</Button>
+                        <Button size="sm" variant="secondary" onClick={onMessageClick} disabled={isNavigatingToChat}>
+                            {isNavigatingToChat && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Message
+                        </Button>
                     </div>
                  )}
             </div>
@@ -72,8 +83,8 @@ export default function ProfileHeader({ user, onEditClick, isCurrentUser = true 
             {/* Stats */}
             <div className="flex items-center gap-6 text-base text-foreground">
                 <span><span className="font-semibold">{user.postsCount}</span> posts</span>
-                <span><span className="font-semibold">{user.followersCount}</span> followers</span>
-                <span><span className="font-semibold">{user.followingCount}</span> following</span>
+                <span><span className="font-semibold">{user.followersCount.toLocaleString()}</span> followers</span>
+                <span><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</span>
             </div>
 
             {/* Bio */}

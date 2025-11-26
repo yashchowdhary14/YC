@@ -3,13 +3,12 @@
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove, increment, writeBatch, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, serverTimestamp, doc, setDoc, runTransaction, arrayUnion, arrayRemove, increment, writeBatch, deleteDoc, getDoc, query, where, getDocs, limit } from 'firebase/firestore';
 import { initializeFirebase } from '@/firebase';
 import { revalidatePath } from 'next/cache';
 
 export async function handleCaptionGeneration(mediaDataUri: string) {
   try {
-    // In a real application, you would get user data and trending topics from your database.
     const result = await generateAiCaption({
       mediaDataUri,
       userProfile: {
@@ -23,7 +22,6 @@ export async function handleCaptionGeneration(mediaDataUri: string) {
     return { caption: result.caption, error: null };
   } catch (e: any) {
     console.error('Error generating caption:', e);
-    // Return a user-friendly error message.
     return { caption: null, error: e.message || 'Failed to generate caption. The AI model might be temporarily unavailable. Please try again later.' };
   }
 }
@@ -46,15 +44,13 @@ export async function handleCreatePost(formData: FormData) {
     }
 
     try {
-        // 1. Upload image to Firebase Storage
         const imageRef = ref(storage, `posts/${userId}/${Date.now()}_${imageFile.name}`);
         const uploadResult = await uploadBytes(imageRef, imageFile);
         const imageUrl = await getDownloadURL(uploadResult.ref);
 
-        // 2. Create post document in a transaction
         await runTransaction(firestore, async (transaction) => {
             const postsCollectionRef = collection(firestore, 'posts');
-            const newPostRef = doc(postsCollectionRef); // Create a new ref with a new ID
+            const newPostRef = doc(postsCollectionRef); 
 
             const newPost = {
                 id: newPostRef.id,
@@ -70,10 +66,8 @@ export async function handleCreatePost(formData: FormData) {
                 createdAt: serverTimestamp(),
             };
             
-            // 3. Add post to the top-level 'posts' collection
             transaction.set(newPostRef, newPost);
 
-            // 4. (Optional) Add post to the user's specific 'posts' subcollection
             const userPostsCollectionRef = collection(firestore, 'users', userId, 'posts');
             const userPostRef = doc(userPostsCollectionRef, newPostRef.id);
             transaction.set(userPostRef, newPost);
@@ -107,12 +101,10 @@ export async function toggleLike(postId: string, userId: string) {
       const isLiked = likes.includes(userId);
 
       if (isLiked) {
-        // User has already liked the post, so we unlike it.
         transaction.update(postRef, {
           likes: arrayRemove(userId)
         });
       } else {
-        // User has not liked the post, so we like it.
         transaction.update(postRef, {
           likes: arrayUnion(userId)
         });
@@ -145,13 +137,9 @@ export async function addComment(postId: string, userId: string, text: string) {
       createdAt: serverTimestamp(),
     };
 
-    // Add the comment and update the post's comment count in a transaction
     await runTransaction(firestore, async (transaction) => {
-      // 1. Add the new comment
-      const newCommentRef = doc(commentsRef); // Create a new ref with a new ID
+      const newCommentRef = doc(commentsRef);
       transaction.set(newCommentRef, { ...newComment, id: newCommentRef.id });
-
-      // 2. Increment the commentsCount on the post
       transaction.update(postRef, {
         commentsCount: increment(1),
       });
@@ -174,19 +162,15 @@ export async function followUser(currentUserId: string, targetUserId: string) {
     const { firestore } = initializeFirebase();
     const batch = writeBatch(firestore);
 
-    // 1. Add target user to current user's 'following' subcollection
     const followingRef = doc(firestore, 'users', currentUserId, 'following', targetUserId);
     batch.set(followingRef, { userId: targetUserId, followedAt: serverTimestamp() });
 
-    // 2. Add current user to target user's 'followers' subcollection
     const followerRef = doc(firestore, 'users', targetUserId, 'followers', currentUserId);
     batch.set(followerRef, { userId: currentUserId, followedAt: serverTimestamp() });
 
-    // 3. Increment current user's 'followingCount'
     const currentUserRef = doc(firestore, 'users', currentUserId);
     batch.update(currentUserRef, { followingCount: increment(1) });
 
-    // 4. Increment target user's 'followersCount'
     const targetUserRef = doc(firestore, 'users', targetUserId);
     batch.update(targetUserRef, { followersCount: increment(1) });
 
@@ -194,7 +178,7 @@ export async function followUser(currentUserId: string, targetUserId: string) {
         await batch.commit();
         revalidatePath('/');
         revalidatePath('/profile');
-        revalidatePath(`/${targetUserId}`); // Assuming a dynamic profile page route
+        revalidatePath(`/${targetUserId}`);
         return { success: true };
     } catch (error: any) {
         console.error("Error following user:", error);
@@ -207,19 +191,15 @@ export async function unfollowUser(currentUserId: string, targetUserId: string) 
     const { firestore } = initializeFirebase();
     const batch = writeBatch(firestore);
 
-    // 1. Remove target user from current user's 'following' subcollection
     const followingRef = doc(firestore, 'users', currentUserId, 'following', targetUserId);
     batch.delete(followingRef);
 
-    // 2. Remove current user from target user's 'followers' subcollection
     const followerRef = doc(firestore, 'users', targetUserId, 'followers', currentUserId);
     batch.delete(followerRef);
 
-    // 3. Decrement current user's 'followingCount'
     const currentUserRef = doc(firestore, 'users', currentUserId);
     batch.update(currentUserRef, { followingCount: increment(-1) });
 
-    // 4. Decrement target user's 'followersCount'
     const targetUserRef = doc(firestore, 'users', targetUserId);
     batch.update(targetUserRef, { followersCount: increment(-1) });
 
@@ -249,35 +229,31 @@ export async function handleSendMessage(formData: FormData) {
     }
     
     try {
-        let imageUrl: string | undefined = undefined;
+        let mediaUrl: string | undefined = undefined;
 
-        // 1. If there's an image, upload it to Firebase Storage first
-        if (imageFile) {
+        if (imageFile && imageFile.size > 0) {
             const imageRef = ref(storage, `chats/${chatId}/${Date.now()}_${imageFile.name}`);
             const uploadResult = await uploadBytes(imageRef, imageFile);
-            imageUrl = await getDownloadURL(uploadResult.ref);
+            mediaUrl = await getDownloadURL(uploadResult.ref);
         }
 
-        // 2. Prepare the new message object
         const messagesCollectionRef = collection(firestore, 'chats', chatId, 'messages');
         const newMessage = {
             chatId,
             senderId,
             text: text || '',
-            mediaUrl: imageUrl,
-            mediaType: imageUrl ? 'image' : undefined,
+            mediaUrl: mediaUrl,
+            mediaType: mediaUrl ? 'image' : undefined,
             timestamp: serverTimestamp(),
             isRead: false,
         };
 
-        // 3. Add the new message and update the chat's lastMessage in a transaction
         const chatRef = doc(firestore, 'chats', chatId);
         
         await runTransaction(firestore, async (transaction) => {
             const newDocRef = doc(messagesCollectionRef);
             transaction.set(newDocRef, { ...newMessage, id: newDocRef.id });
             
-            // Update the last message on the parent chat document
             transaction.update(chatRef, {
                 lastMessage: {
                     text: text || 'Image',
@@ -289,10 +265,40 @@ export async function handleSendMessage(formData: FormData) {
         });
         
         revalidatePath(`/messages`);
+        revalidatePath(`/chat/${chatId}`);
         return { success: true };
 
     } catch (error: any) {
         console.error('Error sending message:', error);
         return { success: false, error: error.message || 'Failed to send message.' };
+    }
+}
+
+
+export async function createOrGetChat(user1Id: string, user2Id: string) {
+    if (user1Id === user2Id) {
+        return { success: false, error: "Cannot create chat with oneself." };
+    }
+    const { firestore } = initializeFirebase();
+    const sortedIds = [user1Id, user2Id].sort();
+    const chatId = sortedIds.join('_');
+    const chatRef = doc(firestore, 'chats', chatId);
+
+    try {
+        const chatDoc = await getDoc(chatRef);
+
+        if (!chatDoc.exists()) {
+            await setDoc(chatRef, {
+                id: chatId,
+                users: sortedIds,
+                lastUpdated: serverTimestamp(),
+                lastMessage: null,
+            });
+        }
+        
+        return { success: true, chatId: chatId };
+    } catch (error: any) {
+        console.error('Error creating or getting chat:', error);
+        return { success: false, error: error.message || 'Failed to create or get chat.' };
     }
 }
