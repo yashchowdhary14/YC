@@ -87,7 +87,7 @@ export default function Home() {
         const snapshot = await getDocs(q);
         const userSuggestions = snapshot.docs
           .map(doc => doc.data() as User)
-          .filter(suggestion => suggestion.id !== user.uid); // Ensure self is not included
+          .filter(suggestion => suggestion.id !== user.uid);
           
         setSuggestions(userSuggestions);
       };
@@ -147,17 +147,19 @@ export default function Home() {
 
   return (
     <>
-      <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8 pt-20">
+      <div className="container mx-auto max-w-screen-lg md:p-4 lg:p-8 md:pt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-              <div className="flex flex-col gap-8">
-              <StoriesCarousel />
+              <div className="flex flex-col md:gap-8">
+              <div className="md:border-b md:pb-4">
+                <StoriesCarousel />
+              </div>
               {displayedPosts.length > 0 ? (
                   displayedPosts.map((post) => (
                   <PostCard key={post.id} post={post} />
                   ))
               ) : (
-                  <div className="text-center py-16 text-muted-foreground bg-card rounded-lg">
+                  <div className="text-center py-16 text-muted-foreground bg-card rounded-lg hidden md:block">
                   <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
                   <p className="mt-2">Your feed is empty.</p>
                   <p>Start following people to see their posts here.</p>
@@ -194,7 +196,7 @@ export default function Home() {
       {showBackToTop && (
           <Button
               onClick={scrollToTop}
-              className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg z-50"
+              className="fixed bottom-20 right-6 h-12 w-12 rounded-full shadow-lg z-50 md:bottom-6"
               size="icon"
           >
               <ArrowUp className="h-6 w-6" />
@@ -204,5 +206,3 @@ export default function Home() {
     </>
   );
 }
-
-    

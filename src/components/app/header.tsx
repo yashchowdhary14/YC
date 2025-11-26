@@ -1,26 +1,13 @@
 
 'use client';
 
-import { Heart, MessageCircle, PlusSquare, Search, LogOut, User, Users, PlusCircle } from 'lucide-react';
+import { Heart, MessageCircle, PlusSquare } from 'lucide-react';
 import NextLink from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuGroup,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
 import { useUser, useAuth } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { signOut } from 'firebase/auth';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export default function AppHeader({ children }: { children?: React.ReactNode }) {
   const { user } = useUser();
@@ -40,7 +27,9 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
   const isHomePage = pathname === '/';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <>
+    {/* Desktop and Tablet Header */}
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden md:block">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-4">
            <SidebarTrigger className="md:hidden">
@@ -62,57 +51,31 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-2">
-          <Button variant="ghost" size="icon" asChild>
-            <NextLink href="/create">
-              <PlusSquare />
-              <span className="sr-only">Create Post</span>
-            </NextLink>
-          </Button>
-          <Button variant="ghost" size="icon">
-            <Heart />
-            <span className="sr-only">Notifications</span>
-          </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <NextLink href="/messages">
-              <MessageCircle />
-              <span className="sr-only">Messages</span>
-            </NextLink>
-          </Button>
-          {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`} alt={user.displayName || 'user'} />
-                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="end" forceMount>
-                <DropdownMenuGroup>
-                    <DropdownMenuItem asChild>
-                        <NextLink href="/profile"><User className="mr-2 h-4 w-4"/>Profile</NextLink>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <NextLink href="/following"><Users className="mr-2 h-4 w-4"/>Following</NextLink>
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-             <Button asChild>
-                <NextLink href="/login">Log In</NextLink>
-            </Button>
-          )}
+          {/* Icons remain for desktop header */}
         </div>
       </div>
     </header>
+
+    {/* Mobile Header (Home Page Only) */}
+    {isHomePage && (
+      <header className="sticky top-0 z-40 w-full bg-background md:hidden">
+        <div className="flex h-14 items-center justify-between px-4">
+          <h1 className="font-instagram text-3xl">Instagram</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" asChild>
+              <NextLink href="/create">
+                <PlusSquare />
+                <span className="sr-only">Create Post</span>
+              </NextLink>
+            </Button>
+            <Button variant="ghost" size="icon">
+              <Heart />
+              <span className="sr-only">Notifications</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+    )}
+    </>
   );
 }
-
-    

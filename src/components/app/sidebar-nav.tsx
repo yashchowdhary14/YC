@@ -8,6 +8,7 @@ import {
   PlusSquare,
   Clapperboard,
   Video,
+  Search,
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -26,9 +27,7 @@ import { LiveIcon } from '../icons/live-icon';
 
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/explore', label: 'Explore', icon: Compass },
-  { href: '/videos', label: 'Videos', icon: Video },
-  { href: '/live', label: 'Live', icon: LiveIcon },
+  { href: '/explore', label: 'Explore', icon: Search },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/create', label: 'Create', icon: PlusSquare },

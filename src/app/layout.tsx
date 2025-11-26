@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader } from '@/components/ui/sheet';
 import { Sidebar, SidebarHeader as StyledSidebarHeader, SidebarContent as StyledSidebarContent } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
+import BottomNav from '@/components/app/bottom-nav';
 
 export const metadata: Metadata = {
   title: 'YCP',
@@ -27,7 +28,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Satisfy&display=swap"
           rel="stylesheet"
         />
       </head>
@@ -53,7 +54,7 @@ export default function RootLayout({
                 <SidebarNav isCollapsed />
               </div>
 
-              {/* Mobile Sliding Sidebar */}
+              {/* Mobile Sliding Sidebar (No longer primary nav) */}
               <Sidebar>
                 <StyledSidebarHeader>
                   <h1 className="text-2xl font-bold p-2 px-4 font-serif">YCP</h1>
@@ -63,10 +64,13 @@ export default function RootLayout({
                 </StyledSidebarContent>
               </Sidebar>
 
-              <div className="md:ml-20 lg:ml-72">
+              <div className="md:ml-20 lg:ml-72 md:pb-0 pb-16">
                 <AppHeader />
                 <main>{children}</main>
               </div>
+
+              {/* Mobile Bottom Navigation */}
+              <BottomNav />
             </div>
           </SidebarProvider>
         </FirebaseClientProvider>
