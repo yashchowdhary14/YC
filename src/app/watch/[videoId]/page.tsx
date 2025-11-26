@@ -20,14 +20,21 @@ import { formatCompactNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ThumbsUp, ThumbsDown, Share, Download } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import RelatedVideoCard from '@/components/app/related-video-card';
 
 export default function WatchPage() {
   const { videoId } = useParams();
 
-  const video = useMemo(() => {
+  const { video, relatedVideos } = useMemo(() => {
     const videoData = dummyVideos.find(v => v.id === videoId);
-    if (!videoData) return null;
-    return videoData;
+    if (!videoData) return { video: null, relatedVideos: [] };
+
+    const related = dummyVideos.filter(v => v.id !== videoId && v.category === videoData.category).slice(0, 5);
+    if (related.length < 5) {
+      related.push(...dummyVideos.filter(v => v.id !== videoId && v.category !== videoData.category).slice(0, 5 - related.length));
+    }
+
+    return { video: videoData, relatedVideos: related };
   }, [videoId]);
 
   if (!video) {
@@ -47,7 +54,7 @@ export default function WatchPage() {
       <SidebarInset>
         <AppHeader />
         <main className="min-h-[calc(100vh-4rem)] bg-background">
-          <div className="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+          <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <div className="lg:col-span-2">
                 <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted mb-4">
@@ -64,27 +71,53 @@ export default function WatchPage() {
                     <span>{formatDistanceToNow(video.createdAt, { addSuffix: true })}</span>
                 </div>
                 <Separator className="my-4" />
-                <div className="flex items-center gap-4">
-                    <Avatar>
-                        <AvatarImage src={video.user.avatarUrl} />
-                        <AvatarFallback>{video.user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <p className="font-semibold">{video.user.username}</p>
-                        <p className="text-sm text-muted-foreground">{formatCompactNumber(video.user.followersCount || 0)} followers</p>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="flex items-center gap-4 flex-1">
+                        <Avatar>
+                            <AvatarImage src={video.user.avatarUrl} />
+                            <AvatarFallback>{video.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold">{video.user.username}</p>
+                            <p className="text-sm text-muted-foreground">{formatCompactNumber(video.user.followersCount || 0)} followers</p>
+                        </div>
+                        <Button variant="secondary" className="ml-4 rounded-full font-bold">Subscribe</Button>
                     </div>
-                    <Button variant="secondary" className="ml-4">Subscribe</Button>
+                     <div className="flex items-center gap-2">
+                        <div className="flex items-center rounded-full bg-secondary">
+                           <Button variant="secondary" className="rounded-r-none rounded-l-full">
+                               <ThumbsUp className="mr-2 h-4 w-4"/>
+                               {formatCompactNumber(video.views / 50)}
+                           </Button>
+                           <Separator orientation="vertical" className="h-6"/>
+                           <Button variant="secondary" className="rounded-l-none rounded-r-full">
+                               <ThumbsDown />
+                           </Button>
+                        </div>
+                        <Button variant="secondary" className="rounded-full">
+                            <Share className="mr-2 h-4 w-4"/>
+                            Share
+                        </Button>
+                         <Button variant="secondary" className="rounded-full">
+                            <Download className="mr-2 h-4 w-4"/>
+                            Download
+                        </Button>
+                    </div>
                 </div>
                  <Separator className="my-4" />
-                 <p className="text-sm">
-                    This is a placeholder for the video description. In a real application, this would be a detailed summary of the video content.
-                 </p>
+                 <div className="p-4 rounded-lg bg-secondary text-sm">
+                    <p className="font-bold">About this video:</p>
+                    <p className="whitespace-pre-wrap mt-2">
+                      This is a placeholder for the video description. In a real application, this would be a detailed summary of the video content, including links, chapters, and other relevant information to give viewers context.
+                    </p>
+                 </div>
               </div>
               <div className="lg:col-span-1">
                  <h2 className="text-xl font-bold mb-4">Up next</h2>
-                 {/* Placeholder for related videos */}
-                 <div className="text-center text-muted-foreground p-8 border rounded-lg">
-                    <p>Related videos will appear here.</p>
+                 <div className="space-y-4">
+                    {relatedVideos.map(relatedVideo => (
+                        <RelatedVideoCard key={relatedVideo.id} video={relatedVideo} />
+                    ))}
                  </div>
               </div>
             </div>
