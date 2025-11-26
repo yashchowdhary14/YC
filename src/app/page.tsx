@@ -149,7 +149,7 @@ export default function Home() {
                   ))
               ) : (
                   <div className="text-center py-16 text-muted-foreground bg-card rounded-lg">
-                  <h3 className="text-xl font-semibold text-foreground">Welcome to Instagram</h3>
+                  <h3 className="text-xl font-semibold text-foreground">Welcome to YC</h3>
                   <p className="mt-2">Your feed is empty.</p>
                   <p>Start following people to see their posts here.</p>
                   <Button asChild className="mt-4">
