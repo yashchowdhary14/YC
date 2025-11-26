@@ -182,7 +182,7 @@ export default function Home() {
     if (user && !isUserLoading) {
       fetchFeedContent();
     }
-  }, [user, isUserLoading, followedUsers, fetchFeedContent]);
+  }, [user, isUserLoading, fetchFeedContent]);
   
   // Infinite scroll
   useEffect(() => {
