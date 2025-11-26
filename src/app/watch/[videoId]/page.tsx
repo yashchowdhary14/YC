@@ -156,7 +156,7 @@ function CommentSection({ videoId }: { videoId: string }) {
                         </div>
                     </div>
                 ))}
-                {comments?.map(comment => (
+                {!isLoading && comments?.map(comment => (
                     <div key={comment.id} className="flex items-start gap-3">
                         <Avatar>
                             <AvatarImage src={comment.user.avatarUrl} />
@@ -202,7 +202,7 @@ export default function WatchPage() {
 
   if (isVideoLoading) {
     return (
-      <main className="min-h-screen bg-background"><WatchPageSkeleton /></main>
+      <main className="min-h-screen bg-background pt-14"><WatchPageSkeleton /></main>
     );
   }
 
@@ -211,7 +211,7 @@ export default function WatchPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pt-14">
         <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
@@ -284,3 +284,5 @@ export default function WatchPage() {
     </main>
   );
 }
+
+    
