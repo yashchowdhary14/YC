@@ -13,7 +13,7 @@ interface CategoryCardProps {
 export default function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Link href={`/live/category/${category.id}`} className="group block">
-      <div className="overflow-hidden rounded-lg">
+      <div className="overflow-hidden rounded-lg bg-zinc-800">
         <AspectRatio ratio={3 / 4}>
           <Image
             src={category.thumbnailUrl}
@@ -24,7 +24,7 @@ export default function CategoryCard({ category }: CategoryCardProps) {
           />
         </AspectRatio>
       </div>
-      <h3 className="mt-2 font-semibold truncate">{category.name}</h3>
+      <h3 className="mt-2 font-semibold truncate text-white group-hover:text-primary">{category.name}</h3>
     </Link>
   );
 }

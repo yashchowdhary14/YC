@@ -88,7 +88,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col border-r bg-zinc-900 text-white md:flex',
+        'fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col border-r bg-background md:flex',
         className
       )}
       {...props}
@@ -165,7 +165,7 @@ export function SidebarHeader({
     );
   }
   return (
-    <div className={cn('flex items-center p-4', className)}>{children}</div>
+    <div className={cn('flex h-14 items-center border-b p-4', className)}>{children}</div>
   );
 }
 

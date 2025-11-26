@@ -16,8 +16,8 @@ interface StreamCardProps {
 export default function StreamCard({ stream }: StreamCardProps) {
   return (
     <Link href={`/${stream.user.username}`} className="group">
-      <div className="relative mb-2 overflow-hidden rounded-lg shadow-lg">
-        <AspectRatio ratio={16 / 9}>
+      <div className="relative mb-2 overflow-hidden rounded-lg">
+        <AspectRatio ratio={16 / 9} className="bg-zinc-800 rounded-lg overflow-hidden">
             <Image
                 src={stream.thumbnailUrl!}
                 alt={stream.title}
@@ -27,7 +27,7 @@ export default function StreamCard({ stream }: StreamCardProps) {
             />
         </AspectRatio>
         <div className="absolute top-2 left-2">
-          <Badge variant="destructive" className="bg-red-600">LIVE</Badge>
+          <Badge variant="destructive" className="bg-red-600 font-bold">LIVE</Badge>
         </div>
         <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-0.5 rounded-md text-xs">
           {formatCompactNumber(stream.viewerCount)} viewers

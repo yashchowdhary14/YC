@@ -35,11 +35,11 @@ function ChannelItem({ channel }: { channel: Stream }) {
 
 export default function LiveSidebar({ recommendedChannels }: LiveSidebarProps) {
   return (
-    <Sidebar className="p-0 border-r-zinc-800">
-        <SidebarHeader className="h-16 border-b border-zinc-800">
+    <Sidebar className="p-0 border-r border-r-zinc-800 bg-zinc-900 text-white">
+        <SidebarHeader className="h-[4rem] border-b border-zinc-800 flex items-center px-4">
             <h2 className="text-lg font-bold">For You</h2>
         </SidebarHeader>
-        <SidebarContent>
+        <SidebarContent className="py-2">
             <div className="p-2">
                 <h3 className="text-sm font-semibold uppercase text-zinc-400 px-2 mb-2">Recommended Channels</h3>
                 <div className="space-y-1">
@@ -49,7 +49,7 @@ export default function LiveSidebar({ recommendedChannels }: LiveSidebarProps) {
                 </div>
             </div>
         </SidebarContent>
-        <SidebarFooter className="border-t-zinc-800">
+        <SidebarFooter className="border-t border-t-zinc-800">
             <p className="text-xs text-zinc-500 p-2">Follow to see more channels.</p>
         </SidebarFooter>
     </Sidebar>
