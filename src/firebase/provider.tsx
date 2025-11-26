@@ -1,10 +1,13 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
-import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
+import { dummyUsers } from '@/lib/dummy-data';
+import { dummyFollows } from '@/lib/dummy-data';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -15,10 +18,15 @@ interface FirebaseProviderProps {
 
 // Internal state for user authentication
 interface UserAuthState {
-  user: User | null;
+  user: (User & { photoURL?: string | null }) | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
+
+// Dummy data enhanced User type
+type AppUser = User & {
+    photoURL?: string | null;
+};
 
 // Combined state for the Firebase context
 export interface FirebaseContextState {
@@ -27,9 +35,13 @@ export interface FirebaseContextState {
   firestore: Firestore | null;
   auth: Auth | null; // The Auth service instance
   // User authentication state
-  user: User | null;
+  user: AppUser | null;
   isUserLoading: boolean; // True during initial auth check
-  userError: Error | null; // Error from auth listener
+  userError: Error | null;
+  login: (user: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; }) => void;
+  logout: () => void;
+  followedUsers: Set<string>;
+  toggleFollow: (username: string) => void;
 }
 
 // Return type for useFirebase()
@@ -37,16 +49,24 @@ export interface FirebaseServicesAndUser {
   firebaseApp: FirebaseApp;
   firestore: Firestore;
   auth: Auth;
-  user: User | null;
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
+  login: (user: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; }) => void;
+  logout: () => void;
+  followedUsers: Set<string>;
+  toggleFollow: (username:string) => void;
 }
 
 // Return type for useUser() - specific to user auth state
-export interface UserHookResult { // Renamed from UserAuthHookResult for consistency if desired, or keep as UserAuthHookResult
-  user: User | null;
+export interface UserHookResult { 
+  user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
+  login: (user: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; }) => void;
+  logout: () => void;
+  followedUsers: Set<string>;
+  toggleFollow: (username:string) => void;
 }
 
 // React Context
@@ -67,27 +87,39 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     userError: null,
   });
 
-  // Effect to subscribe to Firebase auth state changes
+  const [followedUsers, setFollowedUsers] = useState<Set<string>>(new Set());
+
+  // Dummy Auth handlers
+  const login = (user: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; }) => {
+    setUserAuthState({ user: user as AppUser, isUserLoading: false, userError: null });
+    // Load initial followed users from dummy data
+    const initialFollows = dummyFollows[user.uid] || [];
+    const followedUsernames = new Set(initialFollows.map(id => dummyUsers.find(u => u.id === id)?.username).filter(Boolean) as string[]);
+    setFollowedUsers(followedUsernames);
+  };
+  
+  const logout = () => {
+    setUserAuthState({ user: null, isUserLoading: false, userError: null });
+    setFollowedUsers(new Set());
+  };
+
+  const toggleFollow = (username: string) => {
+    setFollowedUsers(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(username)) {
+            newSet.delete(username);
+        } else {
+            newSet.add(username);
+        }
+        return newSet;
+    });
+  }
+
+
+  // Effect to subscribe to Firebase auth state changes (currently mocked)
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
-      return;
-    }
-
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (firebaseUser) => { // Auth state determined
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
-      },
-      (error) => { // Auth listener error
-        console.error("FirebaseProvider: onAuthStateChanged error:", error);
-        setUserAuthState({ user: null, isUserLoading: false, userError: error });
-      }
-    );
-    return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+     setUserAuthState({ user: null, isUserLoading: false, userError: null });
+  }, []);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
@@ -100,8 +132,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       user: userAuthState.user,
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
+      login,
+      logout,
+      followedUsers,
+      toggleFollow,
     };
-  }, [firebaseApp, firestore, auth, userAuthState]);
+  }, [firebaseApp, firestore, auth, userAuthState, followedUsers]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -133,6 +169,10 @@ export const useFirebase = (): FirebaseServicesAndUser => {
     user: context.user,
     isUserLoading: context.isUserLoading,
     userError: context.userError,
+    login: context.login,
+    logout: context.logout,
+    followedUsers: context.followedUsers,
+    toggleFollow: context.toggleFollow,
   };
 };
 
@@ -170,7 +210,7 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
  * This provides the User object, loading status, and any auth errors.
  * @returns {UserHookResult} Object with user, isUserLoading, userError.
  */
-export const useUser = (): UserHookResult => { // Renamed from useAuthUser
-  const { user, isUserLoading, userError } = useFirebase(); // Leverages the main hook
-  return { user, isUserLoading, userError };
+export const useUser = (): UserHookResult => {
+  const { user, isUserLoading, userError, login, logout, followedUsers, toggleFollow } = useFirebase(); // Leverages the main hook
+  return { user, isUserLoading, userError, login, logout, followedUsers, toggleFollow };
 };
