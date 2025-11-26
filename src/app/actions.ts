@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateAiCaption } from '@/ai/flows/generate-ai-caption';
@@ -41,7 +42,7 @@ export async function handleCreatePost(formData: FormData) {
     const commentsOff = formData.get('commentsOff') === 'true';
 
     if (!imageFile || !userId) {
-        throw new Error('Image and user ID are required to create a post.');
+        return { success: false, error: 'Image and user ID are required.' };
     }
 
     try {
@@ -50,40 +51,41 @@ export async function handleCreatePost(formData: FormData) {
         const uploadResult = await uploadBytes(imageRef, imageFile);
         const imageUrl = await getDownloadURL(uploadResult.ref);
 
-        // 2. Create post document data
-        const newPost = {
-            userId,
-            caption,
-            location,
-            imageUrl,
-            altText,
-            hideLikes,
-            commentsOff,
-            likes: [],
-            commentsCount: 0,
-            createdAt: serverTimestamp(),
-        };
+        // 2. Create post document in a transaction
+        await runTransaction(firestore, async (transaction) => {
+            const postsCollectionRef = collection(firestore, 'posts');
+            const newPostRef = doc(postsCollectionRef); // Create a new ref with a new ID
 
-        // 3. Add post to the top-level 'posts' collection
-        const postsCollectionRef = collection(firestore, 'posts');
-        const addedPost = await addDoc(postsCollectionRef, newPost);
-        
-        // Use the ID from the new doc to update it with its own ID
-        const postDocRef = doc(firestore, 'posts', addedPost.id);
-        await setDoc(postDocRef, { id: addedPost.id }, { merge: true });
+            const newPost = {
+                id: newPostRef.id,
+                userId,
+                caption,
+                location,
+                imageUrl,
+                altText,
+                hideLikes,
+                commentsOff,
+                likes: [],
+                commentsCount: 0,
+                createdAt: serverTimestamp(),
+            };
+            
+            // 3. Add post to the top-level 'posts' collection
+            transaction.set(newPostRef, newPost);
 
-
-        // 4. (Optional but good practice) Add post to the user's specific 'posts' subcollection
-        const userPostsCollectionRef = collection(firestore, 'users', userId, 'posts');
-        await setDoc(doc(userPostsCollectionRef, addedPost.id), { ...newPost, id: addedPost.id });
+            // 4. (Optional) Add post to the user's specific 'posts' subcollection
+            const userPostsCollectionRef = collection(firestore, 'users', userId, 'posts');
+            const userPostRef = doc(userPostsCollectionRef, newPostRef.id);
+            transaction.set(userPostRef, newPost);
+        });
 
         revalidatePath('/');
         revalidatePath('/profile');
-        return { success: true, postId: addedPost.id };
+        return { success: true };
 
     } catch (error: any) {
         console.error('Error creating post:', error);
-        throw new Error(error.message || 'Failed to create post due to a server error.');
+        return { success: false, error: error.message || 'Failed to create post due to a server error.' };
     }
 }
 
@@ -233,4 +235,64 @@ export async function unfollowUser(currentUserId: string, targetUserId: string) 
     }
 }
 
+export async function handleSendMessage(formData: FormData) {
+    const { firestore, firebaseApp } = initializeFirebase();
+    const storage = getStorage(firebaseApp);
+
+    const chatId = formData.get('chatId') as string;
+    const senderId = formData.get('senderId') as string;
+    const text = formData.get('text') as string;
+    const imageFile = formData.get('image') as File | null;
+
+    if (!chatId || !senderId || (!text && !imageFile)) {
+        return { success: false, error: 'Missing required fields.' };
+    }
     
+    try {
+        let imageUrl: string | undefined = undefined;
+
+        // 1. If there's an image, upload it to Firebase Storage first
+        if (imageFile) {
+            const imageRef = ref(storage, `chats/${chatId}/${Date.now()}_${imageFile.name}`);
+            const uploadResult = await uploadBytes(imageRef, imageFile);
+            imageUrl = await getDownloadURL(uploadResult.ref);
+        }
+
+        // 2. Prepare the new message object
+        const messagesCollectionRef = collection(firestore, 'chats', chatId, 'messages');
+        const newMessage = {
+            chatId,
+            senderId,
+            text: text || '',
+            mediaUrl: imageUrl,
+            mediaType: imageUrl ? 'image' : undefined,
+            timestamp: serverTimestamp(),
+            isRead: false,
+        };
+
+        // 3. Add the new message and update the chat's lastMessage in a transaction
+        const chatRef = doc(firestore, 'chats', chatId);
+        
+        await runTransaction(firestore, async (transaction) => {
+            const newDocRef = doc(messagesCollectionRef);
+            transaction.set(newDocRef, { ...newMessage, id: newDocRef.id });
+            
+            // Update the last message on the parent chat document
+            transaction.update(chatRef, {
+                lastMessage: {
+                    text: text || 'Image',
+                    timestamp: serverTimestamp(),
+                    senderId,
+                },
+                lastUpdated: serverTimestamp(),
+            });
+        });
+        
+        revalidatePath(`/messages`);
+        return { success: true };
+
+    } catch (error: any) {
+        console.error('Error sending message:', error);
+        return { success: false, error: error.message || 'Failed to send message.' };
+    }
+}

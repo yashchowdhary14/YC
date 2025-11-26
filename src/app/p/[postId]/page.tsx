@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -5,7 +6,7 @@ import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import { useFirestore, useDoc, useCollection, useMemoFirebase, useUser } from '@/firebase';
 import { doc, getDoc, collection, query, where, orderBy } from 'firebase/firestore';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import PostCard from '@/components/app/post-card';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -14,6 +15,7 @@ import {
   SidebarHeader,
   SidebarContent,
   SidebarInset,
+  SidebarProvider,
 } from '@/components/ui/sidebar';
 import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
@@ -138,7 +140,7 @@ export default function PostPage() {
 
 
   return (
-    <>
+    <SidebarProvider>
       <Sidebar>
         <SidebarHeader>
            <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
@@ -245,6 +247,6 @@ export default function PostPage() {
           </div>
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }

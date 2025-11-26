@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useMemo } from 'react';
@@ -117,32 +118,31 @@ export default function CreatePage() {
     }
     setIsSubmitting(true);
     
-    try {
-      const formData = new FormData();
-      formData.append('image', image.file);
-      formData.append('caption', data.caption);
-      formData.append('location', data.location || '');
-      formData.append('userId', user.uid);
-      formData.append('altText', data.altText || '');
-      formData.append('hideLikes', String(data.hideLikes));
-      formData.append('commentsOff', String(data.commentsOff));
+    const formData = new FormData();
+    formData.append('image', image.file);
+    formData.append('caption', data.caption);
+    formData.append('location', data.location || '');
+    formData.append('userId', user.uid);
+    formData.append('altText', data.altText || '');
+    formData.append('hideLikes', String(data.hideLikes));
+    formData.append('commentsOff', String(data.commentsOff));
 
-      await handleCreatePost(formData);
-      
+    const result = await handleCreatePost(formData);
+
+    if (result.success) {
       toast({
         title: 'Post Created!',
         description: 'Your post has been successfully shared.',
       });
       router.push('/profile');
-    } catch (error: any) {
+    } else {
        toast({
         variant: 'destructive',
         title: 'Failed to create post',
-        description: error.message || 'An unknown error occurred.',
+        description: result.error || 'An unknown error occurred.',
       });
-    } finally {
-        setIsSubmitting(false);
     }
+    setIsSubmitting(false);
   };
   
 

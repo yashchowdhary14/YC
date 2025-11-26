@@ -17,7 +17,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
-import { addDoc, collection, serverTimestamp, query, orderBy, limit } from 'firebase/firestore';
+import { collection, query, orderBy, limit } from 'firebase/firestore';
+import { handleSendMessage } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 
 interface ChatDisplayProps {
@@ -28,23 +30,26 @@ interface ChatDisplayProps {
 export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const { user: currentUser } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
+
   const [messageText, setMessageText] = useState('');
-  const [mediaPreview, setMediaPreview] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const chatDocRef = useMemoFirebase(
-    () => (firestore ? collection(firestore, 'chats') : null),
-    [firestore]
+    () => (firestore && chatId ? collection(firestore, 'chats', chatId) : null),
+    [firestore, chatId]
   );
+  const { data: chatData, isLoading: isLoadingChat } = useDoc<Chat>(chatDocRef);
   
-  const { data: chatData, isLoading: isLoadingChat } = useDoc<Chat>(chatDocRef ? collection(firestore, 'chats', chatId) : null);
-
-  const partner = chatData?.userDetails.find(u => u.id !== currentUser?.uid);
+  const partner = chatData?.userDetails?.find(u => u.id !== currentUser?.uid);
 
   const messagesQuery = useMemoFirebase(
     () =>
-      chatId
+      chatId && firestore
         ? query(
             collection(firestore, 'chats', chatId, 'messages'),
             orderBy('timestamp', 'asc'),
@@ -55,26 +60,37 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   );
   const { data: messages, isLoading: isLoadingMessages } = useCollection<Message>(messagesQuery);
   
-  const handleSendMessage = async () => {
-    if ((!messageText.trim() && !mediaPreview) || !currentUser || !chatId) return;
+  const onSendMessage = async () => {
+    if ((!messageText.trim() && !mediaFile) || !currentUser || !chatId) return;
 
-    const messagesCollectionRef = collection(firestore, 'chats', chatId, 'messages');
+    setIsSending(true);
 
-    const newMessage = {
-      chatId: chatId,
-      senderId: currentUser.uid,
-      text: messageText,
-      timestamp: serverTimestamp(),
-      isRead: false,
-    };
-
-    await addDoc(messagesCollectionRef, newMessage);
-
-    setMessageText('');
-    setMediaPreview(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+    const formData = new FormData();
+    formData.append('chatId', chatId);
+    formData.append('senderId', currentUser.uid);
+    formData.append('text', messageText);
+    if (mediaFile) {
+        formData.append('image', mediaFile);
     }
+    
+    const result = await handleSendMessage(formData);
+
+    if (result.success) {
+        setMessageText('');
+        setMediaFile(null);
+        setMediaPreview(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Error sending message',
+            description: result.error,
+        });
+    }
+
+    setIsSending(false);
   };
   
   useEffect(() => {
@@ -89,12 +105,18 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > 4 * 1024 * 1024) { // 4MB limit
+        toast({
+          variant: 'destructive',
+          title: 'File too large',
+          description: 'Please select an image smaller than 4MB.',
+        });
+        return;
+      }
+      setMediaFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setMediaPreview({
-          url: reader.result as string,
-          type: file.type.startsWith('image/') ? 'image' : 'video',
-        });
+        setMediaPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -104,6 +126,14 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     if (fileInputRef.current) {
       fileInputRef.current.accept = type === 'image' ? 'image/*' : 'video/*';
       fileInputRef.current.click();
+    }
+  }
+
+  const clearMedia = () => {
+    setMediaFile(null);
+    setMediaPreview(null);
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
     }
   }
 
@@ -166,19 +196,15 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
                     message.senderId === currentUser?.uid
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted',
-                    message.mediaUrl && 'p-2'
+                    message.mediaUrl && 'p-1'
                     )}
                 >
                     {message.mediaUrl && (
-                    <div className="relative rounded-lg overflow-hidden aspect-video w-64">
-                        {message.mediaType === 'image' ? (
-                        <Image src={message.mediaUrl} alt="Sent media" fill object-cover />
-                        ) : (
-                        <video src={message.mediaUrl} controls className="w-full h-full" />
-                        )}
+                    <div className="relative rounded-lg overflow-hidden aspect-square w-64">
+                       <Image src={message.mediaUrl} alt="Sent media" fill className="object-cover" />
                     </div>
                     )}
-                    {message.text && <p className="text-sm">{message.text}</p>}
+                    {message.text && <p className="text-sm px-2 py-1">{message.text}</p>}
                 </div>
                 </div>
             ))}
@@ -188,17 +214,13 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
 
       <div className="p-4 border-t">
          {mediaPreview && (
-          <div className="relative mb-2 w-40 h-40">
-            {mediaPreview.type === 'image' ? (
-              <Image src={mediaPreview.url} alt="Media preview" fill object-cover className="rounded-md" />
-            ) : (
-              <video src={mediaPreview.url} controls className="w-full h-full rounded-md" />
-            )}
+          <div className="relative mb-2 w-24 h-24">
+            <Image src={mediaPreview} alt="Media preview" fill className="object-cover rounded-md" />
             <Button
               variant="destructive"
               size="icon"
               className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-              onClick={() => setMediaPreview(null)}
+              onClick={clearMedia}
             >
               <X className="h-4 w-4" />
             </Button>
@@ -217,9 +239,9 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
                   <ImageIcon className="mr-2 h-4 w-4" />
                   <span>Image</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleMediaSelect('video')}>
+                <DropdownMenuItem onClick={() => handleMediaSelect('video')} disabled>
                   <Video className="mr-2 h-4 w-4" />
-                  <span>Video</span>
+                  <span>Video (soon)</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -234,16 +256,17 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
             className="rounded-full pr-12"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
+            disabled={isSending}
           />
           <Button
             type="submit"
             size="icon"
             className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
-            onClick={handleSendMessage}
-            disabled={(!messageText.trim() && !mediaPreview) || !chatId}
+            onClick={onSendMessage}
+            disabled={isSending || (!messageText.trim() && !mediaFile) || !chatId}
           >
-            <Send className="h-4 w-4" />
+            {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             <span className="sr-only">Send</span>
           </Button>
         </div>

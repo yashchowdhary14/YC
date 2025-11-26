@@ -29,7 +29,7 @@ export default function MessagesPage() {
 
   const chatsQuery = useMemoFirebase(
     () =>
-      user
+      user && firestore
         ? query(
             collection(firestore, 'chats'),
             where('users', 'array-contains', user.uid)
@@ -118,8 +118,13 @@ export default function MessagesPage() {
               {selectedChat ? (
                 <ChatDisplay chatId={selectedChat.id}/>
               ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">
-                  <p>Select a chat to start messaging</p>
+                <div className="flex h-full flex-col items-center justify-center text-muted-foreground text-center">
+                    <div className="h-24 w-24 rounded-full border-2 border-foreground flex items-center justify-center mb-4">
+                        <svg aria-label="Direct" fill="currentColor" height="48" role="img" viewBox="0 0 96 96" width="48"><path d="M48 0C21.532 0 0 21.533 0 48s21.532 48 48 48 48-21.532 48-48S74.468 0 48 0zm0 88C26.038 88 8 69.962 8 48S26.038 8 48 8s40 17.962 40 40-17.962 40-40 40zm21.362-49.332l-40-12A4.002 4.002 0 0 0 24.1 21.41l14.887 34.738a4 4 0 0 0 7.375.242l6.516-19.548 19.548-6.516a4 4 0 0 0-2.064-7.658z"></path></svg>
+                    </div>
+                    <h2 className="text-xl font-light">Your Messages</h2>
+                    <p className="text-sm">Send private photos and messages to a friend or group.</p>
+                     {/* We can add a "Send Message" button here that opens the NewMessageDialog */}
                 </div>
               )}
             </div>
