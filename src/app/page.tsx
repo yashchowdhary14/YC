@@ -15,6 +15,7 @@ import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc, start
 import PostCard from '@/components/app/post-card';
 import { useIntersection } from '@/hooks/use-intersection';
 import { motion } from 'framer-motion';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -70,6 +71,41 @@ function EmptyFeedContent({ suggestions, onFollowToggle, followedUsers }: { sugg
       </Button>
     </div>
   );
+}
+
+function FeedSkeleton() {
+    return (
+        <div className="lg:col-span-2">
+            <div className="flex flex-col md:gap-8">
+                {/* Stories Skeleton */}
+                <div className="md:border-b md:border-border md:pb-4 p-4 md:p-0">
+                    <div className="flex space-x-4">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div key={i} className="flex flex-col items-center gap-2">
+                                <Skeleton className="w-16 h-16 rounded-full" />
+                                <Skeleton className="w-14 h-4" />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                 {/* Post Skeletons */}
+                <div className="flex flex-col items-center gap-8 mt-4 md:mt-0">
+                    {Array.from({ length: 2 }).map((_, i) => (
+                        <div key={i} className="w-full max-w-xl mx-auto p-2 md:p-0">
+                            <div className="flex items-center gap-3 mb-2">
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                                <div className="flex-1 space-y-1">
+                                    <Skeleton className="h-4 w-1/4" />
+                                    <Skeleton className="h-3 w-1/6" />
+                                </div>
+                            </div>
+                            <Skeleton className="w-full aspect-square" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 }
 
 
@@ -142,7 +178,10 @@ export default function Home() {
   // Initial post fetch
   useEffect(() => {
     if (user && !isUserLoading) {
-      fetchPosts();
+      // Simulate a slightly longer load time to make skeleton visible
+      setTimeout(() => {
+          fetchPosts();
+      }, 500);
     }
   }, [user, isUserLoading, followedUsers]); // Depend on followedUsers to refetch if they change
   
@@ -198,7 +237,7 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || isInitialLoad) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -210,37 +249,39 @@ export default function Home() {
     <>
       <div className="container mx-auto max-w-screen-lg md:p-4 lg:p-8 md:pt-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <div className="flex flex-col md:gap-8">
-                <div className="md:border-b md:border-border md:pb-4">
-                  <StoriesCarousel />
+            {isInitialLoad ? <FeedSkeleton /> : (
+              <div className="lg:col-span-2">
+                <div className="flex flex-col md:gap-8">
+                  <div className="md:border-b md:border-border md:pb-4">
+                    <StoriesCarousel />
+                  </div>
+                  {posts.length > 0 ? (
+                      <div className="flex flex-col items-center gap-8 mt-4 md:mt-0">
+                        {posts.map((post, index) => (
+                          <motion.div
+                              key={post.id}
+                              className="w-full"
+                              initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                              whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                              viewport={{ once: true, amount: 0.3 }}
+                              transition={{ duration: 0.5, delay: index * 0.05 }}
+                          >
+                              <PostCard post={post} />
+                          </motion.div>
+                        ))}
+                        {isLoadingMore && (
+                          <div className="flex justify-center items-center py-10">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                          </div>
+                        )}
+                        <div ref={loaderRef} />
+                      </div>
+                  ) : (
+                    <EmptyFeedContent suggestions={suggestions} onFollowToggle={handleFollowToggleInSuggestion} followedUsers={followedUsers} />
+                  )}
                 </div>
-                {posts.length > 0 ? (
-                    <div className="flex flex-col items-center gap-8 mt-4 md:mt-0">
-                      {posts.map((post, index) => (
-                         <motion.div
-                            key={post.id}
-                            className="w-full"
-                            initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                            whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                            viewport={{ once: true, amount: 0.3 }}
-                            transition={{ duration: 0.5, delay: index * 0.05 }}
-                        >
-                            <PostCard post={post} />
-                        </motion.div>
-                      ))}
-                      {isLoadingMore && (
-                        <div className="flex justify-center items-center py-10">
-                          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                        </div>
-                      )}
-                      <div ref={loaderRef} />
-                    </div>
-                ) : (
-                  <EmptyFeedContent suggestions={suggestions} onFollowToggle={handleFollowToggleInSuggestion} followedUsers={followedUsers} />
-                )}
               </div>
-            </div>
+            )}
 
             <div className="hidden lg:block lg:col-span-1">
               <div className="sticky top-24">
@@ -291,3 +332,4 @@ export default function Home() {
 }
 
     
+
