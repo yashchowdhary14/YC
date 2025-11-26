@@ -131,7 +131,7 @@ service cloud.firestore {
 
     // streams
     match /streams/{streamId} {
-      allow get, list: if true;
+      allow get, list: if isSignedIn();
       allow create: if true; // Allow seeding
       allow update: if isExistingOwner(resource.data.streamerId) 
                       && request.resource.data.streamerId == resource.data.streamerId;
