@@ -62,6 +62,7 @@ export function Sidebar({
   side?: 'left' | 'right';
 }) {
   const isMobile = useIsMobile();
+  const { open } = useSidebar();
 
   if (isMobile) {
     return (
@@ -78,10 +79,12 @@ export function Sidebar({
     );
   }
 
+  // Use a class to toggle visibility instead of conditional rendering
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 hidden h-screen flex-col border-r bg-background lg:flex',
+        'fixed left-0 top-0 z-40 h-screen flex-col border-r bg-background md:flex',
+        open ? 'flex' : 'hidden', // Control visibility with `open` state
         className
       )}
       {...props}
@@ -100,12 +103,15 @@ export function SidebarInset({
   className?: string;
 }) {
   const isMobile = useIsMobile();
+  const { open } = useSidebar();
+
   // On mobile, there's no inset, the content takes the full width.
   if (isMobile) {
     return <>{children}</>;
   }
+
   return (
-    <div className={cn('md:ml-60', className)} {...props}>
+    <div className={cn(className)} {...props}>
       {children}
     </div>
   );
@@ -118,26 +124,20 @@ export function SidebarTrigger({
   children?: React.ReactNode;
   className?: string;
 }) {
-  const isMobile = useIsMobile();
+  const { open, setOpen } = useSidebar();
 
-  if (!isMobile) return null;
-
-  if (children) {
-    return (
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
-    );
-  }
   return (
-    <SheetTrigger asChild>
-      <Button
-        variant="secondary"
-        className={cn('h-8 w-8 p-0', className)}
-      >
-        <span className="sr-only">Open sidebar</span>
-      </Button>
-    </SheetTrigger>
+      <SheetTrigger asChild>
+        {children || (
+          <Button
+            variant="secondary"
+            className={cn('h-8 w-8 p-0', className)}
+            onClick={() => setOpen(!open)}
+          >
+            <span className="sr-only">Toggle sidebar</span>
+          </Button>
+        )}
+      </SheetTrigger>
   );
 }
 

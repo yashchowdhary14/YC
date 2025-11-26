@@ -29,9 +29,8 @@ import { cn } from '@/lib/utils';
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
-  { href: '/live', label: 'Explore', icon: Compass },
+  { href: '/live', label: 'Live', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
-  { href: '/videos', label: 'Videos', icon: Video },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/create', label: 'Create', icon: PlusSquare },
 ];
@@ -68,11 +67,11 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                                 variant="ghost"
                                 className={cn(
                                     "w-full justify-center gap-4 p-3 text-base h-auto aspect-square",
-                                    pathname === link.href ? 'bg-accent' : ''
+                                    pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href ? 'bg-accent' : ''
                                 )}
                                 >
                                 <NextLink href={link.href} className="flex items-center">
-                                    <link.icon className={cn("h-6 w-6", pathname === link.href && "font-extrabold")} />
+                                    <link.icon className={cn("h-6 w-6", pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href && "font-extrabold")} />
                                 </NextLink>
                                 </Button>
                             </TooltipTrigger>
@@ -98,7 +97,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-4 px-3 py-6 text-base h-auto",
-                pathname === link.href ? 'font-bold' : ''
+                pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href ? 'font-bold' : ''
               )}
             >
               <NextLink href={link.href} className="flex items-center">
