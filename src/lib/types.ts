@@ -49,9 +49,17 @@ export interface Video {
   videoUrl: string;
   user: User;
   views: number;
-  createdAt: Date;
+  createdAt: any; // Can be Date or Timestamp
   category: string;
 }
+
+export interface VideoComment {
+    id: string;
+    text: string;
+    createdAt: any; // Can be Date or Timestamp
+    user: User;
+}
+
 
 export interface Message {
   id: string;
@@ -65,7 +73,7 @@ export interface Message {
 }
 
 export interface Chat {
-  id: string;
+  id:string;
   users: string[]; // Array of user IDs
   messages: Message[];
   lastMessage?: Message;
@@ -89,3 +97,5 @@ export interface Stream {
   isLive: boolean;
   thumbnailUrl?: string;
 }
+
+    

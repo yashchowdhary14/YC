@@ -150,5 +150,20 @@ service cloud.firestore {
       allow get, list: if true;
       allow create, update, delete: if false; // Admin-only
     }
+    
+    // videos
+    match /videos/{videoId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
+        allow update, delete: if isExistingOwner(resource.data.user.id);
+
+        match /comments/{commentId} {
+            allow get, list: if true;
+            allow create: if isSignedIn() && request.resource.data.user.id == request.auth.uid;
+            allow update, delete: if isExistingOwner(resource.data.user.id);
+        }
+    }
   }
 }
+
+    

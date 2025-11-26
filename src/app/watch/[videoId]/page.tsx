@@ -13,15 +13,18 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { notFound } from 'next/navigation';
-import { dummyVideos, dummyUsers } from '@/lib/dummy-data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { formatCompactNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Share, Download } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share, Download, Send, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import RelatedVideoCard from '@/components/app/related-video-card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDoc, useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
+import { doc, collection, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import type { Video, VideoComment } from '@/lib/types';
+import TextareaAutosize from 'react-textarea-autosize';
 
 function WatchPageSkeleton() {
   return (
@@ -63,78 +66,180 @@ function WatchPageSkeleton() {
   );
 }
 
+function CommentSection({ videoId }: { videoId: string }) {
+    const { user: currentUser } = useUser();
+    const firestore = useFirestore();
+    const [commentText, setCommentText] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const commentsQuery = useMemoFirebase(() => {
+        if (!firestore) return null;
+        return query(collection(firestore, 'videos', videoId, 'comments'), orderBy('createdAt', 'desc'));
+    }, [firestore, videoId]);
+
+    const { data: comments, isLoading } = useCollection<VideoComment>(commentsQuery);
+    
+    const handleAddComment = async () => {
+        if (!commentText.trim() || !currentUser || !firestore) return;
+        setIsSending(true);
+
+        const newComment = {
+            text: commentText,
+            createdAt: serverTimestamp(),
+            user: {
+              id: currentUser.uid,
+              username: currentUser.displayName || currentUser.email?.split('@')[0],
+              avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100`,
+              fullName: currentUser.displayName,
+            }
+        };
+
+        try {
+            await addDoc(collection(firestore, 'videos', videoId, 'comments'), newComment);
+            setCommentText('');
+        } catch (error) {
+            console.error("Error adding comment:", error);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+
+    return (
+        <div className="mt-6">
+            <h2 className="text-lg font-bold mb-4">{comments?.length || 0} Comments</h2>
+             {currentUser && (
+                <div className="flex items-start gap-3 mb-6">
+                    <Avatar>
+                        <AvatarImage src={currentUser.photoURL || ''} />
+                        <AvatarFallback>{currentUser.displayName?.charAt(0) || 'U'}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                         <TextareaAutosize
+                            value={commentText}
+                            onChange={(e) => setCommentText(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="w-full bg-transparent border-b focus:border-primary focus-visible:ring-0 px-0 resize-none"
+                            disabled={isSending}
+                            minRows={1}
+                        />
+                        {commentText && (
+                            <div className="flex justify-end gap-2 mt-2">
+                                <Button variant="ghost" size="sm" onClick={() => setCommentText('')}>Cancel</Button>
+                                <Button size="sm" onClick={handleAddComment} disabled={isSending}>
+                                    {isSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    Comment
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+            <div className="space-y-6">
+                {isLoading && Array.from({length: 3}).map((_, i) => (
+                    <div key={i} className="flex gap-3">
+                        <Skeleton className="h-10 w-10 rounded-full" />
+                        <div className="space-y-2 flex-1">
+                            <Skeleton className="h-4 w-1/4" />
+                            <Skeleton className="h-4 w-3/4" />
+                        </div>
+                    </div>
+                ))}
+                {comments?.map(comment => (
+                    <div key={comment.id} className="flex items-start gap-3">
+                        <Avatar>
+                            <AvatarImage src={comment.user.avatarUrl} />
+                            <AvatarFallback>{comment.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <div className="flex items-center gap-2 text-sm">
+                                <span className="font-semibold">{comment.user.username}</span>
+                                <time className="text-muted-foreground text-xs">
+                                  {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : 'just now'}
+                                </time>
+                            </div>
+                            <p className="text-sm mt-1">{comment.text}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 
 export default function WatchPage() {
-  const { videoId } = useParams();
-  const [isLoading, setIsLoading] = useState(true);
+  const { videoId } = useParams<{ videoId: string }>();
+  const firestore = useFirestore();
 
-  const { video, relatedVideos } = useMemo(() => {
-    const videoData = dummyVideos.find(v => v.id === videoId);
-    if (!videoData) return { video: null, relatedVideos: [] };
+  const videoRef = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return doc(firestore, 'videos', videoId);
+  }, [firestore, videoId]);
 
-    const related = dummyVideos.filter(v => v.id !== videoId && v.category === videoData.category).slice(0, 5);
-    if (related.length < 5) {
-      related.push(...dummyVideos.filter(v => v.id !== videoId && v.category !== videoData.category).slice(0, 5 - related.length));
-    }
+  const { data: video, isLoading: isVideoLoading } = useDoc<Video>(videoRef);
+  
+  const relatedVideosQuery = useMemoFirebase(() => {
+    if (!firestore || !video) return null;
+    return query(collection(firestore, 'videos'), where('category', '==', video.category), where('id', '!=', video.id));
+  }, [firestore, video]);
 
-    return { video: videoData, relatedVideos: related };
-  }, [videoId]);
+  const { data: relatedVideos, isLoading: areRelatedLoading } = useCollection<Video>(relatedVideosQuery);
 
-  useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      if (video) {
-        setIsLoading(false);
-      }
-    }, 500); // Simulate loading delay
+  if (isVideoLoading) {
+    return (
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarHeader><h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1></SidebarHeader>
+          <SidebarContent><SidebarNav /></SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <AppHeader />
+          <main className="min-h-[calc(100vh-4rem)] bg-background"><WatchPageSkeleton /></main>
+        </SidebarInset>
+      </SidebarProvider>
+    );
+  }
 
-    return () => clearTimeout(timer);
-  }, [video]);
-
-  if (!video && !isLoading) {
+  if (!video) {
     return notFound();
   }
 
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
+        <SidebarHeader><h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1></SidebarHeader>
+        <SidebarContent><SidebarNav /></SidebarContent>
       </Sidebar>
       <SidebarInset>
         <AppHeader />
         <main className="min-h-[calc(100vh-4rem)] bg-background">
-          {isLoading ? <WatchPageSkeleton /> : (
             <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                   <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted mb-4">
                     <video
-                      src={video!.videoUrl}
+                      src={video.videoUrl}
                       controls
                       autoPlay
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <h1 className="text-2xl font-bold mb-2">{video!.title}</h1>
+                  <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span>{formatCompactNumber(video!.views)} views</span>
-                      <span>{formatDistanceToNow(video!.createdAt, { addSuffix: true })}</span>
+                      <span>{formatCompactNumber(video.views)} views</span>
+                      <span>{video.createdAt ? formatDistanceToNow(video.createdAt.toDate(), { addSuffix: true }) : ''}</span>
                   </div>
                   <Separator className="my-4" />
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                       <div className="flex items-center gap-4 flex-1">
                           <Avatar>
-                              <AvatarImage src={video!.user.avatarUrl} />
-                              <AvatarFallback>{video!.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                              <AvatarImage src={video.user.avatarUrl} />
+                              <AvatarFallback>{video.user.username.charAt(0).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div>
-                              <p className="font-semibold">{video!.user.username}</p>
-                              <p className="text-sm text-muted-foreground">{formatCompactNumber(video!.user.followersCount || 0)} followers</p>
+                              <p className="font-semibold">{video.user.username}</p>
+                              <p className="text-sm text-muted-foreground">{formatCompactNumber(video.user.followersCount || 0)} followers</p>
                           </div>
                           <Button variant="secondary" className="ml-4 rounded-full font-bold">Follow</Button>
                       </div>
@@ -142,7 +247,7 @@ export default function WatchPage() {
                           <div className="flex items-center rounded-full bg-secondary">
                              <Button variant="secondary" className="rounded-r-none rounded-l-full">
                                  <ThumbsUp className="mr-2 h-4 w-4"/>
-                                 {formatCompactNumber(video!.views / 50)}
+                                 {formatCompactNumber(video.views / 50)}
                              </Button>
                              <Separator orientation="vertical" className="h-6"/>
                              <Button variant="secondary" className="rounded-l-none rounded-r-full">
@@ -166,20 +271,22 @@ export default function WatchPage() {
                         This is a placeholder for the video description. In a real application, this would be a detailed summary of the video content, including links, chapters, and other relevant information to give viewers context.
                       </p>
                    </div>
+                   <CommentSection videoId={videoId} />
                 </div>
                 <div className="lg:col-span-1">
                    <h2 className="text-xl font-bold mb-4">Up next</h2>
                    <div className="space-y-4">
-                      {relatedVideos.map(relatedVideo => (
+                      {relatedVideos?.map(relatedVideo => (
                           <RelatedVideoCard key={relatedVideo.id} video={relatedVideo} />
                       ))}
                    </div>
                 </div>
               </div>
             </div>
-          )}
         </main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
+
+    

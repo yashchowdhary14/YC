@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -12,37 +12,54 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import VideoCard from '@/components/app/video-card';
-import { dummyVideos } from '@/lib/dummy-data';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import type { Video } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
 
 type SortOption = 'Trending' | 'Latest';
 
 export default function VideosPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortOption, setSortOption] = useState<SortOption>('Trending');
+  const firestore = useFirestore();
+
+  const videosQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'videos');
+  }, [firestore]);
+
+  const { data: videos, isLoading } = useCollection<Video>(videosQuery);
 
   const categories = useMemo(() => {
-    const allCategories = dummyVideos.map(video => video.category);
+    if (!videos) return ['All'];
+    const allCategories = videos.map(video => video.category);
     return ['All', ...Array.from(new Set(allCategories))];
-  }, []);
+  }, [videos]);
 
   const filteredAndSortedVideos = useMemo(() => {
-    let videos = dummyVideos;
+    if (!videos) return [];
+    
+    let processedVideos = videos.map(v => ({
+      ...v,
+      createdAt: v.createdAt?.toDate ? v.createdAt.toDate() : new Date(v.createdAt)
+    }));
 
     if (selectedCategory !== 'All') {
-      videos = videos.filter(video => video.category === selectedCategory);
+      processedVideos = processedVideos.filter(video => video.category === selectedCategory);
     }
 
     if (sortOption === 'Trending') {
-      videos.sort((a, b) => b.views - a.views);
+      processedVideos.sort((a, b) => b.views - a.views);
     } else if (sortOption === 'Latest') {
-      videos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      processedVideos.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     }
 
-    return videos;
-  }, [selectedCategory, sortOption]);
+    return processedVideos;
+  }, [videos, selectedCategory, sortOption]);
 
   return (
     <SidebarProvider>
@@ -97,12 +114,18 @@ export default function VideosPage() {
             </div>
           </div>
           <div className="container mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-            <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredAndSortedVideos.map((video) => (
-                <VideoCard key={video.id} video={video} />
-              ))}
-            </div>
-             {filteredAndSortedVideos.length === 0 && (
+            {isLoading ? (
+               <div className="col-span-full text-center py-16">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+               </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {filteredAndSortedVideos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </div>
+            )}
+             { !isLoading && filteredAndSortedVideos.length === 0 && (
                 <div className="col-span-full text-center py-16 text-muted-foreground">
                     <h3 className="text-xl font-semibold">No videos found</h3>
                     <p>There are no videos in the &quot;{selectedCategory}&quot; category.</p>
@@ -114,3 +137,5 @@ export default function VideosPage() {
     </SidebarProvider>
   );
 }
+
+    
