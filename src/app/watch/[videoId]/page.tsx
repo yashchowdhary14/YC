@@ -3,22 +3,12 @@
 
 import { useParams } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
-import AppHeader from '@/components/app/header';
-import SidebarNav from '@/components/app/sidebar-nav';
-import {
-  Sidebar,
-  SidebarHeader,
-  SidebarContent,
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import { notFound } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { formatCompactNumber } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { ThumbsUp, ThumbsDown, Share, Download, Send, Loader2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Share, Download, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import RelatedVideoCard from '@/components/app/related-video-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -212,22 +202,7 @@ export default function WatchPage() {
 
   if (isVideoLoading) {
     return (
-      <SidebarProvider>
-        <Sidebar>
-          <SidebarHeader><h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1></SidebarHeader>
-          <SidebarContent><SidebarNav /></SidebarContent>
-        </Sidebar>
-        <SidebarInset>
-          <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </Button>
-            </SidebarTrigger>
-          </AppHeader>
-          <main className="min-h-[calc(100vh-4rem)] bg-background"><WatchPageSkeleton /></main>
-        </SidebarInset>
-      </SidebarProvider>
+      <main className="min-h-screen bg-background"><WatchPageSkeleton /></main>
     );
   }
 
@@ -236,91 +211,76 @@ export default function WatchPage() {
   }
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader><h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1></SidebarHeader>
-        <SidebarContent><SidebarNav /></SidebarContent>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader>
-             <SidebarTrigger>
-                <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
-                </Button>
-            </SidebarTrigger>
-        </AppHeader>
-        <main className="min-h-[calc(100vh-4rem)] bg-background">
-            <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2">
-                  <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted mb-4">
-                    <video
-                      src={video.mediaUrl}
-                      controls
-                      autoPlay
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <h1 className="text-2xl font-bold mb-2">{video.caption}</h1>
-                  <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                      <span>{formatCompactNumber(video.views)} views</span>
-                      <span>{video.createdAt ? formatDistanceToNow(new Date(video.createdAt), { addSuffix: true }) : ''}</span>
-                  </div>
-                  <Separator className="my-4" />
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      <div className="flex items-center gap-4 flex-1">
-                          <Avatar>
-                              <AvatarImage src={video.user.avatarUrl} />
-                              <AvatarFallback>{video.user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                              <p className="font-semibold">{video.user.username}</p>
-                              <p className="text-sm text-muted-foreground">{formatCompactNumber(video.user.followersCount || 0)} followers</p>
-                          </div>
-                          <Button variant="secondary" className="ml-4 rounded-full font-bold">Follow</Button>
-                      </div>
-                       <div className="flex items-center gap-2">
-                          <div className="flex items-center rounded-full bg-secondary">
-                             <Button variant="secondary" className="rounded-r-none rounded-l-full">
-                                 <ThumbsUp className="mr-2 h-4 w-4"/>
-                                 {formatCompactNumber(video.likes)}
-                             </Button>
-                             <Separator orientation="vertical" className="h-6"/>
-                             <Button variant="secondary" className="rounded-l-none rounded-r-full">
-                                 <ThumbsDown />
-                             </Button>
-                          </div>
-                          <Button variant="secondary" className="rounded-full">
-                              <Share className="mr-2 h-4 w-4"/>
-                              Share
-                          </Button>
-                           <Button variant="secondary" className="rounded-full">
-                              <Download className="mr-2 h-4 w-4"/>
-                              Download
-                          </Button>
-                      </div>
-                  </div>
-                   <Separator className="my-4" />
-                   <div className="p-4 rounded-lg bg-secondary text-sm">
-                      <p className="font-bold">About this video:</p>
-                      <p className="whitespace-pre-wrap mt-2">
-                        This is a placeholder for the video description. In a real application, this would be a detailed summary of the video content, including links, chapters, and other relevant information to give viewers context.
-                      </p>
-                   </div>
-                   <CommentSection videoId={videoId} />
-                </div>
-                <div className="lg:col-span-1">
-                   <h2 className="text-xl font-bold mb-4">Up next</h2>
-                   <div className="space-y-4">
-                      {relatedVideos?.map(relatedVideo => (
-                          <RelatedVideoCard key={relatedVideo.id} video={relatedVideo} />
-                      ))}
-                   </div>
-                </div>
+    <main className="min-h-screen bg-background">
+        <div className="container mx-auto max-w-screen-2xl p-4 sm:p-6 lg:p-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted mb-4">
+                <video
+                  src={video.mediaUrl}
+                  controls
+                  autoPlay
+                  className="w-full h-full object-contain"
+                />
               </div>
+              <h1 className="text-2xl font-bold mb-2">{video.caption}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                  <span>{formatCompactNumber(video.views)} views</span>
+                  <span>{video.createdAt ? formatDistanceToNow(new Date(video.createdAt), { addSuffix: true }) : ''}</span>
+              </div>
+              <Separator className="my-4" />
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <div className="flex items-center gap-4 flex-1">
+                      <Avatar>
+                          <AvatarImage src={video.user.avatarUrl} />
+                          <AvatarFallback>{video.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                          <p className="font-semibold">{video.user.username}</p>
+                          <p className="text-sm text-muted-foreground">{formatCompactNumber(video.user.followersCount || 0)} followers</p>
+                      </div>
+                      <Button variant="secondary" className="ml-4 rounded-full font-bold">Follow</Button>
+                  </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center rounded-full bg-secondary">
+                          <Button variant="secondary" className="rounded-r-none rounded-l-full">
+                              <ThumbsUp className="mr-2 h-4 w-4"/>
+                              {formatCompactNumber(video.likes)}
+                          </Button>
+                          <Separator orientation="vertical" className="h-6"/>
+                          <Button variant="secondary" className="rounded-l-none rounded-r-full">
+                              <ThumbsDown />
+                          </Button>
+                      </div>
+                      <Button variant="secondary" className="rounded-full">
+                          <Share className="mr-2 h-4 w-4"/>
+                          Share
+                      </Button>
+                        <Button variant="secondary" className="rounded-full">
+                          <Download className="mr-2 h-4 w-4"/>
+                          Download
+                      </Button>
+                  </div>
+              </div>
+                <Separator className="my-4" />
+                <div className="p-4 rounded-lg bg-secondary text-sm">
+                  <p className="font-bold">About this video:</p>
+                  <p className="whitespace-pre-wrap mt-2">
+                    This is a placeholder for the video description. In a real application, this would be a detailed summary of the video content, including links, chapters, and other relevant information to give viewers context.
+                  </p>
+                </div>
+                <CommentSection videoId={videoId} />
             </div>
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+            <div className="lg:col-span-1">
+                <h2 className="text-xl font-bold mb-4">Up next</h2>
+                <div className="space-y-4">
+                  {relatedVideos?.map(relatedVideo => (
+                      <RelatedVideoCard key={relatedVideo.id} video={relatedVideo} />
+                  ))}
+                </div>
+            </div>
+          </div>
+        </div>
+    </main>
   );
 }

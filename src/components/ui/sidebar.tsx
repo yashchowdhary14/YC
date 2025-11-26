@@ -5,9 +5,6 @@ import * as React from 'react';
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
 } from './sheet';
 
 import {cn} from '@/lib/utils';
@@ -60,6 +57,14 @@ export function Sidebar({
   side?: 'left' | 'right';
 }) {
   const { open, setOpen } = useSidebar();
+  const isMobile = useIsMobile();
+  
+  // This component now ONLY renders the mobile, slide-out functionality.
+  // The persistent desktop sidebars are handled directly in the root layout.
+  if (!isMobile) {
+    return null;
+  }
+
   return (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
@@ -76,21 +81,6 @@ export function Sidebar({
   );
 }
 
-export function SidebarInset({
-  children,
-  className,
-  ...props
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={cn(className)} {...props}>
-      {children}
-    </div>
-  );
-}
-
 export function SidebarTrigger({
   children,
   className,
@@ -99,19 +89,22 @@ export function SidebarTrigger({
   className?: string;
 }) {
   const { open, setOpen } = useSidebar();
+  const isMobile = useIsMobile();
+  
+  // The trigger should only be visible on mobile to control the sheet.
+  if (!isMobile) {
+    return null;
+  }
 
   return (
-      <SheetTrigger asChild>
-        {children || (
-          <Button
-            variant="secondary"
-            className={cn('h-8 w-8 p-0', className)}
-            onClick={() => setOpen(!open)}
-          >
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
-        )}
-      </SheetTrigger>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(className)}
+        onClick={() => setOpen(!open)}
+      >
+        {children || <span className="sr-only">Toggle sidebar</span>}
+      </Button>
   );
 }
 
@@ -122,18 +115,9 @@ export function SidebarHeader({
   children?: React.ReactNode;
   className?: string;
 }) {
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
     return (
-      <SheetHeader className="border-b px-4 py-2">
-        <SheetTitle className="text-lg">{children}</SheetTitle>
-      </SheetHeader>
+      <div className={cn('flex h-14 items-center border-b p-4', className)}>{children}</div>
     );
-  }
-  return (
-    <div className={cn('flex h-14 items-center border-b p-4', className)}>{children}</div>
-  );
 }
 
 export function SidebarContent({
