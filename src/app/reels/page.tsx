@@ -42,7 +42,7 @@ export default function ReelsPage() {
     };
 
     const handleUpdateComment = (reelId: string, updatedComments: ReelComment[]) => {
-        const updatedReels = reels.map(reel => {
+        setReels(reels => reels.map(reel => {
             if (reel.id === reelId) {
                 return { 
                     ...reel, 
@@ -51,8 +51,7 @@ export default function ReelsPage() {
                 };
             }
             return reel;
-        });
-        setReels(updatedReels);
+        }));
 
         if(selectedReelForComments && selectedReelForComments.id === reelId) {
             setSelectedReelForComments(prev => {

@@ -47,7 +47,7 @@ interface CommentsSheetProps {
   reel: Reel | null;
   onOpenChange: (isOpen: boolean) => void;
   onUpdateComment: (reelId: string, updatedComments: ReelComment[]) => void;
-  currentUser: { uid: string; displayName: string | null; photoURL: string | null; } | null;
+  currentUser: { uid: string; displayName: string | null; email: string | null; photoURL: string | null; } | null;
 }
 
 export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, currentUser }: CommentsSheetProps) {
@@ -77,7 +77,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
 
     const newComment: ReelComment = {
         id: `comment-${Date.now()}`,
-        user: currentUser.displayName || 'Anonymous',
+        user: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
         profilePic: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100`,
         text: commentText,
         likes: 0,
@@ -85,23 +85,27 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
         isLiked: false
     };
 
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 300));
+    // Optimistically update the UI
     const updatedComments = [...reel.comments, newComment];
     onUpdateComment(reel.id, updatedComments);
-
     setCommentText('');
+
+    // Simulate API call
+    await new Promise(r => setTimeout(r, 500));
+    
+    // In a real app, you might get a confirmation from the server
+    // For now, we just stop the loading state.
     setIsSending(false);
   };
   
   useEffect(() => {
-    if (reel && scrollViewportRef.current) {
+    // When a new comment is added, scroll to the bottom.
+    if (reel && reel.comments.length > 0 && scrollViewportRef.current) {
       setTimeout(() => {
         if(scrollViewportRef.current) {
-            // Scroll to the bottom to show the new comment
             scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
         }
-      }, 100);
+      }, 100); // A small delay to ensure the DOM is updated.
     }
   }, [reel?.comments.length, reel]);
 
@@ -109,12 +113,12 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
     <Sheet open={!!reel} onOpenChange={onOpenChange}>
       <SheetContent 
         side="bottom" 
-        className="h-[60vh] flex flex-col rounded-t-2xl bg-background border-none p-0"
+        className="h-[60vh] flex flex-col rounded-t-2xl bg-zinc-900 border-none p-0"
         >
         <div className="w-full pt-3 pb-2 flex justify-center">
           <div className="w-8 h-1 bg-zinc-700 rounded-full" />
         </div>
-        <SheetHeader className="text-center pb-2 border-b">
+        <SheetHeader className="text-center pb-2 border-b border-zinc-800">
           <SheetTitle>Comments</SheetTitle>
         </SheetHeader>
         <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
@@ -130,16 +134,16 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
              )}
           </div>
         </ScrollArea>
-        <SheetFooter className="p-2 border-t bg-background">
+        <SheetFooter className="p-2 border-t border-zinc-800 bg-zinc-900">
           <div className="flex items-center gap-2 w-full">
             <Avatar className="h-9 w-9">
               <AvatarImage src={currentUser?.photoURL || ''} />
-              <AvatarFallback>{currentUser?.displayName?.charAt(0).toUpperCase()}</AvatarFallback>
+              <AvatarFallback>{currentUser?.displayName?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="flex-1 relative">
                 <TextareaAutosize
                     placeholder={`Add a comment for ${reel?.user.username}...`}
-                    className="w-full bg-zinc-900 rounded-2xl py-2 pl-3 pr-10 resize-none text-sm focus:ring-0 focus-visible:ring-offset-0 border-transparent focus:border-transparent"
+                    className="w-full bg-zinc-800 rounded-2xl py-2 pl-3 pr-10 resize-none text-sm ring-offset-zinc-900 focus:ring-zinc-500 border-transparent focus:border-transparent"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendComment())}
@@ -150,7 +154,7 @@ export default function CommentsSheet({ reel, onOpenChange, onUpdateComment, cur
                 <Button
                     size="sm"
                     variant="ghost"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-white hover:bg-zinc-700"
                     onClick={handleSendComment}
                     disabled={!commentText.trim() || isSending}
                 >
