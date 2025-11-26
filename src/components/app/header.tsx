@@ -15,37 +15,28 @@ import {
   DropdownMenuLabel
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { dummyUsers } from '@/lib/dummy-data';
+import { signOut } from 'firebase/auth';
 
 export default function AppHeader({ children }: { children?: React.ReactNode }) {
-  const { user, logout, login } = useUser();
+  const { user } = useUser();
+  const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleSignOut = () => {
-    if (logout) {
-      logout();
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
       router.push('/login');
+    } catch (error) {
+      console.error("Error signing out: ", error);
     }
   };
   
-  const handleSwitchUser = (userId: string) => {
-    const userToSwitch = dummyUsers.find(u => u.id === userId);
-    if(userToSwitch && login) {
-        login({
-          uid: userToSwitch.id,
-          displayName: userToSwitch.fullName,
-          email: `${userToSwitch.username}@example.com`,
-          photoURL: `https://picsum.photos/seed/${userToSwitch.id}/150/150`,
-        });
-    }
-  }
-
   // On homepage with large sidebar, we don't show the trigger or the logo again.
   const showLogoAndTrigger = pathname !== '/';
 
@@ -81,7 +72,7 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
               <span className="sr-only">Messages</span>
             </NextLink>
           </Button>
-          {user && (
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full">
@@ -92,26 +83,6 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-64" align="end" forceMount>
-                <DropdownMenuGroup>
-                    <DropdownMenuLabel>Switch Accounts</DropdownMenuLabel>
-                    {dummyUsers.filter(u => u.id !== user.uid).slice(0,3).map(u => (
-                         <DropdownMenuItem key={u.id} onSelect={() => handleSwitchUser(u.id)}>
-                            <Avatar className="h-8 w-8 mr-2">
-                                <AvatarImage src={`https://picsum.photos/seed/${u.id}/100/100`} />
-                                <AvatarFallback>{u.username.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1">
-                                <p className="font-semibold text-sm">{u.username}</p>
-                                <p className="text-xs text-muted-foreground">{u.fullName}</p>
-                            </div>
-                        </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuItem onSelect={() => router.push('/login')}>
-                        <PlusCircle className="mr-2 h-5 w-5"/>
-                        Add Account
-                    </DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
                         <NextLink href="/profile"><User className="mr-2 h-4 w-4"/>Profile</NextLink>
@@ -127,6 +98,10 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+             <Button asChild>
+                <NextLink href="/login">Log In</NextLink>
+            </Button>
           )}
         </div>
       </div>

@@ -3,25 +3,23 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Loader2, ArrowUp } from 'lucide-react';
 import type { Post, User } from '@/lib/types';
-import { dummyUsers, dummyPosts, dummyFollows } from '@/lib/dummy-data';
 import PostCard from '@/components/app/post-card';
 import StoriesCarousel from '@/components/app/stories-carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useIntersection } from '@/hooks/use-intersection';
+import { useCollection } from '@/firebase/firestore/use-collection';
+import { collection, query, where, limit, getDocs } from 'firebase/firestore';
 
 const POSTS_PER_PAGE = 5;
 
-function SuggestionCard({ suggestion }: { suggestion: User }) {
-  const { followedUsers, toggleFollow } = useUser();
-  const isFollowing = followedUsers.has(suggestion.username);
-
+function SuggestionCard({ suggestion, onFollowToggle }: { suggestion: User, onFollowToggle: (id: string) => void }) {
   const handleFollowToggle = () => {
-    toggleFollow(suggestion.username);
+    onFollowToggle(suggestion.id);
   };
 
   return (
@@ -37,19 +35,19 @@ function SuggestionCard({ suggestion }: { suggestion: User }) {
         </div>
       </Link>
       <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs" onClick={handleFollowToggle}>
-        {isFollowing ? 'Following' : 'Follow'}
+        Follow
       </Button>
     </div>
   )
 }
 
 export default function Home() {
-  const { user, isUserLoading, logout, followedUsers } = useUser();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const router = useRouter();
   
   const [displayedPosts, setDisplayedPosts] = useState<Post[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [suggestions, setSuggestions] = useState<User[]>([]);
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
@@ -58,58 +56,42 @@ export default function Home() {
     }
   }, [user, isUserLoading, router]);
 
-  const { allFeedPosts, suggestions, isLoading } = useMemo(() => {
-    if (!user) return { allFeedPosts: [], suggestions: [], isLoading: true };
+  // Fetch posts from users you follow
+  const followingQuery = useMemo(() => {
+    if (!user) return null;
+    return query(collection(firestore, `users/${user.uid}/following`));
+  }, [user, firestore]);
+  const { data: followingList } = useCollection<{id: string}>(followingQuery as any);
 
-    const followingIds = dummyFollows[user.uid] || [];
-    const allFollowingUsernames = new Set([...Array.from(followedUsers), ...followingIds.map(id => dummyUsers.find(u => u.id === id)?.username).filter(Boolean) as string[]]);
-    const allFollowingIds = dummyUsers.filter(u => allFollowingUsernames.has(u.username)).map(u => u.id);
-    
-    const hydratedPosts: Post[] = dummyPosts
-      .filter(post => post.type === 'photo' && (allFollowingIds.includes(post.uploaderId) || post.uploaderId === user.uid))
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    const suggestedUsers = dummyUsers
-      .filter(u => u.id !== user.uid && !allFollowingUsernames.has(u.username))
-      .slice(0, 5)
-      .map(u => ({
-        ...u,
-        avatarUrl: `https://picsum.photos/seed/${u.id}/100/100`,
-      }));
-
-    return { allFeedPosts: hydratedPosts, suggestions: suggestedUsers as User[], isLoading: false };
-  }, [user, followedUsers]);
-
-  // Initial posts load
+  const postsQuery = useMemo(() => {
+    if (!followingList || followingList.length === 0) return null;
+    const followingIds = followingList.map(f => f.id);
+    return query(collection(firestore, 'posts'), where('uploaderId', 'in', followingIds));
+  }, [followingList, firestore]);
+  const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery as any);
+  
+  // Fetch suggestions
   useEffect(() => {
-    if (allFeedPosts.length > 0) {
-      setDisplayedPosts(allFeedPosts.slice(0, POSTS_PER_PAGE));
-      setPage(1);
-      setHasMore(allFeedPosts.length > POSTS_PER_PAGE);
+    if (user && firestore) {
+      const fetchSuggestions = async () => {
+        const followingIds = followingList?.map(f => f.id) || [];
+        const excludedIds = [user.uid, ...followingIds];
+
+        const q = query(collection(firestore, 'users'), where('id', 'not-in', excludedIds.slice(0,10)), limit(5));
+        const snapshot = await getDocs(q);
+        const userSuggestions = snapshot.docs.map(doc => doc.data() as User);
+        setSuggestions(userSuggestions);
+      };
+      fetchSuggestions();
     }
-  }, [allFeedPosts]);
-
-  const loadMorePosts = useCallback(() => {
-    if (!hasMore) return;
-    const nextPage = page + 1;
-    const newPosts = allFeedPosts.slice(0, nextPage * POSTS_PER_PAGE);
-    setDisplayedPosts(newPosts);
-    setPage(nextPage);
-    setHasMore(newPosts.length < allFeedPosts.length);
-  }, [page, hasMore, allFeedPosts]);
-
-  const loaderRef = useRef<HTMLDivElement>(null);
-  const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
+  }, [user, firestore, followingList]);
 
   useEffect(() => {
-    if (isLoaderVisible && hasMore) {
-      // Add a small delay to simulate network latency
-      const timer = setTimeout(() => {
-        loadMorePosts();
-      }, 300);
-      return () => clearTimeout(timer);
+    if (posts) {
+      setDisplayedPosts(posts);
     }
-  }, [isLoaderVisible, hasMore, loadMorePosts]);
+  }, [posts]);
+
   
   useEffect(() => {
     const handleScroll = () => {
@@ -128,13 +110,18 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || isLoading || !user) {
+  if (isUserLoading || postsLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+
+  const handleFollowToggle = (userId: string) => {
+    // This will be implemented in a future step
+    console.log("Toggling follow for user:", userId);
+  };
 
   return (
     <>
@@ -157,13 +144,6 @@ export default function Home() {
                   </Button>
                   </div>
               )}
-
-              {hasMore && (
-                  <div ref={loaderRef} className="flex justify-center items-center py-8">
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                  </div>
-              )}
-
               </div>
           </div>
 
@@ -175,7 +155,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col gap-4">
                   {suggestions.map((s) => (
-                      <SuggestionCard key={s.id} suggestion={s} />
+                      <SuggestionCard key={s.id} suggestion={s} onFollowToggle={handleFollowToggle} />
                   ))}
               </div>
               </div>
