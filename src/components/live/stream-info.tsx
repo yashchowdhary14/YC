@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -34,7 +35,7 @@ export default function StreamInfo({ streamer, stream }: StreamInfoProps) {
           </div>
           <h1 className="text-lg font-semibold text-foreground/90 mt-1">{stream.title}</h1>
           <div className="flex items-center gap-2 mt-1">
-             <Link href="/search" className="text-primary font-semibold text-sm hover:underline">{stream.category}</Link>
+             <Link href="#" className="text-primary font-semibold text-sm hover:underline">{stream.category}</Link>
           </div>
         </div>
         <div className="flex sm:flex-col sm:items-end gap-2">
