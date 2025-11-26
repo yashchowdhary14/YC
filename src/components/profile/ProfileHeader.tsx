@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Settings, CheckCircle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import Link from 'next/link';
 
 interface ProfileHeaderProps {
   user: {
@@ -109,8 +110,10 @@ export default function ProfileHeader({
 
         <div className="flex items-center gap-6 text-base text-foreground">
           <span><span className="font-semibold">{user.postsCount}</span> posts</span>
-          <span><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</span>
-          <span><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</span>
+          <button><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</button>
+          <Link href="/following" passHref>
+            <button><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</button>
+          </Link>
         </div>
 
         <div className="text-sm">
