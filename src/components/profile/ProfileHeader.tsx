@@ -8,7 +8,7 @@ import { Settings, CheckCircle, Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, MotionValue } from 'framer-motion';
 
 interface ProfileHeaderProps {
   user: {
@@ -26,6 +26,43 @@ interface ProfileHeaderProps {
   onMessageClick?: () => void;
   isNavigatingToChat?: boolean;
   isCurrentUser?: boolean;
+  animatedAvatar: {
+    scale: MotionValue<number>;
+    y: MotionValue<number>;
+  };
+  animatedHeader: {
+    opacity: MotionValue<number>;
+  };
+}
+
+const ProfileStats = ({ user, optimisticFollowers }: { user: ProfileHeaderProps['user'], optimisticFollowers: number }) => (
+    <div className="hidden md:flex items-center gap-6 text-base text-foreground">
+        <span><span className="font-semibold">{user.postsCount}</span> posts</span>
+        <button><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</button>
+        <Link href="/following" passHref>
+        <button><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</button>
+        </Link>
+    </div>
+);
+
+const ProfileBio = ({ user }: { user: ProfileHeaderProps['user']}) => {
+    const renderBio = (bio: string) => {
+        if (!bio) return null;
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        const parts = bio.split(urlRegex);
+        return parts.map((part, index) =>
+        urlRegex.test(part)
+            ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{part}</a>
+            : part
+        );
+    };
+
+    return (
+        <div className="hidden md:block text-sm">
+            <p className="font-semibold">{user.fullName}</p>
+            <p className="whitespace-pre-wrap">{renderBio(user.bio)}</p>
+        </div>
+    );
 }
 
 export default function ProfileHeader({
@@ -33,18 +70,18 @@ export default function ProfileHeader({
   onEditClick,
   onMessageClick,
   isNavigatingToChat = false,
-  isCurrentUser = false
+  isCurrentUser = false,
+  animatedAvatar,
+  animatedHeader,
 }: ProfileHeaderProps) {
   const { user: currentUser, followedUsers, toggleFollow } = useUser();
   const { toast } = useToast();
 
   const isFollowing = followedUsers.has(user.username);
   
-  // Use a separate state for optimistic updates to avoid direct mutation of props
   const [optimisticFollowers, setOptimisticFollowers] = useState(user.followersCount);
 
   useEffect(() => {
-    // Sync with the prop value when it changes
     setOptimisticFollowers(user.followersCount);
   }, [user.followersCount]);
 
@@ -53,35 +90,26 @@ export default function ProfileHeader({
       toast({ variant: "destructive", title: "You must be logged in to follow users." });
       return;
     }
-    
-    // Optimistically update follower count
     setOptimisticFollowers(prev => isFollowing ? prev - 1 : prev + 1);
-
-    // Call the global state toggle
     toggleFollow(user.username);
-  };
-  
-  const renderBio = (bio: string) => {
-    if (!bio) return null;
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    const parts = bio.split(urlRegex);
-    return parts.map((part, index) =>
-      urlRegex.test(part)
-        ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{part}</a>
-        : part
-    );
   };
 
   return (
     <header className="flex gap-4 md:gap-16 items-start w-full">
-      <div className="flex-shrink-0 w-20 h-20 md:w-36 md:h-36">
+      <motion.div 
+        className="flex-shrink-0 w-20 h-20 md:w-36 md:h-36"
+        style={{ scale: animatedAvatar.scale, y: animatedAvatar.y, originX: 0 }}
+      >
         <Avatar className="h-full w-full">
           <AvatarImage src={user.profilePhoto} alt={user.username} />
           <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
         </Avatar>
-      </div>
+      </motion.div>
 
-      <div className="flex flex-col gap-4 flex-grow">
+      <motion.div 
+        className="flex flex-col gap-4 flex-grow"
+        style={{ opacity: animatedHeader.opacity }}
+      >
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-normal text-foreground">{user.username}</h1>
@@ -122,19 +150,9 @@ export default function ProfileHeader({
           </div>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-base text-foreground">
-          <span><span className="font-semibold">{user.postsCount}</span> posts</span>
-          <button><span className="font-semibold">{optimisticFollowers.toLocaleString()}</span> followers</button>
-          <Link href="/following" passHref>
-            <button><span className="font-semibold">{user.followingCount.toLocaleString()}</span> following</button>
-          </Link>
-        </div>
-
-        <div className="hidden md:block text-sm">
-          <p className="font-semibold">{user.fullName}</p>
-          <p className="whitespace-pre-wrap">{renderBio(user.bio)}</p>
-        </div>
-      </div>
+        <ProfileStats user={user} optimisticFollowers={optimisticFollowers} />
+        <ProfileBio user={user} />
+      </motion.div>
     </header>
   );
 }

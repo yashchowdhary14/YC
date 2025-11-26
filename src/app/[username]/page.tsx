@@ -5,7 +5,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { notFound } from 'next/navigation';
-import { collection, query, where, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, setDoc, deleteDoc, limit } from 'firebase/firestore';
+import { motion, useScroll, useTransform } from 'framer-motion';
 
 import EditProfileDialog from '@/components/app/edit-profile';
 import ProfileHeader from '@/components/profile/ProfileHeader';
@@ -31,7 +32,11 @@ export default function UserProfilePage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const router = useRouter();
 
-  // 1. Fetch user by username
+  const { scrollYProgress } = useScroll();
+  const avatarScale = useTransform(scrollYProgress, [0, 0.1], [1, 0.5]);
+  const avatarY = useTransform(scrollYProgress, [0, 0.1], [0, -20]);
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.05, 0.1], [1, 0.5, 0]);
+
   useEffect(() => {
     if (!firestore || !username) return;
 
@@ -50,7 +55,6 @@ export default function UserProfilePage() {
         const profileUserDoc = userSnapshot.docs[0];
         const profileUserData = profileUserDoc.data() as UserType;
         
-        // 2. Fetch posts for that user
         const postsRef = collection(firestore, 'posts');
         const postsQuery = query(postsRef, where('uploaderId', '==', profileUserDoc.id));
         const postsSnapshot = await getDocs(postsQuery);
@@ -72,7 +76,6 @@ export default function UserProfilePage() {
   const { profileUser, posts } = useMemo(() => {
     if (!profileData) return { profileUser: null, posts: [] };
 
-    // Hydrate user data - in a real app this could involve more logic
     const hydratedProfileUser = {
       ...profileData.user,
       postsCount: profileData.posts.length,
@@ -116,14 +119,16 @@ export default function UserProfilePage() {
 
   return (
     <>
-      <div className="bg-background pt-14">
-        <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+      <div className="bg-background">
+        <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8 pt-20">
           <ProfileHeader
             user={profileUser as any}
             onEditClick={() => setIsEditDialogOpen(true)}
             onMessageClick={handleMessageClick}
-            isNavigatingToChat={false} // This is just for UI, not critical for dummy data
+            isNavigatingToChat={false} 
             isCurrentUser={isCurrentUser}
+            animatedAvatar={{ scale: avatarScale, y: avatarY }}
+            animatedHeader={{ opacity: headerOpacity }}
           />
           <div className="my-8">
             <HighlightsCarousel />
