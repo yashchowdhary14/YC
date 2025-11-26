@@ -2,7 +2,7 @@
 import type { Post, User, Chat, Message, Reel, ReelComment, Video, Stream, Category } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
-export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
+export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl?: string })[] = [
   { id: 'user_sachin', username: 'sachin', fullName: 'Sachin Tendulkar', bio: 'Living and breathing cricket. 🏏', followersCount: 1000000, followingCount: 50, verified: true },
   { id: 'user_sakshi', username: 'sakshi', fullName: 'Sakshi Malik', bio: 'Wrestler | Olympian 🇮🇳', followersCount: 500000, followingCount: 25, verified: true },
   { id: 'user_wanderlust_lila', username: 'wanderlust_lila', fullName: 'Lila Kim', bio: 'Chasing sunsets & city lights. ✈️\nProduct Designer @ Google.', followersCount: 1250, followingCount: 430, verified: true },
@@ -42,7 +42,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_1',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-        user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` },
+        user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` } as User,
         caption: 'Living my best life in the mountains! 🏔️',
         likes: 1234,
         isLiked: false,
@@ -52,7 +52,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_2',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
+        user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` } as User,
         caption: 'City lights and late nights ✨',
         likes: 567,
         isLiked: true,
@@ -62,7 +62,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_3',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
+        user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` } as User,
         caption: 'The art of filmmaking.',
         likes: 8910,
         isLiked: false,
@@ -72,7 +72,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_4',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-        user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
+        user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` } as User,
         caption: 'Just another unboxing. You HAVE to see this!',
         likes: 11200,
         isLiked: false,
@@ -82,7 +82,7 @@ export const dummyReels: Reel[] = [
     {
         id: 'reel_5',
         videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-        user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
+        user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` } as User,
         caption: 'Best tacos I have ever had. Period. 🌮',
         likes: 432,
         isLiked: true,
@@ -97,7 +97,7 @@ export const dummyVideos: Video[] = [
     title: 'How to build a Next.js app in 10 minutes',
     thumbnailUrl: 'https://picsum.photos/seed/vid1/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    user: { ...dummyUsers[3], avatarUrl: `https://picsum.photos/seed/${dummyUsers[3].id}/100/100` },
+    user: { ...dummyUsers[3], avatarUrl: `https://picsum.photos/seed/${dummyUsers[3].id}/100/100` } as User,
     views: 150234,
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     category: 'Tech',
@@ -107,7 +107,7 @@ export const dummyVideos: Video[] = [
     title: 'The Secret to Perfect Sourdough',
     thumbnailUrl: 'https://picsum.photos/seed/vid2/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
+    user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` } as User,
     views: 89034,
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     category: 'Food',
@@ -117,7 +117,7 @@ export const dummyVideos: Video[] = [
     title: 'My Desk Setup Tour 2024',
     thumbnailUrl: 'https://picsum.photos/seed/vid3/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
+    user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` } as User,
     views: 1200543,
     createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
     category: 'Tech',
@@ -127,7 +127,7 @@ export const dummyVideos: Video[] = [
     title: 'Beginner\'s Guide to Astrophotography',
     thumbnailUrl: 'https://picsum.photos/seed/vid4/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    user: { ...dummyUsers[8], avatarUrl: `https://picsum.photos/seed/${dummyUsers[8].id}/100/100` },
+    user: { ...dummyUsers[8], avatarUrl: `https://picsum.photos/seed/${dummyUsers[8].id}/100/100` } as User,
     views: 4523,
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
     category: 'Science',
@@ -137,7 +137,7 @@ export const dummyVideos: Video[] = [
     title: 'A Cinematic Journey Through Japan',
     thumbnailUrl: 'https://picsum.photos/seed/vid5/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-    user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
+    user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` } as User,
     views: 230987,
     createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1 month ago
     category: 'Travel',
@@ -147,7 +147,7 @@ export const dummyVideos: Video[] = [
     title: 'My Favorite Watercolor Techniques',
     thumbnailUrl: 'https://picsum.photos/seed/vid6/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-    user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
+    user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` } as User,
     views: 76543,
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
     category: 'Art',
@@ -157,7 +157,7 @@ export const dummyVideos: Video[] = [
     title: 'Daily Workout Routine for Max Gains',
     thumbnailUrl: 'https://picsum.photos/seed/vid7/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-    user: { ...dummyUsers[5], avatarUrl: `https://picsum.photos/seed/${dummyUsers[5].id}/100/100` },
+    user: { ...dummyUsers[5], avatarUrl: `https://picsum.photos/seed/${dummyUsers[5].id}/100/100` } as User,
     views: 12345,
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     category: 'Fitness',
@@ -167,7 +167,7 @@ export const dummyVideos: Video[] = [
     title: 'Cricket Masterclass: The Cover Drive',
     thumbnailUrl: 'https://picsum.photos/seed/vid8/640/360',
     videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-    user: { ...dummyUsers[0], avatarUrl: `https://picsum.photos/seed/${dummyUsers[0].id}/100/100` },
+    user: { ...dummyUsers[0], avatarUrl: `https://picsum.photos/seed/${dummyUsers[0].id}/100/100` } as User,
     views: 2500000,
     createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
     category: 'Sports',
@@ -271,6 +271,8 @@ export const dummyCategories: Category[] = [
     { id: 'cat_4', name: 'Art', thumbnailUrl: 'https://picsum.photos/seed/cat4/285/380' },
     { id: 'cat_5', name: 'Music', thumbnailUrl: 'https://picsum.photos/seed/cat5/285/380' },
     { id: 'cat_6', name: 'Travel & Outdoors', thumbnailUrl: 'https://picsum.photos/seed/cat6/285/380' },
+    { id: 'cat_7', name: 'Software and Game Development', thumbnailUrl: 'https://picsum.photos/seed/cat7/285/380' },
+    { id: 'cat_8', name: 'Fitness', thumbnailUrl: 'https://picsum.photos/seed/cat8/285/380' },
 ];
 
 export const dummyStreams: Omit<Stream, 'user'>[] = [
@@ -282,6 +284,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Programming', 'Rust', 'Web Dev'],
         viewerCount: 12800,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream1/640/360',
     },
     {
         id: 'stream_2',
@@ -291,6 +294,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Illustration', 'Creative', 'Digital Art'],
         viewerCount: 7500,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream2/640/360',
     },
     {
         id: 'stream_3',
@@ -300,6 +304,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Unboxing', 'Tech', 'Review'],
         viewerCount: 25000,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream3/640/360',
     },
     {
         id: 'stream_4',
@@ -309,6 +314,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Wrestling', 'Training', 'Workout'],
         viewerCount: 9800,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream4/640/360',
     },
     {
         id: 'stream_5',
@@ -318,6 +324,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Cricket', 'Sports Talk'],
         viewerCount: 50000,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream5/640/360',
     },
     {
         id: 'stream_6',
@@ -327,6 +334,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Travel', 'Hiking', 'Nature'],
         viewerCount: 4200,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream6/640/360',
     },
     {
         id: 'stream_7',
@@ -336,6 +344,7 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Food', 'IRL', 'Rating'],
         viewerCount: 1200,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream7/640/360',
     },
     {
         id: 'stream_8',
@@ -345,5 +354,6 @@ export const dummyStreams: Omit<Stream, 'user'>[] = [
         tags: ['Filmmaking', 'Editing', 'Creative'],
         viewerCount: 3400,
         isLive: true,
+        thumbnailUrl: 'https://picsum.photos/seed/stream8/640/360',
     },
 ];

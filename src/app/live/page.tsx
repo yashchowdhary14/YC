@@ -1,11 +1,12 @@
+
 'use client';
 
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
-import { Loader2, Database } from 'lucide-react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import type { Stream, Category } from '@/lib/types';
+import { Loader2 } from 'lucide-react';
+import { useUser } from '@/firebase';
+import type { Stream, Category, User } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
 import StreamGrid from '@/components/live/stream-grid';
@@ -13,18 +14,12 @@ import CategoryGrid from '@/components/live/category-grid';
 import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { collection, query, where, orderBy, limit } from 'firebase/firestore';
-import { seedDatabase } from '@/lib/seed-db';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-
+import { dummyStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
-  const firestore = useFirestore();
   const router = useRouter();
-  const { toast } = useToast();
-  const [isSeeding, setIsSeeding] = useState(false);
   const [isPageLoaded, setIsPageLoaded] = useState(false);
 
   useEffect(() => {
@@ -37,69 +32,52 @@ export default function LivePage() {
     }
   }, [isUserLoading, user, router]);
 
-  const streamsQuery = useMemoFirebase(() => 
-    firestore ? query(collection(firestore, 'streams'), where('isLive', '==', true), orderBy('viewerCount', 'desc')) : null
-  , [firestore]);
+  const { liveStreams, categories, recommendedChannels, featuredStreams, justChattingStreams } = useMemo(() => {
+    // Hydrate stream data with user data
+    const hydratedStreams: Stream[] = dummyStreams.map(stream => {
+      const streamer = dummyUsers.find(u => u.id === stream.streamerId);
+      return {
+        ...stream,
+        thumbnailUrl: stream.thumbnailUrl || `https://picsum.photos/seed/${stream.id}/640/360`,
+        user: {
+          ...streamer!,
+          avatarUrl: streamer?.avatarUrl || `https://picsum.photos/seed/${streamer?.id}/100/100`,
+        }
+      };
+    });
+
+    const live = hydratedStreams.filter(s => s.isLive).sort((a, b) => b.viewerCount - a.viewerCount);
+    const cats = dummyCategories.sort((a, b) => a.name.localeCompare(b.name));
+    
+    const recommended = live.slice(0, 7);
+    const featured = live.slice(0, 5);
+    const justChatting = live.filter(s => s.category === 'Just Chatting');
+
+    return {
+      liveStreams: live,
+      categories: cats,
+      recommendedChannels: recommended,
+      featuredStreams: featured,
+      justChattingStreams: justChatting
+    };
+  }, []);
   
-  const categoriesQuery = useMemoFirebase(() => 
-    firestore ? query(collection(firestore, 'categories'), orderBy('name')) : null
-  , [firestore]);
+  const isLoading = isUserLoading;
 
-  const recommendedChannelsQuery = useMemoFirebase(() =>
-    firestore ? query(collection(firestore, 'streams'), where('isLive', '==', true), orderBy('viewerCount', 'desc'), limit(7)) : null
-  , [firestore]);
-
-  const { data: liveStreams, isLoading: streamsLoading } = useCollection<Stream>(streamsQuery);
-  const { data: categories, isLoading: categoriesLoading } = useCollection<Category>(categoriesQuery);
-  const { data: recommendedChannels, isLoading: channelsLoading } = useCollection<Stream>(recommendedChannelsQuery);
-
-  const { featuredStreams, justChattingStreams } = useMemo(() => {
-    if (!liveStreams) return { featuredStreams: [], justChattingStreams: [] };
-    const featured = liveStreams.slice(0, 5);
-    const justChatting = liveStreams.filter(s => s.category === 'Just Chatting');
-    return { featuredStreams: featured, justChattingStreams: justChatting };
-  }, [liveStreams]);
-  
-  const handleSeedDb = useCallback(async () => {
-    if (!firestore) return;
-    setIsSeeding(true);
-    try {
-      await seedDatabase(firestore);
-      toast({
-        title: 'Database Seeded!',
-        description: 'Your Firestore database has been populated with sample data.',
-      });
-    } catch (error) {
-      console.error("Error seeding database:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Seeding Failed',
-        description: 'Could not seed the database. Check the console for errors.',
-      });
-    } finally {
-      setIsSeeding(false);
-    }
-  }, [firestore, toast]);
-
-
-  const isLoading = isUserLoading || streamsLoading || categoriesLoading || channelsLoading;
-
-  if (!user && !isUserLoading) {
+  if (isLoading && !isPageLoaded) {
      return (
       <div className="flex h-screen items-center justify-center bg-zinc-900">
-        <p>Please log in to view this page.</p>
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
-  
-  const hasData = liveStreams && liveStreams.length > 0 && categories && categories.length > 0;
 
   return (
     <SidebarProvider>
       <div className="flex min-h-screen bg-zinc-900 text-white overscroll-contain">
         <LiveSidebar 
-          recommendedChannels={recommendedChannels || []} 
-          recommendedCategories={(categories || []).slice(0,6)} 
+          recommendedChannels={recommendedChannels} 
+          recommendedCategories={categories.slice(0,6)} 
         />
         <SidebarInset className="flex-1 flex flex-col">
           <AppHeader>
@@ -117,41 +95,29 @@ export default function LivePage() {
                   <div className="flex h-full items-center justify-center">
                     <Loader2 className="h-8 w-8 animate-spin" />
                   </div>
-              ) : !hasData ? (
-                 <div className="flex flex-col items-center justify-center text-center h-full max-w-md mx-auto">
-                    <Database className="h-16 w-16 text-muted-foreground" />
-                    <h2 className="mt-4 text-2xl font-bold">No Live Data Found</h2>
-                    <p className="mt-2 text-muted-foreground">
-                      Your database appears to be empty. Click the button below to seed it with sample streams and categories to get started.
-                    </p>
-                    <Button onClick={handleSeedDb} disabled={isSeeding} className="mt-6">
-                      {isSeeding ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="mr-2 h-4 w-4" />}
-                      Seed Database
-                    </Button>
-                </div>
               ) : (
                 <div className="space-y-12">
                     <FeaturedStreamCarousel streams={featuredStreams} />
 
                     <div>
-                        <h2 className="text-2xl font-bold mb-4">
+                        <h2 className="text-xl md:text-2xl font-bold mb-4">
                           <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
                         </h2>
-                        <StreamGrid streams={(liveStreams || []).slice(0,12)} />
+                        <StreamGrid streams={liveStreams.slice(0,12)} />
                     </div>
 
                     <Separator className="bg-zinc-700" />
 
                     <div>
-                        <h2 className="text-2xl font-bold mb-4">
+                        <h2 className="text-xl md:text-2xl font-bold mb-4">
                             <span className="text-primary hover:underline cursor-pointer">Categories</span> we think you'll like
                         </h2>
-                        <CategoryGrid categories={categories || []} />
+                        <CategoryGrid categories={categories} />
                     </div>
 
                     {justChattingStreams.length > 0 && (
                       <div>
-                        <h2 className="text-2xl font-bold mb-4">
+                        <h2 className="text-xl md:text-2xl font-bold mb-4">
                           <span className="text-primary hover:underline cursor-pointer">Just Chatting</span> channels
                         </h2>
                         <StreamGrid streams={justChattingStreams} />
