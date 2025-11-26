@@ -3,6 +3,7 @@
 
 import { useStoryCreationStore, TextElement as TextElementType } from '@/lib/story-creation-store';
 import { useState } from 'react';
+import { motion, PanInfo } from 'framer-motion';
 
 interface TextElementProps {
     element: TextElementType;
@@ -10,10 +11,31 @@ interface TextElementProps {
 }
 
 export default function TextElement({ element, slideId }: TextElementProps) {
-    const { updateSlide } = useStoryCreationStore();
+    const { updateSlide, media } = useStoryCreationStore();
+    const activeSlide = media.find(s => s.id === slideId);
     
     // In future steps, we will use state to handle editing, dragging, etc.
     const [isEditing, setIsEditing] = useState(false);
+
+    const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+        if (!activeSlide) return;
+
+        const parent = (event.target as HTMLElement).parentElement;
+        if (!parent) return;
+
+        const parentRect = parent.getBoundingClientRect();
+
+        const newPosition = {
+            x: ((info.point.x - parentRect.left) / parentRect.width) * 100,
+            y: ((info.point.y - parentRect.top) / parentRect.height) * 100,
+        };
+
+        const updatedTexts = activeSlide.texts.map(text => 
+            text.id === element.id ? { ...text, position: newPosition } : text
+        );
+
+        updateSlide(slideId, { texts: updatedTexts });
+    };
 
     const textStyle: React.CSSProperties = {
         position: 'absolute',
@@ -34,8 +56,18 @@ export default function TextElement({ element, slideId }: TextElementProps) {
     };
 
     return (
-        <div style={textStyle}>
+        <motion.div
+            drag
+            onDragEnd={handleDragEnd}
+            dragMomentum={false}
+            style={textStyle}
+            // We set the initial position here to prevent snapping on first drag
+            initial={{
+                x: `calc(${element.position.x}% - 50%)`,
+                y: `calc(${element.position.y}% - 50%)`,
+            }}
+        >
             {element.text}
-        </div>
+        </motion.div>
     );
 }
