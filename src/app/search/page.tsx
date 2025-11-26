@@ -19,9 +19,11 @@ import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy, limit } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { Post, User } from '@/lib/types';
+import type { Post } from '@/lib/types';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { dummyUsers } from '@/lib/dummy-data';
+import { User } from '@/lib/types';
 
 
 // Extend the Post type for our search grid needs
@@ -99,20 +101,13 @@ export default function SearchPage() {
         } as SearchPost;
     });
 
-    const newUsersQuery = useMemoFirebase(
-      () => (firestore ? query(collection(firestore, 'users'), orderBy('createdAt', 'desc'), limit(20)) : null),
-      [firestore]
-    );
-
-    const { data: usersData, isLoading: isLoadingUsers } = useCollection<User>(newUsersQuery);
-
     const filteredUsers = useMemo(() => {
-        if (!searchTerm) return usersData || [];
-        return (usersData || []).filter(user => 
+        if (!searchTerm) return [];
+        return dummyUsers.filter(user => 
             user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [searchTerm, usersData]);
+    }, [searchTerm]);
 
     const showSearchResults = isFocused && searchTerm.length > 0;
 
@@ -143,11 +138,7 @@ export default function SearchPage() {
                 />
                  {showSearchResults && (
                     <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
-                        {isLoadingUsers ? (
-                          <div className="flex items-center justify-center p-4">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                          </div>
-                        ) : filteredUsers.length > 0 ? (
+                        {filteredUsers.length > 0 ? (
                             filteredUsers.map(user => (
                                 <Link href={`/${user.username}`} key={user.id}>
                                     <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
@@ -194,3 +185,4 @@ export default function SearchPage() {
     </SidebarProvider>
   );
 }
+
