@@ -1,15 +1,19 @@
 
 import type { Post, User } from '@/lib/types';
 
-export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl: string, bio: string, followersCount: number, followingCount: number, verified: boolean })[] = [
+export const dummyUsers: User[] = [
   { id: 'user_sachin', username: 'sachin', fullName: 'Sachin Tendulkar', avatarUrl: 'https://picsum.photos/seed/sachin/100/100', bio: 'Living and breathing cricket. 🏏', followersCount: 1000000, followingCount: 50, verified: true },
   { id: 'user_sakshi', username: 'sakshi', fullName: 'Sakshi Malik', avatarUrl: 'https://picsum.photos/seed/sakshi/100/100', bio: 'Wrestler | Olympian 🇮🇳', followersCount: 500000, followingCount: 25, verified: true },
-  { id: 'user1', username: 'code_wizard', fullName: 'Alex Coder', avatarUrl: 'https://picsum.photos/seed/user1/100/100', bio: 'Developer and tech enthusiast.', followersCount: 1200, followingCount: 300, verified: false },
-  { id: 'user2', username: 'design_diva', fullName: 'Brenda Designer', avatarUrl: 'https://picsum.photos/seed/user2/100/100', bio: 'Creating beautiful things.', followersCount: 5400, followingCount: 500, verified: false },
-  { id: 'user3', username: 'photo_phan', fullName: 'Chris Photographer', avatarUrl: 'https://picsum.photos/seed/user3/100/100', bio: 'Capturing moments.', followersCount: 2300, followingCount: 150, verified: false },
-  { id: 'user4', username: 'travel_bug', fullName: 'Diana Traveler', avatarUrl: 'https://picsum.photos/seed/user4/100/100', bio: 'Wanderlust-driven.', followersCount: 8900, followingCount: 800, verified: true },
-  { id: 'user5', username: 'foodie_fiesta', fullName: 'Evan Eater', avatarUrl: 'https://picsum.photos/seed/user5/100/100', bio: 'Eating my way around the world.', followersCount: 4100, followingCount: 400, verified: false },
+  { id: 'user_wanderlust_lila', username: 'wanderlust_lila', fullName: 'Lila Kim', avatarUrl: 'https://picsum.photos/seed/lila/100/100', bio: 'Chasing sunsets & city lights. ✈️\nProduct Designer @ Google.', followersCount: 1250, followingCount: 430, verified: true },
+  { id: 'user_ethan_bytes', username: 'ethan_bytes', fullName: 'Ethan Byte', avatarUrl: 'https://picsum.photos/seed/ethan/100/100', bio: 'Building the future, one line of code at a time. Rust Evangelist. Coffee Addict.', followersCount: 2800, followingCount: 150, verified: false },
+  { id: 'user_maya_creates', username: 'maya_creates', fullName: 'Maya Singh', avatarUrl: 'https://picsum.photos/seed/maya/100/100', bio: 'Illustrator & storyteller. Painting my world with color.', followersCount: 15200, followingCount: 300, verified: true },
+  { id: 'user_leo_the_lion', username: 'leo_the_lion', fullName: 'Leo Chen', avatarUrl: 'https://picsum.photos/seed/leo/100/100', bio: 'Fitness, finance, and philosophy. Striving for 1% better every day.', followersCount: 890, followingCount: 890, verified: false },
+  { id: 'user_chloe_films', username: 'chloe_films', fullName: 'Chloé Dubois', avatarUrl: 'https://picsum.photos/seed/chloe/100/100', bio: 'Cinematographer. Seeing the world through a lens.', followersCount: 45000, followingCount: 120, verified: true },
+  { id: 'user_sam_reviews', username: 'sam_reviews', fullName: 'Sam Jones', avatarUrl: 'https://picsum.photos/seed/sam/100/100', bio: 'Unboxing the latest tech gadgets. YouTuber. ⬇️', followersCount: 120000, followingCount: 95, verified: true },
+  { id: 'user_astro_gaze', username: 'astro_gaze', fullName: 'Dr. Aris Thorne', avatarUrl: 'https://picsum.photos/seed/aris/100/100', bio: 'Astrophysicist. Exploring the cosmos from my backyard telescope. ✨', followersCount: 730, followingCount: 210, verified: false },
+  { id: 'user_urban_eats', username: 'urban_eats', fullName: 'Javier Rodriguez', avatarUrl: 'https://picsum.photos/seed/javier/100/100', bio: 'Food blogger on a quest to find the best tacos in every city. 🌮', followersCount: 9800, followingCount: 650, verified: false },
 ];
+
 
 export const dummyPosts: (Omit<Post, 'user' | 'createdAt'> & { userId: string, createdAt: Date })[] = [
   // Sachin's Posts

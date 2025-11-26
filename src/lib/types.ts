@@ -6,6 +6,10 @@ export interface User {
   username: string;
   avatarUrl: string;
   fullName: string;
+  bio: string;
+  followersCount: number;
+  followingCount: number;
+  verified: boolean;
   createdAt?: Timestamp;
 }
 
