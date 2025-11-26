@@ -102,7 +102,7 @@ service cloud.firestore {
 
       // List only chats where this user is in the users array
       // Client query must be: where('users', 'array-contains', request.auth.uid)
-      allow list: if request.auth != null && request.auth.uid in resource.data.users;
+      allow list: if isSignedIn() && request.auth.uid in resource.data.users;
 
       // Create chat only if current user is in users array of new doc
       allow create: if isCreatingChatWithSelf();
