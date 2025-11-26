@@ -131,12 +131,16 @@ service cloud.firestore {
 
     // streams
     match /streams/{streamId} {
-      allow get, list: if isSignedIn();
-      allow create: if true; // Allow seeding
-      allow update: if isExistingOwner(resource.data.streamerId) 
-                      && request.resource.data.streamerId == resource.data.streamerId;
-      allow delete: if isExistingOwner(resource.data.streamerId);
+      allow get, list: if true; // PUBLIC READ
+
+      allow create: if isSignedIn();
       
+      allow update: if isSignedIn() 
+            && request.auth.uid == resource.data.streamerId;
+
+      allow delete: if isSignedIn()
+            && request.auth.uid == resource.data.streamerId;
+
       // Live Chat Messages
       match /live-chat-messages/{messageId} {
         allow read: if true; // Publicly readable
