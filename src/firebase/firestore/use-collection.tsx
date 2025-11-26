@@ -90,18 +90,22 @@ export function useCollection<T = any>(
         const path: string =
           memoizedTargetRefOrQuery.type === 'collection'
             ? (memoizedTargetRefOrQuery as CollectionReference).path
-            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+            // Firestore queries can be complex, so we safely access the internal path property.
+            // This is a known pattern for extracting the path from a query object for logging/debugging.
+            : (memoizedTargetRefOrQuery as unknown as InternalQuery)._query?.path?.canonicalString() || 'unknown_path';
 
         const contextualError = new FirestorePermissionError({
           operation: 'list',
           path,
-        })
+        });
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        // Set the local error state for the component
+        setError(contextualError);
+        setData(null);
+        setIsLoading(false);
 
-        // trigger global error propagation
+        // Emit the rich, contextual error for the global error listener to catch.
+        // This triggers the Next.js development overlay with detailed debug info.
         errorEmitter.emit('permission-error', contextualError);
       }
     );
