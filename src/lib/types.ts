@@ -21,6 +21,15 @@ export interface Post {
   commentsCount: number;
 }
 
+export interface Reel {
+    id: string;
+    videoUrl: string;
+    user: User;
+    caption: string;
+    likes: string[];
+    commentsCount: number;
+}
+
 export interface Message {
   id: string;
   chatId: string;

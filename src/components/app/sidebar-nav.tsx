@@ -19,7 +19,7 @@ import { useUser } from '@/firebase';
 
 const links = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Explore', icon: Compass }, // Changed from /search to /explore to match label
+  { href: '/search', label: 'Explore', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/notifications', label: 'Notifications', icon: Heart },

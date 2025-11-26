@@ -1,5 +1,6 @@
 
-import type { Post, User, Chat, Message } from '@/lib/types';
+import type { Post, User, Chat, Message, Reel } from '@/lib/types';
+import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
   { id: 'user_sachin', username: 'sachin', fullName: 'Sachin Tendulkar', bio: 'Living and breathing cricket. 🏏', followersCount: 1000000, followingCount: 50, verified: true },
@@ -28,6 +29,49 @@ export const dummyPosts: (Omit<Post, 'user' | 'createdAt' | 'imageUrl' | 'imageH
   { id: 'lila_post_2', userId: 'user_wanderlust_lila', imageId: "8", caption: 'Tokyo vibes 🌃', likes: ['user_ethan_bytes', 'user_sam_reviews'], commentsCount: 60, createdAt: new Date('2023-10-20T19:00:00Z') },
   // Ethan's Posts
   { id: 'ethan_post_1', userId: 'user_ethan_bytes', imageId: "9", caption: 'New setup, who dis?', likes: ['user_sam_reviews', 'user_leo_the_lion'], commentsCount: 110, createdAt: new Date('2023-10-26T14:00:00Z') },
+];
+
+export const dummyReels: Reel[] = [
+    {
+        id: 'reel_1',
+        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` },
+        caption: 'Living my best life in the mountains! 🏔️',
+        likes: ['user_ethan_bytes', 'user_maya_creates'],
+        commentsCount: 42,
+    },
+    {
+        id: 'reel_2',
+        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` },
+        caption: 'City lights and late nights ✨',
+        likes: ['user_wanderlust_lila'],
+        commentsCount: 18,
+    },
+    {
+        id: 'reel_3',
+        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` },
+        caption: 'The art of filmmaking.',
+        likes: ['user_wanderlust_lila', 'user_maya_creates', 'user_sachin'],
+        commentsCount: 98,
+    },
+    {
+        id: 'reel_4',
+        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` },
+        caption: 'Just another unboxing. You HAVE to see this!',
+        likes: ['user_ethan_bytes'],
+        commentsCount: 150,
+    },
+    {
+        id: 'reel_5',
+        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+        user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` },
+        caption: 'Best tacos I have ever had. Period. 🌮',
+        likes: [],
+        commentsCount: 77,
+    }
 ];
 
 export const dummyFollows: { [key: string]: string[] } = {
