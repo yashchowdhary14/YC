@@ -5,10 +5,10 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { formatCompactNumber } from '@/lib/utils';
-import type { Video } from '@/lib/types';
+import type { Post } from '@/lib/types';
 
 interface RelatedVideoCardProps {
-  video: Video;
+  video: Post;
 }
 
 export default function RelatedVideoCard({ video }: RelatedVideoCardProps) {
@@ -17,7 +17,7 @@ export default function RelatedVideoCard({ video }: RelatedVideoCardProps) {
       <div className="relative aspect-video w-40 shrink-0 overflow-hidden rounded-lg bg-muted transition-transform group-hover:scale-105">
         <Image
           src={video.thumbnailUrl}
-          alt={video.title}
+          alt={video.caption}
           fill
           className="object-cover"
           sizes="160px"
@@ -25,7 +25,7 @@ export default function RelatedVideoCard({ video }: RelatedVideoCardProps) {
       </div>
       <div className="flex flex-col gap-0.5">
         <h3 className="font-semibold text-sm leading-tight line-clamp-2">
-          {video.title}
+          {video.caption}
         </h3>
         <p className="text-xs text-muted-foreground">{video.user.username}</p>
         <p className="text-xs text-muted-foreground">

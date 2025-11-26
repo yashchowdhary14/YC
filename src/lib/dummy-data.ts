@@ -1,5 +1,5 @@
 
-import type { Post, User, Chat, Message, Reel, ReelComment, Video, Stream, Category, LiveChatMessage } from '@/lib/types';
+import type { Post, User, Chat, Message, LiveBroadcast, ReelComment, VideoComment, Category, LiveChatMessage } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl?: string })[] = [
@@ -15,169 +15,95 @@ export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl?: string })[] = 
   { id: 'user_urban_eats', username: 'urban_eats', fullName: 'Javier Rodriguez', bio: 'Food blogger on a quest to find the best tacos in every city. 🌮', followersCount: 9800, followingCount: 650, verified: false },
 ];
 
-export const dummyPosts: (Omit<Post, 'user' | 'createdAt' | 'imageUrl' | 'imageHint' > & { userId: string, createdAt: Date, imageId: string })[] = [
-  // Sachin's Posts
-  { id: 'sachin_post_1', userId: 'user_sachin', imageId: "1", caption: 'Another great day on the field!', likes: ['user_sakshi', 'user_ethan_bytes'], commentsCount: 150, createdAt: new Date('2023-10-26T10:00:00Z') },
-  { id: 'sachin_post_2', userId: 'user_sachin', imageId: "2", caption: 'Throwback to a memorable win.', likes: ['user_wanderlust_lila', 'user_maya_creates'], commentsCount: 200, createdAt: new Date('2023-10-25T15:30:00Z') },
-  { id: 'sachin_post_3', userId: 'user_sachin', imageId: "3", caption: 'Teamwork makes the dream work.', likes: [], commentsCount: 95, createdAt: new Date('2023-10-24T11:00:00Z') },
-  // Sakshi's Posts
-  { id: 'sakshi_post_1', userId: 'user_sakshi', imageId: "4", caption: 'Putting in the work. #NoPainNoGain', likes: ['user_ethan_bytes', 'user_sachin'], commentsCount: 80, createdAt: new Date('2023-10-26T09:00:00Z') },
-  { id: 'sakshi_post_2', userId: 'user_sakshi', imageId: "5", caption: 'Focused and ready for the next challenge.', likes: ['user_sachin'], commentsCount: 120, createdAt: new Date('2023-10-25T18:00:00Z') },
-  { id: 'sakshi_post_3', userId: 'user_sakshi', imageId: "6", caption: 'Proud moment for the country!', likes: ['user_sachin', 'user_ethan_bytes', 'user_leo_the_lion'], commentsCount: 350, createdAt: new Date('2023-10-22T12:00:00Z') },
-  // Wanderlust Lila's Posts
-  { id: 'lila_post_1', userId: 'user_wanderlust_lila', imageId: "7", caption: 'Paris is always a good idea.', likes: ['user_maya_creates'], commentsCount: 45, createdAt: new Date('2023-10-27T12:00:00Z') },
-  { id: 'lila_post_2', userId: 'user_wanderlust_lila', imageId: "8", caption: 'Tokyo vibes 🌃', likes: ['user_ethan_bytes', 'user_sam_reviews'], commentsCount: 60, createdAt: new Date('2023-10-20T19:00:00Z') },
-  // Ethan's Posts
-  { id: 'ethan_post_1', userId: 'user_ethan_bytes', imageId: "9", caption: 'New setup, who dis?', likes: ['user_sam_reviews', 'user_leo_the_lion'], commentsCount: 110, createdAt: new Date('2023-10-26T14:00:00Z') },
-];
-
-const dummyComments: ReelComment[] = [
-    {id: 'c1', user: 'ethan_bytes', profilePic: `https://picsum.photos/seed/user_ethan_bytes/100/100`, text: 'This is amazing!', likes: 12, timeAgo: '2h', isLiked: false},
-    {id: 'c2', user: 'maya_creates', profilePic: `https://picsum.photos/seed/user_maya_creates/100/100`, text: 'So inspiring! ❤️', likes: 25, timeAgo: '3h', isLiked: true},
-    {id: 'c3', user: 'sam_reviews', profilePic: `https://picsum.photos/seed/user_sam_reviews/100/100`, text: 'Incredible shot!', likes: 5, timeAgo: '1d', isLiked: false},
-    {id: 'c4', user: 'leo_the_lion', profilePic: `https://picsum.photos/seed/user_leo_the_lion/100/100`, text: 'Let\'s gooo! 🚀', likes: 2, timeAgo: '1d', isLiked: false},
-];
-
-export const dummyReels: Reel[] = [
-    {
-        id: 'reel_1',
-        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-        thumbnailUrl: 'https://picsum.photos/seed/reel1/400/700',
-        user: { ...dummyUsers[2], avatarUrl: `https://picsum.photos/seed/${dummyUsers[2].id}/100/100` } as User,
-        caption: 'Living my best life in the mountains! 🏔️',
-        likes: 1234,
-        isLiked: false,
-        comments: dummyComments,
-        commentsCount: 4,
-    },
-    {
-        id: 'reel_2',
-        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        thumbnailUrl: 'https://picsum.photos/seed/reel2/400/700',
-        user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` } as User,
-        caption: 'City lights and late nights ✨',
-        likes: 567,
-        isLiked: true,
-        comments: [dummyComments[2]],
-        commentsCount: 1,
-    },
-    {
-        id: 'reel_3',
-        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-        thumbnailUrl: 'https://picsum.photos/seed/reel3/400/700',
-        user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` } as User,
-        caption: 'The art of filmmaking.',
-        likes: 8910,
-        isLiked: false,
-        comments: [],
-        commentsCount: 98,
-    },
-    {
-        id: 'reel_4',
-        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-        thumbnailUrl: 'https://picsum.photos/seed/reel4/400/700',
-        user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` } as User,
-        caption: 'Just another unboxing. You HAVE to see this!',
-        likes: 11200,
-        isLiked: false,
-        comments: [],
-        commentsCount: 150,
-    },
-    {
-        id: 'reel_5',
-        videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-        thumbnailUrl: 'https://picsum.photos/seed/reel5/400/700',
-        user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` } as User,
-        caption: 'Best tacos I have ever had. Period. 🌮',
-        likes: 432,
-        isLiked: true,
-        comments: [],
-        commentsCount: 77,
+const getHydratedUser = (userId: string): User => {
+    const user = dummyUsers.find(u => u.id === userId)!;
+    return {
+        ...user,
+        avatarUrl: `https://picsum.photos/seed/${userId}/100/100`
     }
-];
+};
 
-export const dummyVideos: Video[] = [
-  {
-    id: 'vid_1',
-    title: 'How to build a Next.js app in 10 minutes',
-    thumbnailUrl: 'https://picsum.photos/seed/vid1/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-    user: { ...dummyUsers[3], avatarUrl: `https://picsum.photos/seed/${dummyUsers[3].id}/100/100` } as User,
-    views: 150234,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    category: 'Tech',
-  },
-  {
-    id: 'vid_2',
-    title: 'The Secret to Perfect Sourdough',
-    thumbnailUrl: 'https://picsum.photos/seed/vid2/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    user: { ...dummyUsers[9], avatarUrl: `https://picsum.photos/seed/${dummyUsers[9].id}/100/100` } as User,
-    views: 89034,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    category: 'Food',
-  },
-  {
-    id: 'vid_3',
-    title: 'My Desk Setup Tour 2024',
-    thumbnailUrl: 'https://picsum.photos/seed/vid3/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    user: { ...dummyUsers[7], avatarUrl: `https://picsum.photos/seed/${dummyUsers[7].id}/100/100` } as User,
-    views: 1200543,
-    createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-    category: 'Tech',
-  },
-  {
-    id: 'vid_4',
-    title: 'Beginner\'s Guide to Astrophotography',
-    thumbnailUrl: 'https://picsum.photos/seed/vid4/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-    user: { ...dummyUsers[8], avatarUrl: `https://picsum.photos/seed/${dummyUsers[8].id}/100/100` } as User,
-    views: 4523,
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    category: 'Science',
-  },
-  {
-    id: 'vid_5',
-    title: 'A Cinematic Journey Through Japan',
-    thumbnailUrl: 'https://picsum.photos/seed/vid5/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-    user: { ...dummyUsers[6], avatarUrl: `https://picsum.photos/seed/${dummyUsers[6].id}/100/100` } as User,
-    views: 230987,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 1 month ago
-    category: 'Travel',
-  },
-  {
-    id: 'vid_6',
-    title: 'My Favorite Watercolor Techniques',
-    thumbnailUrl: 'https://picsum.photos/seed/vid6/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-    user: { ...dummyUsers[4], avatarUrl: `https://picsum.photos/seed/${dummyUsers[4].id}/100/100` } as User,
-    views: 76543,
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 1 week ago
-    category: 'Art',
-  },
-    {
-    id: 'vid_7',
-    title: 'Daily Workout Routine for Max Gains',
-    thumbnailUrl: 'https://picsum.photos/seed/vid7/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-    user: { ...dummyUsers[5], avatarUrl: `https://picsum.photos/seed/${dummyUsers[5].id}/100/100` } as User,
-    views: 12345,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    category: 'Fitness',
-  },
-  {
-    id: 'vid_8',
-    title: 'Cricket Masterclass: The Cover Drive',
-    thumbnailUrl: 'https://picsum.photos/seed/vid8/640/360',
-    videoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-    user: { ...dummyUsers[0], avatarUrl: `https://picsum.photos/seed/${dummyUsers[0].id}/100/100` } as User,
-    views: 2500000,
-    createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-    category: 'Sports',
-  },
-];
+const createDummyPosts = (): Post[] => {
+    const posts: Post[] = [];
+    
+    // Photos
+    PlaceHolderImages.forEach((img, index) => {
+        const user = dummyUsers[index % dummyUsers.length];
+        posts.push({
+            id: `photo_${img.id}`,
+            type: 'photo',
+            mediaUrl: img.imageUrl,
+            thumbnailUrl: img.imageUrl,
+            uploaderId: user.id,
+            user: getHydratedUser(user.id),
+            caption: img.description,
+            tags: ['photography', img.imageHint.split(' ')[0]],
+            views: Math.floor(Math.random() * 10000),
+            likes: Math.floor(Math.random() * 2000),
+            commentsCount: Math.floor(Math.random() * 500),
+            createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
+        });
+    });
+
+    // Reels
+    const reelVideos = [
+        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
+        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+        'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    ];
+    reelVideos.forEach((videoUrl, index) => {
+        const user = dummyUsers[(index + 3) % dummyUsers.length];
+        posts.push({
+            id: `reel_${index + 1}`,
+            type: 'reel',
+            mediaUrl: videoUrl,
+            thumbnailUrl: `https://picsum.photos/seed/reel${index + 1}/400/700`,
+            uploaderId: user.id,
+            user: getHydratedUser(user.id),
+            caption: `This is a cool reel #reel #${user.username}`,
+            tags: ['reel', 'trending'],
+            views: Math.floor(Math.random() * 50000),
+            likes: Math.floor(Math.random() * 5000),
+            commentsCount: Math.floor(Math.random() * 1000),
+            createdAt: new Date(Date.now() - index * 12 * 60 * 60 * 1000),
+        });
+    });
+    
+    // Videos
+     const longFormVideos = [
+        { id: 'vid_1', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', title: 'How to build a Next.js app in 10 minutes', category: 'Tech' },
+        { id: 'vid_2', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', title: 'The Secret to Perfect Sourdough', category: 'Food' },
+        { id: 'vid_3', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', title: 'My Desk Setup Tour 2024', category: 'Tech' },
+        { id: 'vid_4', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', title: 'Beginner\'s Guide to Astrophotography', category: 'Science' },
+        { id: 'vid_5', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', title: 'A Cinematic Journey Through Japan', category: 'Travel' },
+        { id: 'vid_6', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4', title: 'My Favorite Watercolor Techniques', category: 'Art' },
+        { id: 'vid_7', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4', title: 'Daily Workout Routine for Max Gains', category: 'Fitness' },
+        { id: 'vid_8', url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4', title: 'Cricket Masterclass: The Cover Drive', category: 'Sports' },
+    ];
+    longFormVideos.forEach((vid, index) => {
+        const user = dummyUsers[(index + 5) % dummyUsers.length];
+        posts.push({
+            id: vid.id,
+            type: 'video',
+            mediaUrl: vid.url,
+            thumbnailUrl: `https://picsum.photos/seed/${vid.id}/640/360`,
+            uploaderId: user.id,
+            user: getHydratedUser(user.id),
+            caption: vid.title,
+            tags: [vid.category.toLowerCase(), 'longform'],
+            views: Math.floor(Math.random() * 1000000),
+            likes: Math.floor(Math.random() * 50000),
+            commentsCount: Math.floor(Math.random() * 2000),
+            createdAt: new Date(Date.now() - index * 3 * 24 * 60 * 60 * 1000),
+        });
+    });
+
+    return posts;
+};
+
+export const dummyPosts = createDummyPosts();
 
 export const dummyFollows: { [key: string]: string[] } = {
   'user_sachin': ['user_sakshi', 'user_wanderlust_lila'],
@@ -269,14 +195,6 @@ export function addMessageToChat(chatId: string, message: Message) {
   return false;
 }
 
-const getHydratedUser = (userId: string): User => {
-    const user = dummyUsers.find(u => u.id === userId)!;
-    return {
-        ...user,
-        avatarUrl: `https://picsum.photos/seed/${userId}/100/100`
-    }
-}
-
 export const dummyCategories: Category[] = [
     { id: 'just-chatting', name: 'Just Chatting', thumbnailUrl: 'https://picsum.photos/seed/cat_chat/300/400' },
     { id: 'games', name: 'Games', thumbnailUrl: 'https://picsum.photos/seed/cat_games/300/400' },
@@ -288,11 +206,11 @@ export const dummyCategories: Category[] = [
     { id: 'food', name: 'Food', thumbnailUrl: 'https://picsum.photos/seed/cat_food/300/400' },
 ];
 
-export const dummyStreams: Stream[] = [
-    { id: 'user_sachin', streamerId: 'user_sachin', user: getHydratedUser('user_sachin'), title: 'Cricket Practice', category: 'Sports', tags: ['Cricket', 'Training'], isLive: true, viewerCount: 75000, thumbnailUrl: 'https://picsum.photos/seed/stream_sachin/640/360' },
-    { id: 'user_sakshi', streamerId: 'user_sakshi', user: getHydratedUser('user_sakshi'), title: 'Workout Session', category: 'Fitness', tags: ['Wrestling', 'Training'], isLive: true, viewerCount: 52000, thumbnailUrl: 'https://picsum.photos/seed/stream_sakshi/640/360' },
-    { id: 'user_wanderlust_lila', streamerId: 'user_wanderlust_lila', user: getHydratedUser('user_wanderlust_lila'), title: 'Exploring Tokyo', category: 'Travel', tags: ['Japan', 'Vlog'], isLive: false, viewerCount: 0, thumbnailUrl: 'https://picsum.photos/seed/stream_lila/640/360' },
-    { id: 'user_ethan_bytes', streamerId: 'user_ethan_bytes', user: getHydratedUser('user_ethan_bytes'), title: 'Coding a new project', category: 'Tech', tags: ['Programming', 'Rust'], isLive: true, viewerCount: 1200, thumbnailUrl: 'https://picsum.photos/seed/stream_ethan/640/360' },
-    { id: 'user_maya_creates', streamerId: 'user_maya_creates', user: getHydratedUser('user_maya_creates'), title: 'Live Painting Session', category: 'Art', tags: ['Illustration', 'Creative'], isLive: true, viewerCount: 9800, thumbnailUrl: 'https://picsum.photos/seed/stream_maya/640/360' },
-    { id: 'user_sam_reviews', streamerId: 'user_sam_reviews', user: getHydratedUser('user_sam_reviews'), title: 'Unboxing the new phone!', category: 'Tech', tags: ['Unboxing', 'Gadgets'], isLive: false, viewerCount: 0, thumbnailUrl: 'https://picsum.photos/seed/stream_sam/640/360' },
+export const dummyLiveBroadcasts: LiveBroadcast[] = [
+    { liveId: 'live_sachin', streamerId: 'user_sachin', streamerName: 'sachin', user: getHydratedUser('user_sachin'), title: 'Cricket Practice', category: 'Sports', avatarUrl: getHydratedUser('user_sachin').avatarUrl, isLive: true, viewerCount: 75000, liveThumbnail: 'https://picsum.photos/seed/stream_sachin/640/360' },
+    { liveId: 'live_sakshi', streamerId: 'user_sakshi', streamerName: 'sakshi', user: getHydratedUser('user_sakshi'), title: 'Workout Session', category: 'Fitness', avatarUrl: getHydratedUser('user_sakshi').avatarUrl, isLive: true, viewerCount: 52000, liveThumbnail: 'https://picsum.photos/seed/stream_sakshi/640/360' },
+    { liveId: 'live_lila', streamerId: 'user_wanderlust_lila', streamerName: 'wanderlust_lila', user: getHydratedUser('user_wanderlust_lila'), title: 'Exploring Tokyo', category: 'Travel', avatarUrl: getHydratedUser('user_wanderlust_lila').avatarUrl, isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_lila/640/360' },
+    { liveId: 'live_ethan', streamerId: 'user_ethan_bytes', streamerName: 'ethan_bytes', user: getHydratedUser('user_ethan_bytes'), title: 'Coding a new project', category: 'Tech', avatarUrl: getHydratedUser('user_ethan_bytes').avatarUrl, isLive: true, viewerCount: 1200, liveThumbnail: 'https://picsum.photos/seed/stream_ethan/640/360' },
+    { liveId: 'live_maya', streamerId: 'user_maya_creates', streamerName: 'maya_creates', user: getHydratedUser('user_maya_creates'), title: 'Live Painting Session', category: 'Art', avatarUrl: getHydratedUser('user_maya_creates').avatarUrl, isLive: true, viewerCount: 9800, liveThumbnail: 'https://picsum.photos/seed/stream_maya/640/360' },
+    { liveId: 'live_sam', streamerId: 'user_sam_reviews', streamerName: 'sam_reviews', user: getHydratedUser('user_sam_reviews'), title: 'Unboxing the new phone!', category: 'Tech', avatarUrl: getHydratedUser('user_sam_reviews').avatarUrl, isLive: false, viewerCount: 0, liveThumbnail: 'https://picsum.photos/seed/stream_sam/640/360' },
 ];

@@ -13,12 +13,10 @@ interface ExploreGridProps {
 
 const getSpan = (index: number): string => {
     // These patterns create the dynamic Instagram-style grid.
-    // Every 7th item is a large vertical tile.
-    if ((index + 1) % 7 === 1) return "row-span-2 col-span-1";
-    // Every 11th item is a large horizontal tile.
-    if ((index + 1) % 11 === 1) return "row-span-1 col-span-2";
-    // Default is a standard 1x1 tile.
-    return "row-span-1 col-span-1";
+    if ((index % 18) === 0) return "col-span-2 row-span-2"; // Large square
+    if ((index % 18) === 7) return "col-span-1 row-span-2"; // Tall
+    if ((index % 18) === 12) return "col-span-2 row-span-1"; // Wide
+    return "col-span-1 row-span-1"; // Standard square
 }
 
 const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
@@ -33,7 +31,7 @@ const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
                 },
             },
         }}
-        className="grid grid-cols-3 auto-rows-[minmax(0,1fr)] gap-1"
+        className="grid grid-cols-2 sm:grid-cols-3 auto-rows-[minmax(0,1fr)] gap-1"
     >
       {items.map((item, index) => (
         <motion.div

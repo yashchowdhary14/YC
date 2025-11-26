@@ -6,10 +6,10 @@ import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
 import { formatCompactNumber } from '@/lib/utils';
-import type { Video } from '@/lib/types';
+import type { Post } from '@/lib/types';
 
 interface VideoCardProps {
-  video: Video;
+  video: Post;
 }
 
 export default function VideoCard({ video }: VideoCardProps) {
@@ -19,7 +19,7 @@ export default function VideoCard({ video }: VideoCardProps) {
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-muted transition-transform hover:scale-105">
           <Image
             src={video.thumbnailUrl}
-            alt={video.title}
+            alt={video.caption}
             fill
             className="object-cover"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
@@ -35,7 +35,7 @@ export default function VideoCard({ video }: VideoCardProps) {
         </Link>
         <div className="flex flex-col">
           <h3 className="font-semibold text-base leading-tight">
-            <Link href={`/watch/${video.id}`}>{video.title}</Link>
+            <Link href={`/watch/${video.id}`}>{video.caption}</Link>
           </h3>
           <p className="text-sm text-muted-foreground mt-1">{video.user.username}</p>
           <p className="text-sm text-muted-foreground">

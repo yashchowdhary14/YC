@@ -15,29 +15,29 @@ import VideoCard from '@/components/app/video-card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import type { Video } from '@/lib/types';
+import type { Post } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
-import { dummyVideos } from '@/lib/dummy-data';
+import { dummyPosts } from '@/lib/dummy-data';
 
 type SortOption = 'Trending' | 'Latest';
 
 export default function VideosPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortOption, setSortOption] = useState<SortOption>('Trending');
-  const [videos, setVideos] = useState<Video[] | null>(null);
+  const [videos, setVideos] = useState<Post[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Simulate fetching data
     setTimeout(() => {
-      setVideos(dummyVideos);
+      setVideos(dummyPosts.filter(p => p.type === 'video'));
       setIsLoading(false);
     }, 500);
   }, []);
 
   const categories = useMemo(() => {
     if (!videos) return ['All'];
-    const allCategories = videos.map(video => video.category);
+    const allCategories = videos.flatMap(video => video.tags.filter(t => t !== 'longform'));
     return ['All', ...Array.from(new Set(allCategories))];
   }, [videos]);
 
@@ -50,7 +50,7 @@ export default function VideosPage() {
     }));
 
     if (selectedCategory !== 'All') {
-      processedVideos = processedVideos.filter(video => video.category === selectedCategory);
+      processedVideos = processedVideos.filter(video => video.tags.includes(selectedCategory));
     }
 
     if (sortOption === 'Trending') {
@@ -101,7 +101,7 @@ export default function VideosPage() {
                     variant={selectedCategory === category ? 'default' : 'secondary'}
                     size="sm"
                     className={cn(
-                      "rounded-lg shrink-0",
+                      "rounded-lg shrink-0 capitalize",
                       selectedCategory === category
                         ? "bg-primary/10 text-primary border border-primary/50"
                         : "bg-secondary text-secondary-foreground"

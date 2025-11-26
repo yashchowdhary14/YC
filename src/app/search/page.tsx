@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -19,11 +19,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useUser } from '@/firebase';
 import { useIntersection } from '@/hooks/use-intersection';
-import { dummyUsers, dummyPosts, dummyReels, dummyVideos, dummyStreams } from '@/lib/dummy-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { dummyUsers, dummyPosts, dummyLiveBroadcasts } from '@/lib/dummy-data';
 import type { User as UserType } from '@/lib/types';
 import ExploreGrid from '@/components/explore/ExploreGrid';
 import type { ExploreItem } from '@/components/explore/types';
+import { Loader2 } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 18;
 
@@ -38,51 +38,25 @@ const shuffleArray = (array: any[]) => {
   return array;
 };
 
-
 export default function SearchPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isFocused, setIsFocused] = useState(false);
-    const { user } = useUser();
     
     const [displayedItems, setDisplayedItems] = useState<ExploreItem[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
     const allExploreItems: ExploreItem[] = useMemo(() => {
-        const photos = dummyPosts.map(p => {
-            const image = PlaceHolderImages.find(img => img.id === p.imageId)!;
-            return {
-                id: p.id,
-                type: 'photo' as const,
-                imageUrl: image.imageUrl,
-                imageHint: image.imageHint,
-                likes: p.likes.length,
-                comments: p.commentsCount,
-            }
-        });
-        const reels = dummyReels.map(r => ({
-            id: r.id,
-            type: 'reel' as const,
-            imageUrl: r.thumbnailUrl || `https://picsum.photos/seed/${r.id}/400/700`,
-            imageHint: 'reel video',
-            likes: r.likes,
-            comments: r.commentsCount,
-        }));
-        const videos = dummyVideos.map(v => ({
-            id: v.id,
-            type: 'video' as const,
-            imageUrl: v.thumbnailUrl,
-            imageHint: 'video content',
-            likes: v.views, // Using views as likes for variety
-            comments: Math.floor(v.views / 100),
-        }));
-        const liveStreams = dummyStreams.filter(s => s.isLive).map(s => ({
-            id: s.id,
+        const photos = dummyPosts.filter(p => p.type === 'photo').map(p => ({ ...p, id: p.id }));
+        const reels = dummyPosts.filter(p => p.type === 'reel').map(p => ({ ...p, id: p.id }));
+        const videos = dummyPosts.filter(p => p.type === 'video').map(p => ({ ...p, id: p.id }));
+        const liveStreams = dummyLiveBroadcasts.filter(s => s.isLive).map(s => ({
+            ...s,
+            id: s.liveId,
             type: 'live' as const,
-            imageUrl: s.thumbnailUrl || `https://picsum.photos/seed/${s.id}/640/360`,
-            imageHint: 'live stream',
-            viewerCount: s.viewerCount,
-            streamer: s.user
+            thumbnailUrl: s.liveThumbnail,
+            streamerName: s.streamerName,
+            caption: s.title
         }));
 
         // Combine and shuffle for a mixed feed
@@ -96,14 +70,14 @@ export default function SearchPage() {
         setHasMore(allExploreItems.length > ITEMS_PER_PAGE);
     }, [allExploreItems]);
     
-    const loadMoreItems = () => {
+    const loadMoreItems = useCallback(() => {
         if (!hasMore) return;
         const nextPage = page + 1;
         const newItems = allExploreItems.slice(0, nextPage * ITEMS_PER_PAGE);
         setDisplayedItems(newItems);
         setPage(nextPage);
         setHasMore(newItems.length < allExploreItems.length);
-    };
+    }, [page, hasMore, allExploreItems]);
 
     const loaderRef = useRef<HTMLDivElement>(null);
     const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
@@ -115,7 +89,7 @@ export default function SearchPage() {
             }, 300);
             return () => clearTimeout(timer);
         }
-    }, [isLoaderVisible, hasMore]);
+    }, [isLoaderVisible, hasMore, loadMoreItems]);
 
 
     const filteredUsers = useMemo(() => {
@@ -140,7 +114,7 @@ export default function SearchPage() {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="bg-background min-h-[calc(100vh-4rem)]">
+        <main className="bg-background min-h-[calc(100svh-4rem)]">
           <div className="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
             <div className="sticky top-[calc(3.5rem)] z-20 bg-background py-4 mb-4 -mt-4">
               <div className="relative">
@@ -182,9 +156,11 @@ export default function SearchPage() {
             
             <ExploreGrid items={displayedItems} />
 
-            <div ref={loaderRef} className="flex justify-center items-center py-8">
-                {hasMore && <Button onClick={loadMoreItems} variant="secondary">Load More</Button>}
-            </div>
+            {hasMore && (
+              <div ref={loaderRef} className="flex justify-center items-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            )}
 
           </div>
         </main>

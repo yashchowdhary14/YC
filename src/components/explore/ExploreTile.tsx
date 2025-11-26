@@ -20,7 +20,7 @@ const getLinkHref = (item: ExploreItem) => {
         case 'photo': return `/p/${item.id}`;
         case 'reel': return `/reels`; // Reels page handles full-screen viewing
         case 'video': return `/watch/${item.id}`;
-        case 'live': return item.streamer ? `/live/${item.streamer.username}` : '/live';
+        case 'live': return `/live/${item.streamerName}`;
         default: return '#';
     }
 }
@@ -37,14 +37,14 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
         />
 
         <Image
-            src={item.imageUrl}
-            alt={item.imageHint || 'Explore content'}
+            src={item.thumbnailUrl}
+            alt={item.caption || 'Explore content'}
             fill
             className={cn(
                 'object-cover transition-all duration-500 ease-in-out group-hover:scale-105',
                 isLoaded ? 'opacity-100 blur-0' : 'opacity-0 blur-sm'
             )}
-            sizes="(max-width: 768px) 33vw, 25vw"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             onLoad={() => setIsLoaded(true)}
         />
         
@@ -58,10 +58,10 @@ const ExploreTile: React.FC<ExploreTileProps> = ({ item }) => {
                             <span>{formatCompactNumber(item.likes)}</span>
                         </div>
                     )}
-                     {typeof item.comments === 'number' && (
+                     {typeof item.commentsCount === 'number' && (
                         <div className="flex items-center gap-1.5">
                             <MessageCircle className="h-5 w-5 fill-white" />
-                            <span>{formatCompactNumber(item.comments)}</span>
+                            <span>{formatCompactNumber(item.commentsCount)}</span>
                         </div>
                     )}
                 </div>

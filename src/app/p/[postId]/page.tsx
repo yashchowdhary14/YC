@@ -26,7 +26,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { dummyPosts, dummyUsers } from '@/lib/dummy-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { notFound } from 'next/navigation';
 import TextareaAutosize from 'react-textarea-autosize';
 
@@ -50,23 +49,7 @@ export default function PostPage() {
   const [hydratedComments, setHydratedComments] = useState<Comment[]>([]);
 
   const post = useMemo((): Post | null => {
-    const postData = dummyPosts.find(p => p.id === postId);
-    if (!postData) return null;
-
-    const userData = dummyUsers.find(u => u.id === postData.userId);
-    if (!userData) return null;
-
-    const image = PlaceHolderImages.find(img => img.id === postData.imageId)!;
-
-    return {
-      ...postData,
-      imageUrl: image.imageUrl,
-      imageHint: image.imageHint,
-      user: {
-        ...userData,
-        avatarUrl: `https://picsum.photos/seed/${userData.id}/100/100`,
-      },
-    };
+    return dummyPosts.find(p => p.id === postId) || null;
   }, [postId]);
 
   // Simulate comment fetching and hydration
@@ -196,8 +179,8 @@ export default function PostPage() {
                 <Card className="grid grid-cols-2 overflow-hidden max-h-[85vh]">
                    <div className="relative aspect-[4/5] bg-muted">
                     <Image
-                      src={post.imageUrl}
-                      alt={post.imageHint || 'Post image'}
+                      src={post.mediaUrl}
+                      alt={post.caption || 'Post image'}
                       fill
                       className="object-cover"
                     />
@@ -213,7 +196,6 @@ export default function PostPage() {
                              </Link>
                              <div className="grid gap-0.5 text-sm flex-1">
                                <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
-                                {post.location && <p className="text-xs text-muted-foreground">{post.location}</p>}
                              </div>
                            </div>
                       </div>

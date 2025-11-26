@@ -5,21 +5,21 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
-import type { Stream, Category } from '@/lib/types';
+import type { LiveBroadcast, Category } from '@/lib/types';
 import Link from 'next/link';
 import { formatCompactNumber } from '@/lib/utils';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, useSidebar } from '../ui/sidebar';
 
 interface LiveSidebarProps {
-  recommendedChannels: Stream[];
+  recommendedChannels: LiveBroadcast[];
   recommendedCategories: Category[];
 }
 
-function ChannelItem({ channel }: { channel: Stream }) {
+function ChannelItem({ channel }: { channel: LiveBroadcast }) {
   const { setOpen } = useSidebar();
   return (
     <Link 
-      href={`/${channel.user.username}`} 
+      href={`/live/${channel.streamerName}`} 
       className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md"
       onClick={() => setOpen(false)}
     >
@@ -83,7 +83,7 @@ export default function LiveSidebar({ recommendedChannels, recommendedCategories
                 <h3 className="text-sm font-semibold uppercase text-zinc-400 px-2 mb-2">Live Channels</h3>
                 <div className="space-y-1">
                     {recommendedChannels.map(channel => (
-                        <ChannelItem key={channel.id} channel={channel} />
+                        <ChannelItem key={channel.liveId} channel={channel} />
                     ))}
                     <Button variant="link" size="sm" className="text-xs p-0 text-primary">Show More</Button>
                 </div>

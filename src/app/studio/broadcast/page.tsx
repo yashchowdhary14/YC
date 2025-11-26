@@ -21,8 +21,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import LiveChat from '@/components/live/live-chat';
-import type { Stream, LiveChatMessage } from '@/lib/types';
-import { dummyStreams } from '@/lib/dummy-data';
+import type { LiveBroadcast, LiveChatMessage } from '@/lib/types';
+import { dummyLiveBroadcasts } from '@/lib/dummy-data';
 
 
 export default function BroadcastPage() {
@@ -30,7 +30,7 @@ export default function BroadcastPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const [allStreams, setAllStreams] = useState<Stream[]>(dummyStreams);
+  const [allStreams, setAllStreams] = useState<LiveBroadcast[]>(dummyLiveBroadcasts);
   const [streamTitle, setStreamTitle] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,12 +44,11 @@ export default function BroadcastPage() {
   }, [allStreams, user]);
 
   useEffect(() => {
-     // Listen for storage changes to sync state across tabs
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'dummyStreams' && event.newValue) {
+      if (event.key === 'dummyLiveBroadcasts' && event.newValue) {
         const updatedStreams = JSON.parse(event.newValue);
         setAllStreams(updatedStreams);
-        const myStream = updatedStreams.find((s: Stream) => s.streamerId === user?.uid);
+        const myStream = updatedStreams.find((s: LiveBroadcast) => s.streamerId === user?.uid);
         if (myStream) {
             setIsLive(myStream.isLive);
             setStreamTitle(myStream.title);
@@ -57,8 +56,7 @@ export default function BroadcastPage() {
       }
     };
     
-    // Load initial state from localStorage
-    const storedStreams = localStorage.getItem('dummyStreams');
+    const storedStreams = localStorage.getItem('dummyLiveBroadcasts');
     if (storedStreams) {
         setAllStreams(JSON.parse(storedStreams));
     }
@@ -121,11 +119,10 @@ export default function BroadcastPage() {
     if(!streamData) return;
     setIsLoading(true);
     
-    // Simulate network delay
     await new Promise(r => setTimeout(r, 500));
 
     const updatedStreams = allStreams.map(s => {
-        if (s.id === streamData.id) {
+        if (s.liveId === streamData.liveId) {
             return { 
                 ...s, 
                 isLive: liveStatus, 
@@ -137,11 +134,10 @@ export default function BroadcastPage() {
     });
 
     setAllStreams(updatedStreams);
-    localStorage.setItem('dummyStreams', JSON.stringify(updatedStreams));
+    localStorage.setItem('dummyLiveBroadcasts', JSON.stringify(updatedStreams));
     
-    // Manually dispatch a storage event for the current tab to listen to
     window.dispatchEvent(new StorageEvent('storage', {
-        key: 'dummyStreams',
+        key: 'dummyLiveBroadcasts',
         newValue: JSON.stringify(updatedStreams),
     }));
 

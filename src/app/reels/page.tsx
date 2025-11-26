@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -12,8 +12,8 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import ReelCard from '@/components/app/reel-card';
-import { dummyReels } from '@/lib/dummy-data';
-import type { Reel as ReelType, ReelComment } from '@/lib/types';
+import { dummyPosts } from '@/lib/dummy-data';
+import type { Post, ReelComment } from '@/lib/types';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -24,8 +24,11 @@ export default function ReelsPage() {
     const { user, isUserLoading, followedUsers, toggleFollow } = useUser();
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement>(null);
-    const [reels, setReels] = useState<ReelType[]>(dummyReels);
-    const [selectedReelForComments, setSelectedReelForComments] = useState<ReelType | null>(null);
+    
+    const allReels = useMemo(() => dummyPosts.filter(p => p.type === 'reel'), []);
+
+    const [reels, setReels] = useState<Post[]>(allReels);
+    const [selectedReelForComments, setSelectedReelForComments] = useState<Post | null>(null);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -33,7 +36,7 @@ export default function ReelsPage() {
         }
     }, [isUserLoading, user, router]);
 
-    const handleUpdateReel = (updatedReel: ReelType) => {
+    const handleUpdateReel = (updatedReel: Post) => {
       setReels(currentReels => 
         currentReels.map(reel => 
           reel.id === updatedReel.id ? updatedReel : reel
@@ -42,23 +45,8 @@ export default function ReelsPage() {
     };
 
     const handleUpdateComment = (reelId: string, updatedComments: ReelComment[]) => {
-        setReels(reels => reels.map(reel => {
-            if (reel.id === reelId) {
-                return { 
-                    ...reel, 
-                    comments: updatedComments,
-                    commentsCount: updatedComments.length 
-                };
-            }
-            return reel;
-        }));
-
-        if(selectedReelForComments && selectedReelForComments.id === reelId) {
-            setSelectedReelForComments(prev => {
-                if (!prev) return null;
-                 return { ...prev, comments: updatedComments, commentsCount: updatedComments.length };
-            });
-        }
+        // This is a simulation, in a real app you'd update this via an API
+        console.log('Comments updated for reel:', reelId, updatedComments);
     };
 
     useEffect(() => {
@@ -115,7 +103,7 @@ export default function ReelsPage() {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
-        <main className="h-[calc(100vh-4rem)] bg-black flex justify-center items-center overflow-hidden">
+        <main className="h-[calc(100svh-4rem)] bg-black flex justify-center items-center overflow-hidden">
             <div
               ref={containerRef}
               className="relative h-full w-full max-w-[450px] snap-y snap-mandatory overflow-y-scroll scrollbar-hide"
@@ -133,7 +121,7 @@ export default function ReelsPage() {
               ))}
             </div>
         </main>
-        <CommentsSheet 
+        {/* <CommentsSheet 
             reel={selectedReelForComments} 
             onOpenChange={(isOpen) => {
                 if (!isOpen) {
@@ -142,7 +130,7 @@ export default function ReelsPage() {
             }}
             onUpdateComment={handleUpdateComment}
             currentUser={user}
-        />
+        /> */}
       </SidebarInset>
     </SidebarProvider>
   );

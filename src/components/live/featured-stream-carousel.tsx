@@ -9,7 +9,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Badge } from '@/components/ui/badge';
-import type { Stream } from '@/lib/types';
+import type { LiveBroadcast } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { formatCompactNumber } from '@/lib/utils';
 import Image from 'next/image';
@@ -19,17 +19,17 @@ import { cn } from '@/lib/utils';
 
 
 interface FeaturedStreamCarouselProps {
-    streams: Stream[];
+    streams: LiveBroadcast[];
 }
 
-function FeaturedStreamCard({ stream }: { stream: Stream }) {
+function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
   const [isLoaded, setIsLoaded] = useState(false);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0 md:gap-0.5">
         <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-zinc-800 rounded-t-lg md:rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
              <Image 
-                src={stream.thumbnailUrl!} 
+                src={stream.liveThumbnail} 
                 alt={stream.title} 
                 fill 
                 className={cn(
@@ -57,13 +57,6 @@ function FeaturedStreamCard({ stream }: { stream: Stream }) {
                         <p className="text-sm text-zinc-400">{formatCompactNumber(stream.viewerCount)} viewers</p>
                     </div>
                 </div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                    {stream.tags.map(tag => (
-                         <Badge key={tag} variant="secondary" className="text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 text-zinc-300 px-3 py-1">
-                            {tag}
-                        </Badge>
-                    ))}
-                </div>
             </div>
             <p className="text-zinc-200 text-base mt-4 line-clamp-2">{stream.title}</p>
         </div>
@@ -83,8 +76,8 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
       >
         <CarouselContent className="-ml-4">
           {streams.map((stream) => (
-            <CarouselItem key={stream.id} className="pl-4">
-              <Link href={`/live/${stream.user.username}`} className="block">
+            <CarouselItem key={stream.liveId} className="pl-4">
+              <Link href={`/live/${stream.streamerName}`} className="block">
                 <FeaturedStreamCard stream={stream} />
               </Link>
             </CarouselItem>

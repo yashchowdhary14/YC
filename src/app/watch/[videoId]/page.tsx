@@ -22,9 +22,9 @@ import { Separator } from '@/components/ui/separator';
 import RelatedVideoCard from '@/components/app/related-video-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/firebase';
-import type { Video, VideoComment } from '@/lib/types';
+import type { Post, VideoComment, User } from '@/lib/types';
 import TextareaAutosize from 'react-textarea-autosize';
-import { dummyVideos, dummyUsers } from '@/lib/dummy-data';
+import { dummyPosts, dummyUsers } from '@/lib/dummy-data';
 
 function WatchPageSkeleton() {
   return (
@@ -74,7 +74,7 @@ function generateDummyComments(count: number): VideoComment[] {
             id: `comment-${i}-${Date.now()}`,
             text: `This is a great dummy comment! #${i + 1}`,
             createdAt: new Date(Date.now() - (i + 1) * 60000 * Math.random() * 10),
-            user: { ...user, avatarUrl: `https://picsum.photos/seed/${user.id}/100/100` }
+            user: { ...user, avatarUrl: `https://picsum.photos/seed/${user.id}/100/100` } as User
         });
     }
     return comments.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime());
@@ -192,11 +192,12 @@ export default function WatchPage() {
   const { videoId } = useParams<{ videoId: string }>();
   const [isVideoLoading, setIsVideoLoading] = useState(true);
   
-  const video = useMemo(() => dummyVideos.find(v => v.id === videoId), [videoId]);
+  const video = useMemo(() => dummyPosts.find(p => p.id === videoId && p.type === 'video'), [videoId]);
   
   const relatedVideos = useMemo(() => {
     if (!video) return [];
-    return dummyVideos.filter(v => v.category === video.category && v.id !== video.id);
+    const category = video.tags.find(t => t !== 'longform');
+    return dummyPosts.filter(p => p.type === 'video' && p.tags.includes(category!) && p.id !== video.id);
   }, [video]);
 
   useEffect(() => {
@@ -241,13 +242,13 @@ export default function WatchPage() {
                 <div className="lg:col-span-2">
                   <div className="aspect-video w-full overflow-hidden rounded-xl bg-muted mb-4">
                     <video
-                      src={video.videoUrl}
+                      src={video.mediaUrl}
                       controls
                       autoPlay
                       className="w-full h-full object-contain"
                     />
                   </div>
-                  <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
+                  <h1 className="text-2xl font-bold mb-2">{video.caption}</h1>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span>{formatCompactNumber(video.views)} views</span>
                       <span>{video.createdAt ? formatDistanceToNow(new Date(video.createdAt), { addSuffix: true }) : ''}</span>
@@ -269,7 +270,7 @@ export default function WatchPage() {
                           <div className="flex items-center rounded-full bg-secondary">
                              <Button variant="secondary" className="rounded-r-none rounded-l-full">
                                  <ThumbsUp className="mr-2 h-4 w-4"/>
-                                 {formatCompactNumber(Math.floor(video.views / 50))}
+                                 {formatCompactNumber(video.likes)}
                              </Button>
                              <Separator orientation="vertical" className="h-6"/>
                              <Button variant="secondary" className="rounded-l-none rounded-r-full">

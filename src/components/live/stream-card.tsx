@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import type { Stream } from '@/lib/types';
+import type { LiveBroadcast } from '@/lib/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { formatCompactNumber } from '@/lib/utils';
@@ -12,18 +12,18 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
 interface StreamCardProps {
-  stream: Stream;
+  stream: LiveBroadcast;
 }
 
 export default function StreamCard({ stream }: StreamCardProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   
   return (
-    <Link href={`/live/${stream.user.username}`} className="group">
+    <Link href={`/live/${stream.streamerName}`} className="group">
       <div className="relative mb-3 overflow-hidden rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
         <AspectRatio ratio={16 / 9} className="bg-zinc-800 rounded-lg overflow-hidden">
             <Image
-                src={stream.thumbnailUrl!}
+                src={stream.liveThumbnail}
                 alt={stream.title}
                 fill
                 className={cn(
@@ -53,13 +53,6 @@ export default function StreamCard({ stream }: StreamCardProps) {
           </h3>
           <p className="text-sm text-zinc-400 truncate">{stream.user.username}</p>
           <p className="text-sm text-zinc-400 truncate">{stream.category}</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {stream.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="secondary" className="text-xs font-semibold bg-zinc-700 hover:bg-zinc-600 text-zinc-300 px-2 py-0.5">
-                {tag}
-              </Badge>
-            ))}
-          </div>
         </div>
       </div>
     </Link>

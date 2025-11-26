@@ -10,24 +10,24 @@ import LiveStreamPlayer from '@/components/live/live-stream-player';
 import LiveChat from '@/components/live/live-chat';
 import StreamInfo from '@/components/live/stream-info';
 import { Separator } from '@/components/ui/separator';
-import type { Stream, User, LiveChatMessage } from '@/lib/types';
-import { dummyStreams } from '@/lib/dummy-data';
+import type { LiveBroadcast, User, LiveChatMessage } from '@/lib/types';
+import { dummyLiveBroadcasts } from '@/lib/dummy-data';
 
 export default function LiveWatchPage() {
   const { username } = useParams<{ username: string }>();
   const { user: currentUser, isUserLoading } = useUser();
-  const [streams, setStreams] = useState(dummyStreams);
+  const [streams, setStreams] = useState(dummyLiveBroadcasts);
   const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
 
   useEffect(() => {
     // Effect to listen for storage changes to update live status
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'dummyStreams' && event.newValue) {
+      if (event.key === 'dummyLiveBroadcasts' && event.newValue) {
         setStreams(JSON.parse(event.newValue));
       }
     };
     
-    const storedStreams = localStorage.getItem('dummyStreams');
+    const storedStreams = localStorage.getItem('dummyLiveBroadcasts');
     if (storedStreams) {
         setStreams(JSON.parse(storedStreams));
     }
@@ -37,7 +37,7 @@ export default function LiveWatchPage() {
   }, []);
 
   const stream = useMemo(() => {
-    const s = streams.find(s => s.user.username === username);
+    const s = streams.find(s => s.streamerName === username);
     if (!s) return null;
     return s;
   }, [streams, username]);
@@ -66,7 +66,7 @@ export default function LiveWatchPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
         <main className="lg:col-span-9 flex flex-col overflow-y-auto">
           <div className="aspect-video">
-             <LiveStreamPlayer src={(stream as any)?.videoUrl}/>
+             <LiveStreamPlayer src={'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'}/>
           </div>
           <div className="p-4 flex-1">
              <StreamInfo streamer={streamer} stream={{...stream, viewers: stream.viewerCount}} />

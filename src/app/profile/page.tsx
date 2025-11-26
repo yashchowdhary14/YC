@@ -21,7 +21,6 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import { dummyUsers, dummyPosts, dummyFollows } from '@/lib/dummy-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Post } from '@/lib/types';
 
 export default function ProfilePage() {
@@ -41,18 +40,7 @@ export default function ProfilePage() {
     const userProfileData = dummyUsers.find(u => u.id === user.uid);
     if (!userProfileData) return { profileUser: null, posts: [] };
 
-    const userPosts = dummyPosts
-      .filter(p => p.userId === user.uid)
-      .map(p => {
-        const image = PlaceHolderImages.find(img => img.id === p.imageId)!;
-        return {
-          id: p.id,
-          imageUrl: image.imageUrl,
-          imageHint: image.imageHint,
-          likes: p.likes,
-          commentsCount: p.commentsCount,
-        };
-      });
+    const userPosts = dummyPosts.filter(p => p.uploaderId === user.uid);
 
     const followersCount = Object.values(dummyFollows).filter(followingList => followingList.includes(user.uid)).length;
     const followingCount = dummyFollows[user.uid]?.length || 0;

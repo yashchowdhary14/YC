@@ -31,17 +31,13 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
 
   const [optimisticPost, toggleOptimisticLike] = useOptimistic(
     post,
-    (state, _) => {
-      if (!user) return state;
-      const isLiked = state.likes.includes(user.uid);
-      const newLikes = isLiked
-        ? state.likes.filter(id => id !== user.uid)
-        : [...state.likes, user.uid];
-      return { ...state, likes: newLikes };
+    (state, newLikes: number) => {
+      return { ...state, likes: newLikes, isLiked: !state.isLiked };
     }
   );
 
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
   const handleLike = async () => {
     if (!user) {
@@ -52,7 +48,9 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       });
       return;
     }
-    toggleOptimisticLike(null);
+    const newLikesCount = isLiked ? optimisticPost.likes - 1 : optimisticPost.likes + 1;
+    setIsLiked(!isLiked);
+    toggleOptimisticLike(newLikesCount);
   };
   
   const handleBookmark = () => {
@@ -66,9 +64,6 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
     }
     setIsBookmarked(!isBookmarked);
   };
-
-
-  const isLiked = user ? optimisticPost.likes.includes(user.uid) : false;
 
   return (
     <Wrapper className="max-w-xl mx-auto w-full border-0 sm:border">
@@ -100,12 +95,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           <Link href={`/p/${post.id}`}>
             <div className="relative aspect-square">
               <Image
-                src={post.imageUrl}
-                alt={post.imageHint || 'post image'}
+                src={post.mediaUrl}
+                alt={post.caption || 'post image'}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                data-ai-hint={post.imageHint}
               />
             </div>
           </Link>
@@ -133,7 +127,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           </Button>
         </div>
         <div className="text-sm font-semibold">
-          {optimisticPost.likes.length.toLocaleString()} likes
+          {optimisticPost.likes.toLocaleString()} likes
         </div>
         <p className="text-sm">
           <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>{' '}

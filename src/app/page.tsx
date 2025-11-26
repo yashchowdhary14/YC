@@ -7,7 +7,6 @@ import { useUser } from '@/firebase';
 import { Loader2, ArrowUp } from 'lucide-react';
 import type { Post, User } from '@/lib/types';
 import { dummyUsers, dummyPosts, dummyFollows } from '@/lib/dummy-data';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import PostCard from '@/components/app/post-card';
 import SidebarNav from '@/components/app/sidebar-nav';
 import AppHeader from '@/components/app/header';
@@ -80,20 +79,7 @@ export default function Home() {
     const allFollowingIds = dummyUsers.filter(u => allFollowingUsernames.has(u.username)).map(u => u.id);
     
     const hydratedPosts: Post[] = dummyPosts
-      .filter(post => allFollowingIds.includes(post.userId) || post.userId === user.uid)
-      .map(post => {
-        const postAuthor = dummyUsers.find(u => u.id === post.userId)!;
-        const image = PlaceHolderImages.find(img => img.id === post.imageId)!;
-        return {
-          ...post,
-          imageUrl: image.imageUrl,
-          imageHint: image.imageHint,
-          user: {
-            ...postAuthor,
-            avatarUrl: `https://picsum.photos/seed/${postAuthor.id}/100/100`,
-          }
-        };
-      })
+      .filter(post => post.type === 'photo' && (allFollowingIds.includes(post.uploaderId) || post.uploaderId === user.uid))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     const suggestedUsers = dummyUsers
@@ -104,7 +90,7 @@ export default function Home() {
         avatarUrl: `https://picsum.photos/seed/${u.id}/100/100`,
       }));
 
-    return { allFeedPosts: hydratedPosts, suggestions: suggestedUsers, isLoading: false };
+    return { allFeedPosts: hydratedPosts, suggestions: suggestedUsers as User[], isLoading: false };
   }, [user, followedUsers]);
 
   // Initial posts load

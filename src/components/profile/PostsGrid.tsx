@@ -4,14 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Heart, MessageCircle, Camera } from 'lucide-react';
-
-interface Post {
-  id: string;
-  imageUrl: string;
-  imageHint: string;
-  likes: string[];
-  commentsCount: number;
-}
+import type { Post } from '@/lib/types';
 
 interface PostsGridProps {
   posts: Post[];
@@ -39,18 +32,17 @@ export default function PostsGrid({ posts }: PostsGridProps) {
         <Link key={post.id} href={`/p/${post.id}`}>
           <div className="group relative aspect-square w-full overflow-hidden">
             <Image
-              src={post.imageUrl}
-              alt={post.imageHint || 'User post'}
+              src={post.thumbnailUrl}
+              alt={post.caption || 'User post'}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               sizes="(max-width: 640px) 33vw, 250px"
-              data-ai-hint={post.imageHint}
             />
             <div className="absolute inset-0 flex items-center justify-center bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <div className="flex items-center gap-6 text-white">
                 <div className="flex items-center gap-2 font-semibold">
                   <Heart className="h-5 w-5 fill-white" />
-                  <span>{post.likes?.length.toLocaleString() || 0}</span>
+                  <span>{post.likes.toLocaleString() || 0}</span>
                 </div>
                 <div className="flex items-center gap-2 font-semibold">
                   <MessageCircle className="h-5 w-5 fill-white" />

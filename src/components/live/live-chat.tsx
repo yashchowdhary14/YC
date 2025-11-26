@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Crown, Bot, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { User, Stream, LiveChatMessage } from '@/lib/types';
+import type { User, LiveBroadcast, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 // Helper function to generate a random color from a predefined list
@@ -26,7 +26,7 @@ const getUserColor = (userId: string) => {
 };
 
 
-export default function LiveChat({ stream, messages, setMessages }: { stream: Stream, messages: LiveChatMessage[], setMessages: React.Dispatch<React.SetStateAction<LiveChatMessage[]>> }) {
+export default function LiveChat({ stream, messages, setMessages }: { stream: LiveBroadcast, messages: LiveChatMessage[], setMessages: React.Dispatch<React.SetStateAction<LiveChatMessage[]>> }) {
   const { user: currentUser } = useUser();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
@@ -36,10 +36,10 @@ export default function LiveChat({ stream, messages, setMessages }: { stream: St
     id: 'bot-welcome',
     userId: 'bot',
     username: 'ChatBot',
-    text: `Welcome to ${stream.user.username}'s stream!`,
+    text: `Welcome to ${stream.streamerName}'s stream!`,
     isBot: true,
     timestamp: new Date(),
-  }), [stream.user.username]);
+  }), [stream.streamerName]);
 
   const displayedMessages = useMemo(() => {
     return [welcomeMessage, ...messages];

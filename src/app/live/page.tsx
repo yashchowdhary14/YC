@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
-import type { Stream, Category } from '@/lib/types';
+import type { LiveBroadcast, Category } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
 import StreamGrid from '@/components/live/stream-grid';
@@ -15,13 +15,13 @@ import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { dummyStreams, dummyCategories } from '@/lib/dummy-data';
+import { dummyLiveBroadcasts, dummyCategories } from '@/lib/dummy-data';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [streams, setStreams] = useState<Stream[]>(dummyStreams);
+  const [liveBroadcasts, setLiveBroadcasts] = useState<LiveBroadcast[]>(dummyLiveBroadcasts);
   const [categories, setCategories] = useState<Category[]>(dummyCategories);
 
   useEffect(() => {
@@ -31,15 +31,14 @@ export default function LivePage() {
   // Effect to listen for storage changes to update live status
   useEffect(() => {
     const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === 'dummyStreams' && event.newValue) {
-        setStreams(JSON.parse(event.newValue));
+      if (event.key === 'dummyLiveBroadcasts' && event.newValue) {
+        setLiveBroadcasts(JSON.parse(event.newValue));
       }
     };
     
-    // Also load from storage on initial mount in case of page reload
-    const storedStreams = localStorage.getItem('dummyStreams');
-    if (storedStreams) {
-      setStreams(JSON.parse(storedStreams));
+    const storedBroadcasts = localStorage.getItem('dummyLiveBroadcasts');
+    if (storedBroadcasts) {
+      setLiveBroadcasts(JSON.parse(storedBroadcasts));
     }
 
     window.addEventListener('storage', handleStorageChange);
@@ -54,7 +53,7 @@ export default function LivePage() {
   }, [isUserLoading, user, router]);
 
   const { liveStreams, recommendedChannels, featuredStreams, justChattingStreams } = useMemo(() => {
-    const live = (streams || []).filter(s => s.isLive).sort((a, b) => b.viewerCount - a.viewerCount);
+    const live = (liveBroadcasts || []).filter(s => s.isLive).sort((a, b) => b.viewerCount - a.viewerCount);
     
     const recommended = live.slice(0, 7);
     const featured = live.slice(0, 5);
@@ -66,7 +65,7 @@ export default function LivePage() {
       featuredStreams: featured,
       justChattingStreams: justChatting
     };
-  }, [streams]);
+  }, [liveBroadcasts]);
 
   const sortedCategories = useMemo(() => {
     return (categories || []).sort((a, b) => a.name.localeCompare(b.name));
