@@ -80,7 +80,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     setIsLoading(true);
 
-    const foundUser = dummyUsers.find(u => u.username === username);
+    const foundUser = dummyUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
 
     if (!foundUser) {
       setProfileData(null);
@@ -89,7 +89,6 @@ export default function UserProfilePage() {
         setProfileData({ user: foundUser as UserType, posts: userPosts });
     }
     
-    // Simulate network delay for skeleton
     const timer = setTimeout(() => setIsLoading(false), 300);
     return () => clearTimeout(timer);
 
