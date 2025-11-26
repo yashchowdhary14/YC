@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useOptimistic, useState } from 'react';
@@ -104,7 +105,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       <CardFooter className="flex flex-col items-start gap-2 p-2 md:p-4">
         <div className="flex w-full items-center">
           <Button variant="ghost" size="icon" onClick={handleLike}>
-            <Heart className={cn("h-6 w-6", isLiked && "fill-red-500 text-red-500")} />
+            <Heart className={cn("h-6 w-6", isLiked && "fill-destructive text-destructive")} />
             <span className="sr-only">Like</span>
           </Button>
           <Button variant="ghost" size="icon" asChild>

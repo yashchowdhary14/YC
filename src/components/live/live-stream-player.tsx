@@ -9,7 +9,7 @@ interface LiveStreamPlayerProps {
 
 export default function LiveStreamPlayer({ src }: LiveStreamPlayerProps) {
     if (!src) {
-        return <Skeleton className="w-full h-full bg-zinc-800" />;
+        return <Skeleton className="w-full h-full bg-muted" />;
     }
     
     return (

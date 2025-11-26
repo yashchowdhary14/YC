@@ -90,7 +90,7 @@ export default function ReelsPage() {
 
   return (
     <>
-        <div className="h-screen bg-black flex justify-center items-center overflow-hidden">
+        <div className="h-screen bg-background flex justify-center items-center overflow-hidden">
             <div
               ref={containerRef}
               className="relative h-full w-full max-w-[450px] snap-y snap-mandatory overflow-y-scroll scrollbar-hide pt-14"
