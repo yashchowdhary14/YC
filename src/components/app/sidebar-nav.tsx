@@ -28,8 +28,10 @@ import { cn } from '@/lib/utils';
 
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Explore', icon: Search },
+  { href: '/search', label: 'Search', icon: Search },
+  { href: '/live', label: 'Explore', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
+  { href: '/videos', label: 'Videos', icon: Video },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/create', label: 'Create', icon: PlusSquare },
 ];
@@ -115,4 +117,3 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
     </nav>
   );
 }
-
