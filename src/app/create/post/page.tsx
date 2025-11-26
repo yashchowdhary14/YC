@@ -188,38 +188,40 @@ export default function CreatePostPage() {
   }
 
   return (
-      <div className="w-full h-screen bg-black text-white flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between p-2 flex-shrink-0 h-14">
-          <Button variant="ghost" size="icon" onClick={handleBack} disabled={isSubmitting}>
-            <ArrowLeft />
-          </Button>
-          <h1 className="font-semibold text-lg">{headerText}</h1>
-          {step === 'details' ? (
-            <Button variant="link" onClick={handleShare} disabled={isSubmitting}>Share</Button>
-          ) : step !== 'sharing' ? (
-            <Button variant="link" onClick={handleNext}>Next</Button>
-          ) : <div className="w-14" />}
-        </header>
-        
-        {/* Main Content */}
-        <main className="flex-1 flex flex-col min-h-0">
-          <div className="relative w-full aspect-square bg-black flex items-center justify-center">
-             <AnimatePresence mode="wait">
-                  <motion.div
-                      key={step}
-                      initial={{ opacity: 0, x: step === 'details' ? 50 : -50 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: step === 'edit' ? 50 : -50 }}
-                      transition={{ duration: 0.3, ease: 'easeInOut' }}
-                      className="w-full h-full"
-                  >
-                      {steps[step]}
-                  </motion.div>
-              </AnimatePresence>
-          </div>
-          {step === 'edit' && <EditControls />}
-        </main>
+      <div className="w-full h-screen bg-black text-white flex justify-center">
+        <div className="w-full max-w-md h-full flex flex-col">
+            {/* Header */}
+            <header className="flex items-center justify-between p-2 flex-shrink-0 h-14">
+              <Button variant="ghost" size="icon" onClick={handleBack} disabled={isSubmitting}>
+                <ArrowLeft />
+              </Button>
+              <h1 className="font-semibold text-lg">{headerText}</h1>
+              {step === 'details' ? (
+                <Button variant="link" onClick={handleShare} disabled={isSubmitting}>Share</Button>
+              ) : step !== 'sharing' ? (
+                <Button variant="link" onClick={handleNext}>Next</Button>
+              ) : <div className="w-14" />}
+            </header>
+            
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col min-h-0">
+              <div className="relative w-full aspect-square bg-black flex items-center justify-center">
+                 <AnimatePresence mode="wait">
+                      <motion.div
+                          key={step}
+                          initial={{ opacity: 0, x: step === 'details' ? 50 : -50 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: step === 'edit' ? 50 : -50 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                          className="w-full h-full"
+                      >
+                          {steps[step]}
+                      </motion.div>
+                  </AnimatePresence>
+              </div>
+              {step === 'edit' && <EditControls />}
+            </main>
+        </div>
       </div>
   );
 }

@@ -32,15 +32,16 @@ const DetailsForm = ({ onGenerateCaption }: DetailsFormProps) => {
     return (
         <div className="w-full h-full flex flex-col text-white bg-black">
             <div className="p-4 flex gap-4 border-b border-gray-800">
-                <div className="w-20 h-20 md:w-24 md:h-24 relative rounded-md overflow-hidden flex-shrink-0">
+                <div className="w-20 h-20 relative rounded-md overflow-hidden flex-shrink-0">
                     <Image src={activeMedia.previewUrl} alt="preview" fill className="object-cover" />
                 </div>
                 <div className="flex-1 relative">
                     <Textarea 
                         placeholder="Write a caption..." 
-                        className="bg-transparent border-none text-base h-full resize-none p-0 focus-visible:ring-0"
+                        className="bg-transparent border-none text-base h-full resize-none p-0 focus-visible:ring-0 min-h-[80px]"
                         value={caption}
                         onChange={(e) => setCaption(e.target.value)}
+                        minRows={4}
                     />
                      <Button 
                         type="button" 
