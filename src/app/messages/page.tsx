@@ -35,8 +35,7 @@ export default function MessagesPage() {
       user && firestore
         ? query(
             collection(firestore, 'chats'),
-            where('users', 'array-contains', user.uid),
-            orderBy('lastUpdated', 'desc')
+            where('users', 'array-contains', user.uid)
           )
         : null,
     [firestore, user]
