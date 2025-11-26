@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useOptimistic, useEffect } from 'react';
@@ -63,7 +62,7 @@ export default function ProfileHeader({
     const parts = bio.split(urlRegex);
     return parts.map((part, index) =>
       urlRegex.test(part)
-        ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{part}</a>
+        ? <a key={index} href={part} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{part}</a>
         : part
     );
   };
@@ -81,7 +80,7 @@ export default function ProfileHeader({
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-normal text-foreground">{user.username}</h1>
-            {user.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />}
+            {user.verified && <CheckCircle className="h-5 w-5 text-primary fill-current" />}
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             {isCurrentUser ? (

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,7 +30,7 @@ export default function StreamInfo({ streamer, stream }: StreamInfoProps) {
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold">{streamer.fullName}</h2>
-            {streamer.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-current" />}
+            {streamer.verified && <CheckCircle className="h-5 w-5 text-primary fill-current" />}
           </div>
           <h1 className="text-lg font-semibold text-foreground/90 mt-1">{stream.title}</h1>
           <div className="flex items-center gap-2 mt-1">
@@ -43,7 +42,7 @@ export default function StreamInfo({ streamer, stream }: StreamInfoProps) {
                 <Button>Follow</Button>
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                <Eye className="h-4 w-4 text-red-500" />
+                <Eye className="h-4 w-4 text-destructive" />
                 <span>{formatCompactNumber(stream.viewers)}</span>
             </div>
         </div>

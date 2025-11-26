@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useOptimistic, useState } from 'react';
@@ -77,7 +76,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
         <div className="grid gap-0.5 text-sm flex-1">
           <div className="flex items-center gap-1">
             <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
-            {post.user.verified && <CheckCircle className="h-4 w-4 text-blue-500 fill-current" />}
+            {post.user.verified && <CheckCircle className="h-4 w-4 text-primary fill-current" />}
             <span className="text-muted-foreground font-normal ml-2 text-xs">· {formatDistanceToNow(new Date(post.createdAt), { addSuffix: false })}</span>
           </div>
           {post.location && <span className="text-xs text-muted-foreground">{post.location}</span>}

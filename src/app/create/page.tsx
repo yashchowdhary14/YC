@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -11,32 +10,24 @@ const creationOptions = [
     icon: Camera,
     title: 'Create Post',
     description: 'Share a photo with your followers.',
-    bgColor: 'bg-blue-500/10',
-    textColor: 'text-blue-400'
   },
   {
     href: '/create/story',
     icon: BookImage,
     title: 'Create Story',
     description: 'Share a photo or video that disappears after 24 hours.',
-    bgColor: 'bg-yellow-500/10',
-    textColor: 'text-yellow-400'
   },
   {
     href: '/reels',
     icon: Clapperboard,
     title: 'Create Reel',
     description: 'Share a short video with your followers.',
-    bgColor: 'bg-green-500/10',
-    textColor: 'text-green-400'
   },
   {
     href: '/create/video',
     icon: Video,
     title: 'Upload Video',
     description: 'Share a long-form video.',
-    bgColor: 'bg-purple-500/10',
-    textColor: 'text-purple-400'
   },
 ];
 
@@ -53,8 +44,8 @@ export default function CreatePage() {
                 <Link href={option.href} key={option.href} className="block group">
                     <Card className={`overflow-hidden h-full transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl group-hover:shadow-primary/10`}>
                         <CardContent className="p-6 flex flex-col items-center text-center">
-                            <div className={`p-4 rounded-full mb-4 ${option.bgColor}`}>
-                                <option.icon className={`h-10 w-10 ${option.textColor}`} />
+                            <div className={`p-4 rounded-full mb-4 bg-accent/50 text-primary`}>
+                                <option.icon className={`h-10 w-10`} />
                             </div>
                             <CardTitle className="text-xl mb-1">{option.title}</CardTitle>
                             <CardDescription>{option.description}</CardDescription>
