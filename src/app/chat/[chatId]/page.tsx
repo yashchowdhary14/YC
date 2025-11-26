@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { useMemo, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import AppHeader from '@/components/app/header';
@@ -15,15 +15,22 @@ import {
   SidebarProvider,
 } from '@/components/ui/sidebar';
 import ChatDisplay from '@/components/messages/chat-display';
-import { Loader2 } from 'lucide-radix';
+import { Loader2 } from 'lucide-react';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import type { Chat } from '@/lib/types';
 
 
 export default function ChatPage() {
   const { chatId } = useParams<{ chatId: string }>();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/login');
+    }
+  }, [isUserLoading, user, router]);
 
   const chatRef = useMemoFirebase(
     () => (firestore && chatId ? doc(firestore, 'chats', chatId as string) : null),
@@ -32,17 +39,23 @@ export default function ChatPage() {
   
   const { data: chatData, isLoading } = useDoc<Chat>(chatRef);
 
-  // You would typically get the other user's info by fetching their profile
-  // based on the ID in chatData.users that isn't the current user's ID.
-  // For this example, we'll pass the whole chat object to ChatDisplay
-  // and let the hydration hook handle it.
-  
-  if (isLoading) {
+  if (isLoading || isUserLoading) {
     return (
-        <div className="flex h-screen items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-    )
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Ensure the current user is part of the chat
+  if (chatData && user && !chatData.users.includes(user.uid)) {
+    // Or redirect to a "not found" or "unauthorized" page
+    router.replace('/messages'); 
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <p>You are not authorized to view this chat.</p>
+      </div>
+    );
   }
 
   return (

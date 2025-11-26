@@ -2,12 +2,15 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { doc, getDoc, getDocs, collection, query, where, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, getDocs, collection, query, where, DocumentData, Timestamp } from 'firebase/firestore';
 import { useFirestore, useUser } from '@/firebase';
 import type { Chat as ChatType, User } from '@/lib/types';
 
 // The raw chat type from Firestore
-type RawChat = Omit<ChatType, 'userDetails'> & { users: string[] };
+type RawChat = Omit<ChatType, 'userDetails' | 'lastMessage'> & { 
+    users: string[],
+    lastMessage?: Omit<ChatType['lastMessage'], 'timestamp'> & { timestamp: Timestamp }
+};
 
 /**
  * A hook to efficiently fetch and hydrate chat data with associated user details.
@@ -20,17 +23,22 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
   const firestore = useFirestore();
   const { user: currentUser } = useUser();
   const [hydratedChats, setHydratedChats] = useState<ChatType[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const memoizedChatsData = useMemo(() => chatsData, [chatsData]);
 
   useEffect(() => {
     const hydrateChats = async () => {
-      if (!memoizedChatsData || memoizedChatsData.length === 0 || !currentUser || !firestore) {
+      if (!memoizedChatsData || !currentUser || !firestore) {
         setHydratedChats([]);
         setIsLoading(false);
         return;
       }
+       if (memoizedChatsData.length === 0) {
+        setHydratedChats([]);
+        setIsLoading(false);
+        return;
+       }
 
       setIsLoading(true);
 
@@ -61,6 +69,10 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
                   username: userData.username || 'unknown',
                   fullName: userData.fullName || 'Unknown User',
                   avatarUrl: userData.profilePhoto || `https://picsum.photos/seed/${userDoc.id}/100/100`,
+                  bio: userData.bio || '',
+                  followersCount: userData.followersCount || 0,
+                  followingCount: userData.followingCount || 0,
+                  verified: userData.verified || false
                 });
               });
             }
@@ -77,7 +89,11 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
                     id: currentUser.uid,
                     username: currentUser.email?.split('@')[0] || 'You',
                     fullName: currentUser.displayName || 'You',
-                    avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100/100`
+                    avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100/100`,
+                    bio: '',
+                    followersCount: 0,
+                    followingCount: 0,
+                    verified: false
                 }
               }
               return usersMap.get(userId);
@@ -86,8 +102,12 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
 
           return {
             ...chat,
+            lastMessage: chat.lastMessage ? {
+                ...chat.lastMessage,
+                timestamp: chat.lastMessage.timestamp.toDate(),
+            } : undefined,
             userDetails,
-          };
+          } as ChatType;
         });
 
         setHydratedChats(newHydratedChats);
@@ -95,8 +115,9 @@ export function useHydratedChats(chatsData: (RawChat & { id: string })[] | null)
         console.error("Error hydrating chats:", error);
          const fallbackChats = memoizedChatsData.map(chat => ({
              ...chat,
+            lastMessage: undefined,
             userDetails: []
-        }))
+        } as ChatType))
         setHydratedChats(fallbackChats);
       } finally {
         setIsLoading(false);

@@ -288,12 +288,38 @@ export async function createOrGetChat(user1Id: string, user2Id: string) {
         const chatDoc = await getDoc(chatRef);
 
         if (!chatDoc.exists()) {
-            await setDoc(chatRef, {
+            const batch = writeBatch(firestore);
+            batch.set(chatRef, {
                 id: chatId,
                 users: sortedIds,
                 lastUpdated: serverTimestamp(),
                 lastMessage: null,
             });
+
+            // Add initial messages
+            const messagesRef = collection(firestore, 'chats', chatId, 'messages');
+            const message1 = {
+                chatId,
+                senderId: user1Id,
+                text: 'Hey! 👋',
+                timestamp: serverTimestamp(),
+                isRead: false,
+            };
+            const message2 = {
+                chatId,
+                senderId: user2Id,
+                text: "How's it going?",
+                timestamp: serverTimestamp(),
+                isRead: false,
+            };
+            
+            const newMsg1Ref = doc(messagesRef);
+            batch.set(newMsg1Ref, {...message1, id: newMsg1Ref.id});
+            
+            const newMsg2Ref = doc(messagesRef);
+            batch.set(newMsg2Ref, {...message2, id: newMsg2Ref.id});
+
+            await batch.commit();
         }
         
         return { success: true, chatId: chatId };

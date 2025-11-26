@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
 import {
@@ -20,19 +20,23 @@ import type { Chat } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { useHydratedChats } from '@/hooks/use-hydrated-chats';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function MessagesPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const isMobile = useIsMobile();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const chatsQuery = useMemoFirebase(
     () =>
       user && firestore
         ? query(
             collection(firestore, 'chats'),
-            where('users', 'array-contains', user.uid)
+            where('users', 'array-contains', user.uid),
+            orderBy('lastUpdated', 'desc')
           )
         : null,
     [firestore, user]
@@ -40,8 +44,29 @@ export default function MessagesPage() {
   const { data: rawChatsData, isLoading: isLoadingChats } = useCollection(chatsQuery);
   const { chats, isLoading: isHydratingChats } = useHydratedChats(rawChatsData);
 
+  useEffect(() => {
+    // This allows linking directly to a chat
+    const chatIdFromUrl = searchParams.get('chatId');
+    if (chatIdFromUrl && chats.length > 0) {
+      const chatFromUrl = chats.find(c => c.id === chatIdFromUrl);
+      if (chatFromUrl) {
+        setSelectedChat(chatFromUrl);
+      }
+    } else if (!isMobile && chats.length > 0 && !selectedChat) {
+      // Default to selecting the first chat on desktop if none is selected
+      setSelectedChat(chats[0]);
+    }
+  }, [chats, searchParams, isMobile, selectedChat]);
+
+
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);
+    if (isMobile) {
+        // On mobile, we don't need to change the URL, we just show the view
+    } else {
+        // On desktop, update URL without full navigation
+        router.replace(`/messages?chatId=${chat.id}`, { scroll: false });
+    }
   };
 
   const showChatList = !isMobile || (isMobile && !selectedChat);
@@ -81,6 +106,7 @@ export default function MessagesPage() {
                 onBack={() => setSelectedChat(null)}
               />
             ) : (
+              // This part won't be visible if chat list is shown
               <div className="flex h-full items-center justify-center text-muted-foreground">
                 <p>Select a chat to start messaging</p>
               </div>
@@ -124,7 +150,6 @@ export default function MessagesPage() {
                     </div>
                     <h2 className="text-xl font-light">Your Messages</h2>
                     <p className="text-sm">Send private photos and messages to a friend or group.</p>
-                     {/* We can add a "Send Message" button here that opens the NewMessageDialog */}
                 </div>
               )}
             </div>

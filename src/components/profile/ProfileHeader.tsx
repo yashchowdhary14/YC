@@ -17,7 +17,7 @@ interface ProfileHeaderProps {
     verified: boolean;
   };
   onEditClick: () => void;
-  onMessageClick: () => void;
+  onMessageClick?: () => void;
   isNavigatingToChat?: boolean;
   isCurrentUser?: boolean;
 }
@@ -30,6 +30,7 @@ export default function ProfileHeader({
     isCurrentUser = false 
 }: ProfileHeaderProps) {
     const renderBio = (bio: string) => {
+        if (!bio) return null;
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         const parts = bio.split(urlRegex);
         return parts.map((part, index) => 

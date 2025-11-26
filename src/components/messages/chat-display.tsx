@@ -17,10 +17,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useUser, useFirestore, useMemoFirebase, useDoc, useCollection } from '@/firebase';
-import { collection, query, orderBy, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, limit, doc, getDoc, Timestamp } from 'firebase/firestore';
 import { handleSendMessage } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
-
+import { formatDistanceToNow } from 'date-fns';
 
 interface ChatDisplayProps {
   chatId: string;
@@ -37,7 +37,7 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const scrollViewportRef = useRef<HTMLDivElement>(null);
   const [partner, setPartner] = useState<User | null>(null);
 
 
@@ -60,6 +60,10 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
                           username: partnerData.username,
                           fullName: partnerData.fullName,
                           avatarUrl: partnerData.profilePhoto,
+                          bio: partnerData.bio,
+                          followersCount: partnerData.followersCount,
+                          followingCount: partnerData.followingCount,
+                          verified: partnerData.verified,
                       } as User);
                   }
               }
@@ -115,13 +119,10 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   };
   
   useEffect(() => {
-    if (scrollAreaRef.current) {
-        const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (viewport) {
-            viewport.scrollTop = viewport.scrollHeight;
-        }
+    if (scrollViewportRef.current) {
+        scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [messages, mediaPreview]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -158,6 +159,12 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     }
   }
 
+  const getMessageTime = (timestamp: Timestamp | Date | undefined) => {
+    if (!timestamp) return '';
+    const date = (timestamp as Timestamp).toDate ? (timestamp as Timestamp).toDate() : new Date(timestamp as Date);
+    return formatDistanceToNow(date, { addSuffix: true });
+  }
+
   if (isLoadingChat || !partner) {
     return (
         <div className="flex h-full items-center justify-center">
@@ -190,13 +197,14 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+      <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
+        <div className="p-4 space-y-4">
         {isLoadingMessages ? (
              <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-8 w-8 animate-spin" />
              </div>
         ) : (
-            <div className="space-y-4">
+            <>
             {(messages || []).map((message) => (
                 <div
                 key={message.id}
@@ -225,15 +233,19 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
                        <Image src={message.mediaUrl} alt="Sent media" fill className="object-cover" />
                     </div>
                     )}
-                    {message.text && <p className="text-sm px-2 py-1">{message.text}</p>}
+                    {message.text && <p className="text-sm px-2 py-1 break-words">{message.text}</p>}
+                     <time className={cn("text-xs opacity-70 px-2", message.senderId === currentUser?.uid ? "text-right" : "text-left")}>
+                          {getMessageTime(message.timestamp)}
+                    </time>
                 </div>
                 </div>
             ))}
-            </div>
+            </>
         )}
+        </div>
       </ScrollArea>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t bg-background">
          {mediaPreview && (
           <div className="relative mb-2 w-24 h-24">
             <Image src={mediaPreview} alt="Media preview" fill className="object-cover rounded-md" />
@@ -295,5 +307,3 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     </div>
   );
 }
-
-    

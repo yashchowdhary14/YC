@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Chat, User } from '@/lib/types';
 import ChatListItem from './chat-list-item';
@@ -10,11 +11,10 @@ import { Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
-import { collection, query, where, limit, getDocs, doc, setDoc, serverTimestamp, writeBatch } from 'firebase/firestore';
-import Link from 'next/link';
+import { useFirestore, useUser } from '@/firebase';
+import { collection, query, where, limit, getDocs, doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-
+import { createOrGetChat } from '@/app/actions';
 
 function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => void }) {
     const [searchTerm, setSearchTerm] = useState('');
@@ -23,6 +23,7 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
     const [isCreatingChat, setIsCreatingChat] = useState(false);
     const firestore = useFirestore();
     const { user: currentUser } = useUser();
+    const router = useRouter();
 
     const handleSearch = async (term: string) => {
         if (!firestore || !currentUser) return;
@@ -33,81 +34,34 @@ function NewMessageDialog({ onChatSelected }: { onChatSelected: (chat: Chat) => 
         }
         setIsSearching(true);
         const usersRef = collection(firestore, 'users');
-        // Simple search - in a real app, use a dedicated search service like Algolia
         const q = query(usersRef, where('username', '>=', term), where('username', '<=', term + '\uf8ff'), limit(10));
-        const querySnapshot = await getDocs(q);
-        const users = querySnapshot.docs.map(doc => doc.data() as User).filter(u => u.id !== currentUser.uid);
-        setSearchResults(users);
-        setIsSearching(false);
+        
+        try {
+            const querySnapshot = await getDocs(q);
+            const users = querySnapshot.docs
+                .map(doc => ({ id: doc.id, ...doc.data() } as User))
+                .filter(u => u.id !== currentUser.uid);
+            setSearchResults(users);
+        } catch (error) {
+            console.error("Error searching users:", error);
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
     };
 
     const handleSelectUser = async (targetUser: User) => {
-        if (!currentUser || !firestore) return;
+        if (!currentUser) return;
         setIsCreatingChat(true);
-
-        const sortedIds = [currentUser.uid, targetUser.id].sort();
-        const chatId = sortedIds.join('_');
-        const chatRef = doc(firestore, 'chats', chatId);
-
-        // Check if chat already exists
-        const chatQuery = query(collection(firestore, 'chats'), where('id', '==', chatId), limit(1));
-        const chatSnapshot = await getDocs(chatQuery);
-        
-        let selectedChat: Chat;
-
-        if (chatSnapshot.empty) {
-            // Create a new chat and add sample messages
-            const batch = writeBatch(firestore);
-
-            const newChatData = {
-                id: chatId,
-                users: sortedIds,
-                lastUpdated: serverTimestamp(),
-                // userDetails will be hydrated by the useHydratedChats hook
-            };
-            batch.set(chatRef, newChatData);
-
-            // Add a few sample messages to make the chat feel alive
-            const messagesRef = collection(firestore, 'chats', chatId, 'messages');
-            
-            const firstMessageRef = doc(messagesRef);
-            batch.set(firstMessageRef, {
-                id: firstMessageRef.id,
-                chatId: chatId,
-                senderId: targetUser.id, // From the other user
-                text: "Hey! 👋",
-                timestamp: serverTimestamp(),
-                isRead: false,
-            });
-
-            const secondMessageRef = doc(messagesRef);
-            batch.set(secondMessageRef, {
-                id: secondMessageRef.id,
-                chatId: chatId,
-                senderId: currentUser.uid, // From the current user
-                text: "How's it going?",
-                timestamp: serverTimestamp(),
-                isRead: true, // Mark our own message as read
-            });
-
-            // Update last message on the chat document
-            batch.update(chatRef, {
-                lastMessage: {
-                    text: "How's it going?",
-                    timestamp: serverTimestamp(),
-                    senderId: currentUser.uid,
-                }
-            });
-            
-            await batch.commit();
-
-            selectedChat = { ...newChatData, userDetails: [targetUser] } as Chat;
+        const result = await createOrGetChat(currentUser.uid, targetUser.id);
+        if (result.success && result.chatId) {
+            // Here, instead of calling onChatSelected, we navigate.
+            // The messages page will then handle selecting this chat.
+            router.push(`/chat/${result.chatId}`);
         } else {
-             // Chat already exists
-            selectedChat = chatSnapshot.docs[0].data() as Chat;
+             // Handle error, maybe with a toast
+            console.error(result.error);
         }
-
-        onChatSelected(selectedChat);
         setIsCreatingChat(false);
     };
 

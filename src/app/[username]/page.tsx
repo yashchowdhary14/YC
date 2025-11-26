@@ -52,6 +52,8 @@ export default function UserProfilePage() {
       }));
   }, [profileUser]);
 
+  const isCurrentUser = currentUser?.uid === profileUser?.id;
+
   const handleMessageClick = async () => {
     if (!currentUser || !profileUser || isCurrentUser) return;
     setIsNavigating(true);
@@ -68,8 +70,6 @@ export default function UserProfilePage() {
   if (!profileUser) {
      return notFound();
   }
-
-  const isCurrentUser = currentUser?.uid === profileUser.id;
 
   const headerUser = {
       username: profileUser.username,
