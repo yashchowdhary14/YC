@@ -80,7 +80,7 @@ export default function Home() {
     
     const hydratedPosts: Post[] = dummyPosts
       .filter(post => post.type === 'photo' && (allFollowingIds.includes(post.uploaderId) || post.uploaderId === user.uid))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     const suggestedUsers = dummyUsers
       .filter(u => u.id !== user.uid && !allFollowingUsernames.has(u.username))
@@ -158,81 +158,71 @@ export default function Home() {
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-        <SidebarFooter>
-          <Separator className="my-2" />
-          <div className="p-2">
-            <Button onClick={handleSignOut} variant="outline" className="w-full">
-              Logout
-            </Button>
-          </div>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <AppHeader />
-        <main className="min-h-[calc(100vh-4rem)] bg-background">
-          <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2" ref={feedContainerRef}>
-                <div className="flex flex-col gap-8">
-                  <StoriesCarousel />
-                  {displayedPosts.length > 0 ? (
-                     displayedPosts.map((post) => (
-                      <PostCard key={post.id} post={post} />
-                    ))
-                  ) : (
-                    <div className="text-center py-16 text-muted-foreground bg-card rounded-lg">
-                      <h3 className="text-xl font-semibold text-foreground">Welcome to Instagram</h3>
-                      <p className="mt-2">Your feed is empty.</p>
-                      <p>Start following people to see their posts here.</p>
-                       <Button asChild className="mt-4">
-                         <Link href="/search">Find People to Follow</Link>
-                       </Button>
-                    </div>
-                  )}
-
-                  {hasMore && (
-                    <div ref={loaderRef} className="flex justify-center items-center py-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    </div>
-                  )}
-
-                </div>
-              </div>
-
-              <div className="hidden lg:block lg:col-span-1">
-                 <div className="sticky top-24">
-                   <div className="flex items-center justify-between mb-4">
-                     <p className="font-semibold text-muted-foreground">Suggestions for you</p>
-                     <Button variant="link" size="sm" className="p-0 h-auto text-xs">See All</Button>
-                   </div>
-                   <div className="flex flex-col gap-4">
-                    {suggestions.map((s) => (
-                        <SuggestionCard key={s.id} suggestion={s} />
-                    ))}
-                  </div>
-                 </div>
-              </div>
+      <div className="flex min-h-svh bg-background">
+        <div className="fixed left-0 top-0 h-full z-50 hidden md:flex flex-col border-r bg-background p-3 gap-4 w-20">
+            <div className="p-2">
+                 <svg aria-label="Instagram" fill="currentColor" height="24" role="img" viewBox="0 0 48 48" width="24"><path d="M32.8,0.6c-4.3,0-4.8,0-13.6,0C4.9,0.6,0.6,4.9,0.6,19.2c0,8.7,0,9.3,0,13.6c0,14.3,4.3,18.6,18.6,18.6c8.7,0,9.3,0,13.6,0c14.3,0,18.6-4.3,18.6-18.6c0-4.3,0-4.8,0-13.6C51.4,4.9,47.1,0.6,32.8,0.6z M47.4,32.8c0,12.1-3.4,15.4-15.4,15.4c-8.7,0-9.2,0-13.6,0c-12.1,0-15.4-3.4-15.4-15.4c0-8.7,0-9.2,0-13.6c0-12.1,3.4-15.4,15.4-15.4c4.5,0,4.9,0,13.6,0c12.1,0,15.4,3.4,15.4,15.4C47.4,23.6,47.4,24.2,47.4,32.8z"></path><path d="M25.9,12.5c-7.4,0-13.4,6-13.4,13.4s6,13.4,13.4,13.4s13.4-6,13.4-13.4S33.3,12.5,25.9,12.5z M25.9,35.3c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4s9.4,4.2,9.4,9.4S31.1,35.3,25.9,35.3z"></path><circle cx="38.3" cy="11.1" r="3.2"></circle></svg>
             </div>
-          </div>
+            <SidebarNav isCollapsed />
+        </div>
+        <main className="flex-1 md:ml-20 lg:ml-72 bg-background min-h-svh">
+            <AppHeader />
+            <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2" ref={feedContainerRef}>
+                    <div className="flex flex-col gap-8">
+                    <StoriesCarousel />
+                    {displayedPosts.length > 0 ? (
+                        displayedPosts.map((post) => (
+                        <PostCard key={post.id} post={post} />
+                        ))
+                    ) : (
+                        <div className="text-center py-16 text-muted-foreground bg-card rounded-lg">
+                        <h3 className="text-xl font-semibold text-foreground">Welcome to Instagram</h3>
+                        <p className="mt-2">Your feed is empty.</p>
+                        <p>Start following people to see their posts here.</p>
+                        <Button asChild className="mt-4">
+                            <Link href="/search">Find People to Follow</Link>
+                        </Button>
+                        </div>
+                    )}
+
+                    {hasMore && (
+                        <div ref={loaderRef} className="flex justify-center items-center py-8">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </div>
+                    )}
+
+                    </div>
+                </div>
+
+                <div className="hidden lg:block lg:col-span-1">
+                    <div className="sticky top-24">
+                    <div className="flex items-center justify-between mb-4">
+                        <p className="font-semibold text-muted-foreground">Suggestions for you</p>
+                        <Button variant="link" size="sm" className="p-0 h-auto text-xs">See All</Button>
+                    </div>
+                    <div className="flex flex-col gap-4">
+                        {suggestions.map((s) => (
+                            <SuggestionCard key={s.id} suggestion={s} />
+                        ))}
+                    </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            {showBackToTop && (
+                <Button
+                    onClick={scrollToTop}
+                    className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
+                    size="icon"
+                >
+                    <ArrowUp className="h-6 w-6" />
+                    <span className="sr-only">Back to top</span>
+                </Button>
+            )}
         </main>
-         {showBackToTop && (
-            <Button
-                onClick={scrollToTop}
-                className="fixed bottom-6 right-6 h-12 w-12 rounded-full shadow-lg"
-                size="icon"
-            >
-                <ArrowUp className="h-6 w-6" />
-                <span className="sr-only">Back to top</span>
-            </Button>
-        )}
-      </SidebarInset>
+      </div>
     </SidebarProvider>
   );
 }

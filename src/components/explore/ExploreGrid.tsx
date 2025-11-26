@@ -13,9 +13,11 @@ interface ExploreGridProps {
 
 const getSpan = (index: number): string => {
     // These patterns create the dynamic Instagram-style grid.
-    if ((index % 18) === 0) return "col-span-2 row-span-2"; // Large square
-    if ((index % 18) === 7) return "col-span-1 row-span-2"; // Tall
-    if ((index % 18) === 12) return "col-span-2 row-span-1"; // Wide
+    const patternIndex = index % 18;
+    if (patternIndex === 0) return "col-span-1 row-span-2"; // Tall
+    if (patternIndex === 5) return "col-span-1 row-span-2"; // Tall
+    if (patternIndex === 8) return "col-span-1 row-span-2"; // Tall
+    if (patternIndex === 13) return "col-span-2 row-span-2"; // Large square
     return "col-span-1 row-span-1"; // Standard square
 }
 
@@ -31,12 +33,13 @@ const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
                 },
             },
         }}
-        className="grid grid-cols-2 sm:grid-cols-3 auto-rows-[minmax(0,1fr)] gap-1"
+        className="grid grid-cols-3 auto-rows-fr gap-1"
+        style={{ gridAutoRows: 'minmax(0, 1fr)' }}
     >
       {items.map((item, index) => (
         <motion.div
           key={`${item.id}-${index}`}
-          className={cn('relative w-full overflow-hidden rounded-md', getSpan(index))}
+          className={cn('relative w-full overflow-hidden first:rounded-tl-lg', getSpan(index))}
           variants={{
               hidden: { opacity: 0, scale: 0.95 },
               visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },

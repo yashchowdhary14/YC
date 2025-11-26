@@ -35,19 +35,12 @@ export function SidebarProvider({
   onOpenChange?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [internalOpen, setInternalOpen] = React.useState(false);
-  const isMobile = useIsMobile();
 
   const isControlled = controlledOpen !== undefined && setControlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? setControlledOpen : setInternalOpen;
   
   const value = {open, setOpen};
-
-  // On desktop, we don't use the sheet, so we just return the children.
-  // The `Sidebar`, `SidebarInset`, etc. components handle their own visibility.
-  if (!isMobile) {
-    return <>{children}</>;
-  }
 
   return (
     <SidebarContext.Provider value={value}>
@@ -88,7 +81,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col border-r bg-background md:flex',
+        'fixed left-0 top-0 z-40 hidden h-screen flex-col border-r bg-background lg:flex',
         className
       )}
       {...props}
@@ -165,7 +158,7 @@ export function SidebarHeader({
     );
   }
   return (
-    <div className={cn('flex h-14 items-center border-b p-4', className)}>{children}</div>
+    <div className={cn('flex h-auto items-center border-b p-4', className)}>{children}</div>
   );
 }
 

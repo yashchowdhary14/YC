@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -24,6 +24,7 @@ import type { User as UserType } from '@/lib/types';
 import ExploreGrid from '@/components/explore/ExploreGrid';
 import type { ExploreItem } from '@/components/explore/types';
 import { Loader2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const ITEMS_PER_PAGE = 18;
 
@@ -47,15 +48,12 @@ export default function SearchPage() {
     const [hasMore, setHasMore] = useState(true);
 
     const allExploreItems: ExploreItem[] = useMemo(() => {
-        const photos: ExploreItem[] = dummyPosts.filter(p => p.type === 'photo').map(p => ({ ...p, id: p.id, thumbnailUrl: p.mediaUrl }));
-        const reels: ExploreItem[] = dummyPosts.filter(p => p.type === 'reel').map(p => ({ ...p, id: p.id }));
-        const videos: ExploreItem[] = dummyPosts.filter(p => p.type === 'video').map(p => ({ ...p, id: p.id }));
+        const photos: ExploreItem[] = dummyPosts.filter(p => p.type === 'photo');
+        const reels: ExploreItem[] = dummyPosts.filter(p => p.type === 'reel');
+        const videos: ExploreItem[] = dummyPosts.filter(p => p.type === 'video');
         const liveStreams: ExploreItem[] = dummyLiveBroadcasts.filter(s => s.isLive).map(s => ({
             ...s,
             type: 'live' as const,
-            id: s.liveId,
-            thumbnailUrl: s.liveThumbnail,
-            caption: s.title,
         }));
 
         // Combine and shuffle for a mixed feed
@@ -99,71 +97,85 @@ export default function SearchPage() {
         ).slice(0, 10);
     }, [searchTerm]);
 
-    const showSearchResults = isFocused && searchTerm.length > 0;
+    const showSearchResults = isFocused || searchTerm.length > 0;
 
   return (
     <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
+      <Sidebar className="w-72">
+        <SidebarHeader className="p-4 h-auto">
+          <h1 className="text-2xl font-bold py-4">Search</h1>
+          <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search"
+                className="w-full rounded-lg bg-muted pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+              />
+          </div>
         </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
+        <Separator/>
+        <SidebarContent className="py-4">
+            {showSearchResults ? (
+                 <div className="px-4">
+                    {filteredUsers.length > 0 ? (
+                        filteredUsers.map(user => (
+                            <Link href={`/${user.username}`} key={user.id}>
+                                <div className="flex items-center gap-3 p-3 -mx-3 rounded-lg hover:bg-accent transition-colors cursor-pointer">
+                                    <Avatar>
+                                        <AvatarImage src={`https://picsum.photos/seed/${user.id}/100/100`} alt={user.username} />
+                                        <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                        <p className="font-semibold text-sm">{user.username}</p>
+                                        <p className="text-xs text-muted-foreground">{user.fullName}</p>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))
+                    ) : (
+                       <div className="p-4 text-center text-sm text-muted-foreground">
+                            No users found for &quot;{searchTerm}&quot;.
+                        </div>
+                    )}
+                 </div>
+            ) : (
+                <div className="px-4">
+                    <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-semibold text-sm">Recent</h3>
+                        <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs">Clear all</Button>
+                    </div>
+                     <div className="p-4 text-center text-sm text-muted-foreground">
+                        No recent searches.
+                    </div>
+                </div>
+            )}
         </SidebarContent>
       </Sidebar>
-      <SidebarInset>
-        <AppHeader />
-        <main className="bg-background min-h-[calc(100svh-4rem)]">
-          <div className="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
-            <div className="sticky top-[calc(3.5rem)] z-20 bg-background py-4 mb-4 -mt-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search"
-                  className="w-full rounded-lg bg-muted pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                />
-                 {showSearchResults && (
-                    <Card className="absolute top-full mt-2 w-full max-h-96 overflow-y-auto z-30 shadow-lg">
-                        {filteredUsers.length > 0 ? (
-                            filteredUsers.map(user => (
-                                <Link href={`/${user.username}`} key={user.id}>
-                                    <div className="flex items-center gap-3 p-3 hover:bg-accent transition-colors cursor-pointer">
-                                        <Avatar>
-                                            <AvatarImage src={`https://picsum.photos/seed/${user.id}/100/100`} alt={user.username} />
-                                            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p className="font-semibold text-sm">{user.username}</p>
-                                            <p className="text-xs text-muted-foreground">{user.fullName}</p>
-                                        </div>
-                                    </div>
-                                </Link>
-                            ))
-                        ) : (
-                           <div className="p-4 text-center text-sm text-muted-foreground">
-                                No users found for &quot;{searchTerm}&quot;.
-                            </div>
-                        )}
-                    </Card>
-                )}
-              </div>
+
+      <div className="flex min-h-svh bg-background">
+        {/* Collapsed Sidebar Nav */}
+        <div className="fixed left-0 top-0 h-full z-50 hidden md:flex flex-col border-r bg-background p-3 gap-4">
+            <div className="p-2">
+                 <svg aria-label="Instagram" fill="currentColor" height="24" role="img" viewBox="0 0 48 48" width="24"><path d="M32.8,0.6c-4.3,0-4.8,0-13.6,0C4.9,0.6,0.6,4.9,0.6,19.2c0,8.7,0,9.3,0,13.6c0,14.3,4.3,18.6,18.6,18.6c8.7,0,9.3,0,13.6,0c14.3,0,18.6-4.3,18.6-18.6c0-4.3,0-4.8,0-13.6C51.4,4.9,47.1,0.6,32.8,0.6z M47.4,32.8c0,12.1-3.4,15.4-15.4,15.4c-8.7,0-9.2,0-13.6,0c-12.1,0-15.4-3.4-15.4-15.4c0-8.7,0-9.2,0-13.6c0-12.1,3.4-15.4,15.4-15.4c4.5,0,4.9,0,13.6,0c12.1,0,15.4,3.4,15.4,15.4C47.4,23.6,47.4,24.2,47.4,32.8z"></path><path d="M25.9,12.5c-7.4,0-13.4,6-13.4,13.4s6,13.4,13.4,13.4s13.4-6,13.4-13.4S33.3,12.5,25.9,12.5z M25.9,35.3c-5.2,0-9.4-4.2-9.4-9.4s4.2-9.4,9.4-9.4s9.4,4.2,9.4,9.4S31.1,35.3,25.9,35.3z"></path><circle cx="38.3" cy="11.1" r="3.2"></circle></svg>
             </div>
-            
-            <ExploreGrid items={displayedItems} />
+            <SidebarNav isCollapsed />
+        </div>
 
-            {hasMore && (
-              <div ref={loaderRef} className="flex justify-center items-center py-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-          </div>
+        <main className="flex-1 md:ml-20 lg:ml-72 bg-background min-h-svh">
+            <div className="p-1 sm:p-2 lg:p-4">
+                <ExploreGrid items={displayedItems} />
+                {hasMore && (
+                  <div ref={loaderRef} className="flex justify-center items-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+            </div>
         </main>
-      </SidebarInset>
+      </div>
+
     </SidebarProvider>
   );
 }
