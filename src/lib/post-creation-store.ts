@@ -112,4 +112,3 @@ export const useActiveMedia = () => {
   const activeId = usePostCreationStore(s => s.activeMediaId);
   return media.find(m => m.id === activeId);
 }
-

@@ -48,21 +48,19 @@ const AdjustTab = () => {
             <div className="space-y-2">
                 <Label>Brightness</Label>
                 <Slider 
-                    defaultValue={[activeMedia.brightness]} 
+                    defaultValue={[100]} 
                     max={200} 
-                    min={0}
                     step={1} 
-                    onValueChange={([value]) => updateMedia(activeMedia.id, { brightness: value })}
+                    onValueChange={([value]) => console.log('Brightness:', value)}
                 />
             </div>
             <div className="space-y-2">
                 <Label>Contrast</Label>
                 <Slider 
-                    defaultValue={[activeMedia.contrast]} 
+                    defaultValue={[100]} 
                     max={200} 
-                    min={0}
                     step={1} 
-                    onValueChange={([value]) => updateMedia(activeMedia.id, { contrast: value })}
+                    onValueChange={([value]) => console.log('Contrast:', value)}
                 />
             </div>
         </div>
@@ -90,4 +88,3 @@ const EditControls = () => {
 };
 
 export default EditControls;
-

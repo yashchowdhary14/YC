@@ -190,6 +190,14 @@ export default function CreatePostPage() {
     )
   };
   
+  // If user lands here without media from the studio, redirect them.
+  if (media.length === 0 && !capturedMedia) {
+    if (typeof window !== 'undefined') {
+      router.replace('/create');
+    }
+    return null; // Return null to prevent rendering anything while redirecting
+  }
+  
   if (media.length === 0) {
      return (
       <div className="w-full h-screen flex items-center justify-center bg-background">

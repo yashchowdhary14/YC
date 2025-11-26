@@ -30,7 +30,7 @@ const PostCarousel = () => {
                         fill 
                         className="object-contain"
                         style={{
-                            filter: `${activeMedia.filter} brightness(${activeMedia.brightness}%) contrast(${activeMedia.contrast}%)`
+                            filter: activeMedia.filter
                         }}
                     />
                 </motion.div>
@@ -40,4 +40,3 @@ const PostCarousel = () => {
 };
 
 export default PostCarousel;
-
