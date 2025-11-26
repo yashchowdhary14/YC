@@ -30,7 +30,7 @@ export default function BottomNav() {
           const IconComponent = isActive ? link.activeIcon : link.icon;
           return (
             <NextLink key={link.href} href={link.href} passHref>
-              <Button variant="ghost" size="icon" className="h-full w-auto px-4">
+              <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
                 <IconComponent className={cn("h-6 w-6", isActive && 'fill-foreground')} />
               </Button>
             </NextLink>
@@ -38,7 +38,7 @@ export default function BottomNav() {
         })}
         {user && (
           <NextLink href="/profile" passHref>
-            <Button variant="ghost" size="icon" className="h-full w-auto px-4">
+            <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
               <Avatar className={cn("h-6 w-6", pathname === '/profile' && "ring-2 ring-offset-2 ring-offset-background ring-foreground")}>
                 <AvatarImage src={user.photoURL || ''} />
                 <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
