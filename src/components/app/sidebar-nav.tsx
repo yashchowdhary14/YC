@@ -11,6 +11,7 @@ import {
   User,
   Clapperboard,
   Users,
+  Video,
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -22,6 +23,7 @@ const links = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Explore', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
+  { href: '/videos', label: 'Videos', icon: Video },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/following', label: 'Following', icon: Users },
   { href: '/create', label: 'Create', icon: PlusSquare },
