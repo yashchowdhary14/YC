@@ -47,7 +47,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       
       {/* Media */}
       <div className="relative aspect-square bg-muted">
-        <Image src={post.mediaUrl} alt={post.caption || 'Post image'} fill className="object-cover" />
+        {post.type === 'photo' ? (
+            <Image src={post.mediaUrl} alt={post.caption || 'Post image'} fill className="object-cover" />
+        ) : (
+            <video src={post.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+        )}
       </div>
 
       {/* Actions */}
