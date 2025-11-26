@@ -25,7 +25,7 @@ const FilterTab = () => {
         <div className="grid grid-cols-4 gap-2 px-2">
             {filters.map(filter => (
                 <div key={filter.name} className="text-center" onClick={() => updateMedia(activeMedia.id, { filter: filter.value })}>
-                    <div className="aspect-square bg-muted rounded-md" style={{
+                    <div className="aspect-square bg-muted rounded-md cursor-pointer" style={{
                         backgroundImage: `url(${activeMedia.previewUrl})`,
                         backgroundSize: 'cover',
                         filter: filter.value
