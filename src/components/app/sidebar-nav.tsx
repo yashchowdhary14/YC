@@ -21,24 +21,29 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { useUser } from '@/firebase';
 
-const links = [
+const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Explore', icon: Compass },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/videos', label: 'Videos', icon: Video },
-  { href: '/live', label: 'Live', icon: Wifi },
-  { href: '/studio/broadcast', label: 'Broadcast', icon: RadioTower},
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
-  { href: '/following', label: 'Following', icon: Users },
   { href: '/create', label: 'Create', icon: PlusSquare },
 ];
+
+const secondaryLinks = [
+  { href: '/live', label: 'Live', icon: Wifi },
+  { href: '/studio/broadcast', label: 'Broadcast', icon: RadioTower},
+  { href: '/following', label: 'Following', icon: Users },
+];
+
 
 export default function SidebarNav() {
   const pathname = usePathname();
   const { user } = useUser();
 
   const allLinks = [
-    ...links,
+    ...mainLinks,
+    ...secondaryLinks,
     { href: '/profile', label: 'Profile', icon: user ? () => (
       <Avatar className="h-6 w-6">
         <AvatarImage src={user.photoURL || ''} />

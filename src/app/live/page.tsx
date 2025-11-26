@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import SidebarNav from '@/components/app/sidebar-nav';
@@ -14,19 +14,19 @@ import {
 } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
-import LiveStreamPlayer from '@/components/live/live-stream-player';
-import LiveChat from '@/components/live/live-chat';
-import StreamInfo from '@/components/live/stream-info';
-import type { User, Video } from '@/lib/types';
-import { dummyUsers, dummyVideos } from '@/lib/dummy-data';
-import { Separator } from '@/components/ui/separator';
+import { dummyStreams, dummyCategories, dummyUsers } from '@/lib/dummy-data';
+import type { Stream, Category, User } from '@/lib/types';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
+import LiveSidebar from '@/components/live/live-sidebar';
+import StreamGrid from '@/components/live/stream-grid';
+import CategoryGrid from '@/components/live/category-grid';
 
-// Let's pick a user and a video to be our "featured streamer"
-const FEATURED_STREAMER_USERNAME = 'ethan_bytes';
-const FEATURED_VIDEO_ID = 'vid_1';
-
-export default function LiveStreamPage() {
+export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
 
@@ -36,26 +36,35 @@ export default function LiveStreamPage() {
     }
   }, [isUserLoading, user, router]);
 
-  const streamData = useMemo(() => {
-    const streamer = dummyUsers.find(u => u.username === FEATURED_STREAMER_USERNAME) as User;
-    const video = dummyVideos.find(v => v.id === FEATURED_VIDEO_ID);
-    if (!streamer || !video) return null;
-    
+  const liveData = useMemo(() => {
+    // For now, all data is from dummy data. In a real app, this would be from Firestore.
+    const liveStreams: Stream[] = dummyStreams.map(s => {
+      const streamer = dummyUsers.find(u => u.id === s.streamerId);
+      return {
+        ...s,
+        user: {
+            ...streamer!,
+            avatarUrl: `https://picsum.photos/seed/${streamer!.id}/100/100`,
+        },
+        thumbnailUrl: `https://picsum.photos/seed/${s.id}/640/360`,
+      };
+    });
+
+    const recommendedChannels = liveStreams.slice(0, 5);
+    const featuredStream = liveStreams[0];
+    const suggestedStreams = liveStreams.slice(1, 6);
+
+
     return {
-      streamer: {
-        ...streamer,
-        avatarUrl: `https://picsum.photos/seed/${streamer.id}/150/150`,
-      },
-      stream: {
-        title: video.title,
-        videoUrl: video.videoUrl,
-        category: video.category,
-        viewers: Math.floor(video.views / 100) + 500, // Make up a viewer count
-      },
+      liveStreams,
+      recommendedChannels,
+      featuredStream,
+      suggestedStreams,
+      categories: dummyCategories,
     };
   }, []);
 
-  if (isUserLoading || !user || !streamData) {
+  if (isUserLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -63,36 +72,37 @@ export default function LiveStreamPage() {
     );
   }
 
-  const { streamer, stream } = streamData;
-
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader>
-          <h1 className="text-2xl font-bold p-2 px-4 font-serif">Instagram</h1>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarNav />
-        </SidebarContent>
-      </Sidebar>
-      <SidebarInset>
+    <div className="flex h-screen bg-zinc-900 text-white">
+      <LiveSidebar recommendedChannels={liveData.recommendedChannels} />
+      <div className="flex-1 flex flex-col ml-0 md:ml-60">
         <AppHeader />
-        <main className="h-[calc(100vh-3.5rem)]">
-           <div className="grid grid-cols-12 h-full">
-              <div className="col-span-12 xl:col-span-9 flex flex-col">
-                <div className="flex-grow p-4">
-                  <AspectRatio ratio={16 / 9}>
-                    <LiveStreamPlayer src={stream.videoUrl} />
-                  </AspectRatio>
-                  <StreamInfo streamer={streamer} stream={stream} />
+        <main className="flex-1 overflow-y-auto p-8">
+            <div className="space-y-12">
+                <div>
+                    <h2 className="text-xl font-bold mb-4">Featured Stream</h2>
+                    <AspectRatio ratio={16/9} className="mb-4 rounded-xl overflow-hidden shadow-2xl">
+                        <Image src={liveData.featuredStream.thumbnailUrl!} alt={liveData.featuredStream.title} fill className="object-cover" />
+                        <div className="absolute top-4 left-4 bg-red-600 text-white px-2 py-0.5 rounded-md text-sm font-bold">LIVE</div>
+                    </AspectRatio>
                 </div>
-              </div>
-              <div className="hidden xl:block xl:col-span-3 border-l h-full">
-                 <LiveChat streamer={streamer} />
-              </div>
-           </div>
+
+                <Separator className="bg-zinc-700" />
+
+                <div>
+                    <h2 className="text-xl font-bold mb-4"><span className="text-primary">Live streams</span> we think you'll like</h2>
+                    <StreamGrid streams={liveData.suggestedStreams} />
+                </div>
+                
+                <Separator className="bg-zinc-700" />
+
+                <div>
+                    <h2 className="text-xl font-bold mb-4"><span className="text-primary">Categories</span> we think you'll like</h2>
+                    <CategoryGrid categories={liveData.categories} />
+                </div>
+            </div>
         </main>
-      </SidebarInset>
-    </SidebarProvider>
+      </div>
+    </div>
   );
 }

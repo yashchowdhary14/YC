@@ -1,10 +1,17 @@
+
 'use client';
 
+import { Skeleton } from "../ui/skeleton";
+
 interface LiveStreamPlayerProps {
-    src: string;
+    src?: string;
 }
 
 export default function LiveStreamPlayer({ src }: LiveStreamPlayerProps) {
+    if (!src) {
+        return <Skeleton className="w-full h-full bg-zinc-800" />;
+    }
+    
     return (
         <div className="w-full h-full bg-black rounded-lg overflow-hidden">
             <video

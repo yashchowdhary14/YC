@@ -43,6 +43,8 @@ export function SidebarProvider({
   
   const value = {open, setOpen};
 
+  // On desktop, we don't use the sheet, so we just return the children.
+  // The `Sidebar`, `SidebarInset`, etc. components handle their own visibility.
   if (!isMobile) {
     return <>{children}</>;
   }
@@ -86,7 +88,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-10 hidden h-full w-[260px] flex-col border-r border-zinc-800 p-4 md:flex',
+        'fixed left-0 top-0 z-40 hidden h-screen w-60 flex-col border-r bg-zinc-900 text-white md:flex',
         className
       )}
       {...props}
@@ -105,11 +107,12 @@ export function SidebarInset({
   className?: string;
 }) {
   const isMobile = useIsMobile();
+  // On mobile, there's no inset, the content takes the full width.
   if (isMobile) {
     return <>{children}</>;
   }
   return (
-    <div className={cn('md:ml-[260px]', className)} {...props}>
+    <div className={cn('md:ml-60', className)} {...props}>
       {children}
     </div>
   );
@@ -162,7 +165,7 @@ export function SidebarHeader({
     );
   }
   return (
-    <div className={cn('flex items-center px-4', className)}>{children}</div>
+    <div className={cn('flex items-center p-4', className)}>{children}</div>
   );
 }
 
@@ -173,7 +176,7 @@ export function SidebarContent({
   children?: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn('flex-1 py-2', className)}>{children}</div>;
+  return <div className={cn('flex-1 py-2 overflow-y-auto', className)}>{children}</div>;
 }
 
 export function SidebarFooter({

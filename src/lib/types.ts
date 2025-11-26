@@ -71,3 +71,21 @@ export interface Chat {
   lastMessage?: Message;
   userDetails: User[];
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  thumbnailUrl: string;
+}
+
+export interface Stream {
+  id: string;
+  user: User;
+  streamerId: string;
+  title: string;
+  category: string;
+  tags: string[];
+  viewerCount: number;
+  isLive: boolean;
+  thumbnailUrl?: string;
+}

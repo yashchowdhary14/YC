@@ -1,5 +1,5 @@
 
-import type { Post, User, Chat, Message, Reel, ReelComment, Video } from '@/lib/types';
+import type { Post, User, Chat, Message, Reel, ReelComment, Video, Stream, Category } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
@@ -263,3 +263,69 @@ export function addMessageToChat(chatId: string, message: Message) {
   }
   return false;
 }
+
+export const dummyCategories: Category[] = [
+    { id: 'cat_1', name: 'Just Chatting', thumbnailUrl: 'https://picsum.photos/seed/cat1/285/380' },
+    { id: 'cat_2', name: 'Valorant', thumbnailUrl: 'https://picsum.photos/seed/cat2/285/380' },
+    { id: 'cat_3', name: 'Counter-Strike', thumbnailUrl: 'https://picsum.photos/seed/cat3/285/380' },
+    { id: 'cat_4', name: 'Art', thumbnailUrl: 'https://picsum.photos/seed/cat4/285/380' },
+    { id: 'cat_5', name: 'Music', thumbnailUrl: 'https://picsum.photos/seed/cat5/285/380' },
+    { id: 'cat_6', name: 'Travel & Outdoors', thumbnailUrl: 'https://picsum.photos/seed/cat6/285/380' },
+];
+
+export const dummyStreams: Omit<Stream, 'user'>[] = [
+    {
+        id: 'stream_1',
+        streamerId: 'user_ethan_bytes',
+        title: 'Building a Real-time App with Rust',
+        category: 'Software and Game Development',
+        tags: ['Programming', 'Rust', 'Web Dev'],
+        viewerCount: 12800,
+        isLive: true,
+    },
+    {
+        id: 'stream_2',
+        streamerId: 'user_maya_creates',
+        title: 'Morning Sketch Session 🎨',
+        category: 'Art',
+        tags: ['Illustration', 'Creative', 'Digital Art'],
+        viewerCount: 7500,
+        isLive: true,
+    },
+    {
+        id: 'stream_3',
+        streamerId: 'user_sam_reviews',
+        title: 'Unboxing the new M4 Laptop!',
+        category: 'Tech',
+        tags: ['Unboxing', 'Tech', 'Review'],
+        viewerCount: 25000,
+        isLive: true,
+    },
+    {
+        id: 'stream_4',
+        streamerId: 'user_sakshi',
+        title: 'Training for the championship',
+        category: 'Fitness',
+        tags: ['Wrestling', 'Training', 'Workout'],
+        viewerCount: 9800,
+        isLive: true,
+    },
+    {
+        id: 'stream_5',
+        streamerId: 'user_sachin',
+        title: 'Discussing the latest match',
+        category: 'Sports',
+        tags: ['Cricket', 'Sports Talk'],
+        viewerCount: 50000,
+        isLive: true,
+    },
+    {
+        id: 'stream_6',
+        streamerId: 'user_wanderlust_lila',
+        title: 'Live from the Swiss Alps!',
+        category: 'Travel & Outdoors',
+        tags: ['Travel', 'Hiking', 'Nature'],
+        viewerCount: 4200,
+        isLive: true,
+    },
+];

@@ -1,0 +1,57 @@
+
+'use client';
+
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { ScrollArea } from '../ui/scroll-area';
+import { Separator } from '../ui/separator';
+import type { Stream } from '@/lib/types';
+import Link from 'next/link';
+import { formatCompactNumber } from '@/lib/utils';
+import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '../ui/sidebar';
+
+interface LiveSidebarProps {
+  recommendedChannels: Stream[];
+}
+
+function ChannelItem({ channel }: { channel: Stream }) {
+  return (
+    <Link href={`/${channel.user.username}`} className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md">
+      <Avatar className="h-8 w-8">
+        <AvatarImage src={channel.user.avatarUrl} alt={channel.user.username} />
+        <AvatarFallback>{channel.user.username.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 overflow-hidden">
+        <p className="text-sm font-semibold truncate">{channel.user.username}</p>
+        <p className="text-xs text-zinc-400 truncate">{channel.category}</p>
+      </div>
+      <div className="flex items-center gap-1.5 text-xs">
+        <div className="h-2 w-2 rounded-full bg-red-500" />
+        <span>{formatCompactNumber(channel.viewerCount)}</span>
+      </div>
+    </Link>
+  );
+}
+
+
+export default function LiveSidebar({ recommendedChannels }: LiveSidebarProps) {
+  return (
+    <Sidebar className="p-0 border-r-zinc-800">
+        <SidebarHeader className="h-16 border-b border-zinc-800">
+            <h2 className="text-lg font-bold">For You</h2>
+        </SidebarHeader>
+        <SidebarContent>
+            <div className="p-2">
+                <h3 className="text-sm font-semibold uppercase text-zinc-400 px-2 mb-2">Recommended Channels</h3>
+                <div className="space-y-1">
+                    {recommendedChannels.map(channel => (
+                        <ChannelItem key={channel.id} channel={channel} />
+                    ))}
+                </div>
+            </div>
+        </SidebarContent>
+        <SidebarFooter className="border-t-zinc-800">
+            <p className="text-xs text-zinc-500 p-2">Follow to see more channels.</p>
+        </SidebarFooter>
+    </Sidebar>
+  );
+}
