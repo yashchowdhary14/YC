@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
-import { useUser, useCollection, useFirestore } from '@/firebase';
+import { useUser } from '@/firebase';
 import type { Stream, Category } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
@@ -15,30 +15,37 @@ import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { collection } from 'firebase/firestore';
+import { dummyStreams, dummyCategories } from '@/lib/dummy-data';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
-  const firestore = useFirestore();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
+  const [streams, setStreams] = useState<Stream[]>(dummyStreams);
+  const [categories, setCategories] = useState<Category[]>(dummyCategories);
 
   useEffect(() => {
     setIsPageLoaded(true);
   }, []);
 
-  const streamsQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'streams');
-  }, [firestore]);
+  // Effect to listen for storage changes to update live status
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'dummyStreams' && event.newValue) {
+        setStreams(JSON.parse(event.newValue));
+      }
+    };
+    
+    // Also load from storage on initial mount in case of page reload
+    const storedStreams = localStorage.getItem('dummyStreams');
+    if (storedStreams) {
+      setStreams(JSON.parse(storedStreams));
+    }
 
-  const categoriesQuery = useMemo(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'categories');
-  }, [firestore]);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
-  const { data: streams, isLoading: areStreamsLoading } = useCollection<Stream>(streamsQuery as any);
-  const { data: categories, isLoading: areCategoriesLoading } = useCollection<Category>(categoriesQuery as any);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -65,7 +72,7 @@ export default function LivePage() {
     return (categories || []).sort((a, b) => a.name.localeCompare(b.name));
   }, [categories]);
   
-  const isLoading = isUserLoading || areStreamsLoading || areCategoriesLoading;
+  const isLoading = isUserLoading;
 
   if (isLoading && !isPageLoaded) {
      return (

@@ -21,10 +21,10 @@ import { ThumbsUp, ThumbsDown, Share, Download, Send, Loader2 } from 'lucide-rea
 import { Separator } from '@/components/ui/separator';
 import RelatedVideoCard from '@/components/app/related-video-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useDoc, useCollection, useFirestore, useMemoFirebase, useUser } from '@/firebase';
-import { doc, collection, query, where, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import type { Video, VideoComment } from '@/lib/types';
 import TextareaAutosize from 'react-textarea-autosize';
+import { dummyVideos, dummyUsers } from '@/lib/dummy-data';
 
 function WatchPageSkeleton() {
   return (
@@ -66,42 +66,62 @@ function WatchPageSkeleton() {
   );
 }
 
+function generateDummyComments(count: number): VideoComment[] {
+    const comments: VideoComment[] = [];
+    for (let i = 0; i < count; i++) {
+        const user = dummyUsers[i % dummyUsers.length];
+        comments.push({
+            id: `comment-${i}-${Date.now()}`,
+            text: `This is a great dummy comment! #${i + 1}`,
+            createdAt: new Date(Date.now() - (i + 1) * 60000 * Math.random() * 10),
+            user: { ...user, avatarUrl: `https://picsum.photos/seed/${user.id}/100/100` }
+        });
+    }
+    return comments.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime());
+}
+
 function CommentSection({ videoId }: { videoId: string }) {
     const { user: currentUser } = useUser();
-    const firestore = useFirestore();
     const [commentText, setCommentText] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [comments, setComments] = useState<VideoComment[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const commentsQuery = useMemoFirebase(() => {
-        if (!firestore) return null;
-        return query(collection(firestore, 'videos', videoId, 'comments'), orderBy('createdAt', 'desc'));
-    }, [firestore, videoId]);
-
-    const { data: comments, isLoading } = useCollection<VideoComment>(commentsQuery);
+    useEffect(() => {
+        setIsLoading(true);
+        // Simulate fetching comments
+        setTimeout(() => {
+            setComments(generateDummyComments(5));
+            setIsLoading(false);
+        }, 500);
+    }, [videoId]);
     
     const handleAddComment = async () => {
-        if (!commentText.trim() || !currentUser || !firestore) return;
+        if (!commentText.trim() || !currentUser) return;
         setIsSending(true);
 
-        const newComment = {
+        const newComment: VideoComment = {
+            id: `new-comment-${Date.now()}`,
             text: commentText,
-            createdAt: serverTimestamp(),
+            createdAt: new Date(),
             user: {
               id: currentUser.uid,
-              username: currentUser.displayName || currentUser.email?.split('@')[0],
+              username: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
               avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100`,
-              fullName: currentUser.displayName,
+              fullName: currentUser.displayName || 'User',
+              bio: '',
+              followersCount: 0,
+              followingCount: 0,
+              verified: false,
             }
         };
 
-        try {
-            await addDoc(collection(firestore, 'videos', videoId, 'comments'), newComment);
-            setCommentText('');
-        } catch (error) {
-            console.error("Error adding comment:", error);
-        } finally {
-            setIsSending(false);
-        }
+        // Simulate network request
+        await new Promise(res => setTimeout(res, 300));
+        
+        setComments(prev => [newComment, ...prev]);
+        setCommentText('');
+        setIsSending(false);
     };
 
 
@@ -155,7 +175,7 @@ function CommentSection({ videoId }: { videoId: string }) {
                             <div className="flex items-center gap-2 text-sm">
                                 <span className="font-semibold">{comment.user.username}</span>
                                 <time className="text-muted-foreground text-xs">
-                                  {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : 'just now'}
+                                  {comment.createdAt ? formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true }) : 'just now'}
                                 </time>
                             </div>
                             <p className="text-sm mt-1">{comment.text}</p>
@@ -170,21 +190,23 @@ function CommentSection({ videoId }: { videoId: string }) {
 
 export default function WatchPage() {
   const { videoId } = useParams<{ videoId: string }>();
-  const firestore = useFirestore();
-
-  const videoRef = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return doc(firestore, 'videos', videoId);
-  }, [firestore, videoId]);
-
-  const { data: video, isLoading: isVideoLoading } = useDoc<Video>(videoRef);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   
-  const relatedVideosQuery = useMemoFirebase(() => {
-    if (!firestore || !video) return null;
-    return query(collection(firestore, 'videos'), where('category', '==', video.category), where('id', '!=', video.id));
-  }, [firestore, video]);
+  const video = useMemo(() => dummyVideos.find(v => v.id === videoId), [videoId]);
+  
+  const relatedVideos = useMemo(() => {
+    if (!video) return [];
+    return dummyVideos.filter(v => v.category === video.category && v.id !== video.id);
+  }, [video]);
 
-  const { data: relatedVideos, isLoading: areRelatedLoading } = useCollection<Video>(relatedVideosQuery);
+  useEffect(() => {
+    setIsVideoLoading(true);
+    // Simulate loading
+    setTimeout(() => {
+      setIsVideoLoading(false);
+    }, 500);
+  }, [videoId]);
+
 
   if (isVideoLoading) {
     return (
@@ -228,7 +250,7 @@ export default function WatchPage() {
                   <h1 className="text-2xl font-bold mb-2">{video.title}</h1>
                   <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span>{formatCompactNumber(video.views)} views</span>
-                      <span>{video.createdAt ? formatDistanceToNow(video.createdAt.toDate(), { addSuffix: true }) : ''}</span>
+                      <span>{video.createdAt ? formatDistanceToNow(new Date(video.createdAt), { addSuffix: true }) : ''}</span>
                   </div>
                   <Separator className="my-4" />
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
@@ -247,7 +269,7 @@ export default function WatchPage() {
                           <div className="flex items-center rounded-full bg-secondary">
                              <Button variant="secondary" className="rounded-r-none rounded-l-full">
                                  <ThumbsUp className="mr-2 h-4 w-4"/>
-                                 {formatCompactNumber(video.views / 50)}
+                                 {formatCompactNumber(Math.floor(video.views / 50))}
                              </Button>
                              <Separator orientation="vertical" className="h-6"/>
                              <Button variant="secondary" className="rounded-l-none rounded-r-full">
@@ -288,5 +310,3 @@ export default function WatchPage() {
     </SidebarProvider>
   );
 }
-
-    

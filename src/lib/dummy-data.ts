@@ -1,5 +1,5 @@
 
-import type { Post, User, Chat, Message, Reel, ReelComment, Video, Stream, Category } from '@/lib/types';
+import type { Post, User, Chat, Message, Reel, ReelComment, Video, Stream, Category, LiveChatMessage } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl?: string })[] = [
@@ -263,3 +263,31 @@ export function addMessageToChat(chatId: string, message: Message) {
   }
   return false;
 }
+
+const getHydratedUser = (userId: string): User => {
+    const user = dummyUsers.find(u => u.id === userId)!;
+    return {
+        ...user,
+        avatarUrl: `https://picsum.photos/seed/${userId}/100/100`
+    }
+}
+
+export const dummyCategories: Category[] = [
+    { id: 'just-chatting', name: 'Just Chatting', thumbnailUrl: 'https://picsum.photos/seed/cat_chat/300/400' },
+    { id: 'games', name: 'Games', thumbnailUrl: 'https://picsum.photos/seed/cat_games/300/400' },
+    { id: 'music', name: 'Music', thumbnailUrl: 'https://picsum.photos/seed/cat_music/300/400' },
+    { id: 'art', name: 'Art', thumbnailUrl: 'https://picsum.photos/seed/cat_art/300/400' },
+    { id: 'tech', name: 'Tech', thumbnailUrl: 'https://picsum.photos/seed/cat_tech/300/400' },
+    { id: 'sports', name: 'Sports', thumbnailUrl: 'https://picsum.photos/seed/cat_sports/300/400' },
+    { id: 'travel', name: 'Travel', thumbnailUrl: 'https://picsum.photos/seed/cat_travel/300/400' },
+    { id: 'food', name: 'Food', thumbnailUrl: 'https://picsum.photos/seed/cat_food/300/400' },
+];
+
+export const dummyStreams: Stream[] = [
+    { id: 'user_sachin', streamerId: 'user_sachin', user: getHydratedUser('user_sachin'), title: 'Cricket Practice', category: 'Sports', tags: ['Cricket', 'Training'], isLive: true, viewerCount: 75000, thumbnailUrl: 'https://picsum.photos/seed/stream_sachin/640/360' },
+    { id: 'user_sakshi', streamerId: 'user_sakshi', user: getHydratedUser('user_sakshi'), title: 'Workout Session', category: 'Fitness', tags: ['Wrestling', 'Training'], isLive: true, viewerCount: 52000, thumbnailUrl: 'https://picsum.photos/seed/stream_sakshi/640/360' },
+    { id: 'user_wanderlust_lila', streamerId: 'user_wanderlust_lila', user: getHydratedUser('user_wanderlust_lila'), title: 'Exploring Tokyo', category: 'Travel', tags: ['Japan', 'Vlog'], isLive: false, viewerCount: 0, thumbnailUrl: 'https://picsum.photos/seed/stream_lila/640/360' },
+    { id: 'user_ethan_bytes', streamerId: 'user_ethan_bytes', user: getHydratedUser('user_ethan_bytes'), title: 'Coding a new project', category: 'Tech', tags: ['Programming', 'Rust'], isLive: true, viewerCount: 1200, thumbnailUrl: 'https://picsum.photos/seed/stream_ethan/640/360' },
+    { id: 'user_maya_creates', streamerId: 'user_maya_creates', user: getHydratedUser('user_maya_creates'), title: 'Live Painting Session', category: 'Art', tags: ['Illustration', 'Creative'], isLive: true, viewerCount: 9800, thumbnailUrl: 'https://picsum.photos/seed/stream_maya/640/360' },
+    { id: 'user_sam_reviews', streamerId: 'user_sam_reviews', user: getHydratedUser('user_sam_reviews'), title: 'Unboxing the new phone!', category: 'Tech', tags: ['Unboxing', 'Gadgets'], isLive: false, viewerCount: 0, thumbnailUrl: 'https://picsum.photos/seed/stream_sam/640/360' },
+];

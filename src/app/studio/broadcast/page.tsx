@@ -12,8 +12,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from '@/components/ui/sidebar';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { Loader2, Video, VideoOff, Wifi, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -22,71 +21,58 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import LiveChat from '@/components/live/live-chat';
-import type { Stream, User } from '@/lib/types';
-import { dummyUsers } from '@/lib/dummy-data';
+import type { Stream, LiveChatMessage } from '@/lib/types';
+import { dummyStreams } from '@/lib/dummy-data';
 
 
 export default function BroadcastPage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-  const firestore = useFirestore();
 
+  const [allStreams, setAllStreams] = useState<Stream[]>(dummyStreams);
   const [streamTitle, setStreamTitle] = useState('');
   const [isLive, setIsLive] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  
-  // In a real app, a user might manage multiple stream keys or have one created.
-  // For this demo, we'll create a stream document for the user if it doesn't exist.
-  const streamId = useMemo(() => user?.uid, [user]);
 
-  const streamRef = useMemoFirebase(() => {
-    if (!firestore || !streamId) return null;
-    return doc(firestore, 'streams', streamId);
-  }, [firestore, streamId]);
-
-  const { data: streamData, isLoading: isStreamLoading } = useDoc<Stream>(streamRef);
+  const streamData = useMemo(() => {
+    return allStreams.find(s => s.streamerId === user?.uid);
+  }, [allStreams, user]);
 
   useEffect(() => {
-    // If stream data exists, populate the component state
+     // Listen for storage changes to sync state across tabs
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'dummyStreams' && event.newValue) {
+        const updatedStreams = JSON.parse(event.newValue);
+        setAllStreams(updatedStreams);
+        const myStream = updatedStreams.find((s: Stream) => s.streamerId === user?.uid);
+        if (myStream) {
+            setIsLive(myStream.isLive);
+            setStreamTitle(myStream.title);
+        }
+      }
+    };
+    
+    // Load initial state from localStorage
+    const storedStreams = localStorage.getItem('dummyStreams');
+    if (storedStreams) {
+        setAllStreams(JSON.parse(storedStreams));
+    }
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [user?.uid]);
+
+  useEffect(() => {
     if (streamData) {
         setStreamTitle(streamData.title);
         setIsLive(streamData.isLive);
-    } 
-    // If no stream document and we have a user, create one.
-    else if (!isStreamLoading && !streamData && user && streamRef) {
-        const userData = dummyUsers.find(u => u.id === user.uid);
-        if (!userData) return;
-
-        const newStreamData: Omit<Stream, 'id'> = {
-            streamerId: user.uid,
-            title: `${userData.username}'s Stream`,
-            category: 'Just Chatting',
-            tags: ['IRL', 'New Streamer'],
-            viewerCount: 0,
-            isLive: false,
-            thumbnailUrl: `https://picsum.photos/seed/${user.uid}/640/360`,
-            user: {
-                id: userData.id,
-                username: userData.username,
-                avatarUrl: `https://picsum.photos/seed/${userData.id}/100/100`,
-                fullName: userData.fullName,
-                bio: userData.bio,
-                followersCount: userData.followersCount,
-                followingCount: userData.followingCount,
-                verified: userData.verified
-            }
-        };
-        setDoc(streamRef, newStreamData).catch(err => {
-            console.error("Failed to create stream document:", err);
-            toast({ variant: 'destructive', title: 'Could not initialize your stream.'});
-        });
     }
-  }, [streamData, isStreamLoading, user, streamRef, toast]);
-
+  }, [streamData]);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -132,22 +118,36 @@ export default function BroadcastPage() {
   }, [toast]);
   
   const handleUpdateStream = useCallback(async (liveStatus: boolean, newTitle: string) => {
-    if(!streamRef) return;
+    if(!streamData) return;
     setIsLoading(true);
-    try {
-        await updateDoc(streamRef, {
-            isLive: liveStatus,
-            title: newTitle,
-            viewerCount: liveStatus ? Math.floor(Math.random() * 5000) + 100 : 0, // Simulate viewers
-        });
-        toast({ title: `Stream ${liveStatus ? 'started' : 'ended'} successfully!` });
-    } catch (error) {
-        console.error("Error updating stream:", error);
-        toast({ variant: 'destructive', title: "Failed to update stream." });
-    } finally {
-        setIsLoading(false);
-    }
-  }, [streamRef, toast]);
+    
+    // Simulate network delay
+    await new Promise(r => setTimeout(r, 500));
+
+    const updatedStreams = allStreams.map(s => {
+        if (s.id === streamData.id) {
+            return { 
+                ...s, 
+                isLive: liveStatus, 
+                title: newTitle,
+                viewerCount: liveStatus ? s.viewerCount || Math.floor(Math.random() * 5000) + 100 : 0
+            };
+        }
+        return s;
+    });
+
+    setAllStreams(updatedStreams);
+    localStorage.setItem('dummyStreams', JSON.stringify(updatedStreams));
+    
+    // Manually dispatch a storage event for the current tab to listen to
+    window.dispatchEvent(new StorageEvent('storage', {
+        key: 'dummyStreams',
+        newValue: JSON.stringify(updatedStreams),
+    }));
+
+    toast({ title: `Stream ${liveStatus ? 'started' : 'ended'} successfully!` });
+    setIsLoading(false);
+  }, [streamData, allStreams, toast]);
 
 
   const handleGoLive = () => {
@@ -163,17 +163,15 @@ export default function BroadcastPage() {
   };
 
   const handleUpdateInfo = () => {
-    if (!streamRef || !streamTitle.trim()) {
+    if (!streamData || !streamTitle.trim()) {
         toast({ variant: 'destructive', title: 'Stream title cannot be empty.'});
         return;
     }
-    updateDoc(streamRef, { title: streamTitle })
-        .then(() => toast({ title: 'Stream info updated!' }))
-        .catch(() => toast({ variant: 'destructive', title: 'Failed to update info.' }));
+    handleUpdateStream(isLive, streamTitle);
   }
 
 
-  if (isUserLoading || !user || isStreamLoading || !streamData) {
+  if (isUserLoading || !user || !streamData) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -242,7 +240,7 @@ export default function BroadcastPage() {
                         )}
                     </div>
                     {isLive && (
-                        <Button onClick={handleUpdateInfo} variant="outline" className="w-full" disabled={isLoading}>
+                        <Button onClick={handleUpdateInfo} variant="outline" className="w-full" disabled={isLoading && streamTitle !== streamData.title}>
                             {isLoading && streamTitle !== streamData.title ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
                             Update Stream Info
                         </Button>
@@ -272,12 +270,10 @@ export default function BroadcastPage() {
                 </Card>
             </div>
             <div className="md:col-span-1 lg:col-span-1 border-l h-[calc(100vh-4rem)] hidden md:flex">
-                <LiveChat stream={streamData} />
+                <LiveChat stream={streamData} messages={chatMessages} setMessages={setChatMessages} />
             </div>
         </main>
       </SidebarInset>
     </SidebarProvider>
   );
 }
-
-    

@@ -1,43 +1,37 @@
+
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Crown, Bot, Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { User, Stream } from '@/lib/types';
+import type { User, Stream, LiveChatMessage } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-interface LiveChatMessage {
-  id: string;
-  userId: string;
-  username: string;
-  text: string;
-  timestamp: any; // Can be Date or FieldValue
-  color?: string;
-  isBot?: boolean;
-}
+// Helper function to generate a random color from a predefined list
+const userColors = [
+  'text-red-400', 'text-green-400', 'text-blue-400', 
+  'text-yellow-400', 'text-purple-400', 'text-pink-400',
+  'text-indigo-400', 'text-teal-400'
+];
+const assignedColors: { [userId: string]: string } = {};
+const getUserColor = (userId: string) => {
+    if (!assignedColors[userId]) {
+        assignedColors[userId] = userColors[Math.floor(Math.random() * userColors.length)];
+    }
+    return assignedColors[userId];
+};
 
-export default function LiveChat({ stream }: { stream: Stream }) {
+
+export default function LiveChat({ stream, messages, setMessages }: { stream: Stream, messages: LiveChatMessage[], setMessages: React.Dispatch<React.SetStateAction<LiveChatMessage[]>> }) {
   const { user: currentUser } = useUser();
-  const firestore = useFirestore();
   const [newMessage, setNewMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
 
-  const messagesQuery = useMemoFirebase(() => {
-    if (!firestore || !stream) return null;
-    return query(
-      collection(firestore, 'streams', stream.id, 'live-chat-messages'),
-      orderBy('timestamp', 'asc')
-    );
-  }, [firestore, stream]);
-
-  const { data: messages, isLoading } = useCollection<LiveChatMessage>(messagesQuery);
-  
   const welcomeMessage: LiveChatMessage = useMemo(() => ({
     id: 'bot-welcome',
     userId: 'bot',
@@ -48,7 +42,7 @@ export default function LiveChat({ stream }: { stream: Stream }) {
   }), [stream.user.username]);
 
   const displayedMessages = useMemo(() => {
-    return [welcomeMessage, ...(messages || [])];
+    return [welcomeMessage, ...messages];
   }, [welcomeMessage, messages]);
 
 
@@ -60,25 +54,24 @@ export default function LiveChat({ stream }: { stream: Stream }) {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !firestore || !stream || isSending) return;
+    if (!newMessage.trim() || !currentUser || isSending) return;
     
     setIsSending(true);
 
-    const messageData = {
+    const messageData: LiveChatMessage = {
+      id: `msg-${Date.now()}`,
       userId: currentUser.uid,
       username: currentUser.displayName || currentUser.email?.split('@')[0] || 'Anonymous',
       text: newMessage,
-      timestamp: serverTimestamp(),
+      timestamp: new Date(),
     };
+    
+    // Simulate network delay
+    await new Promise(res => setTimeout(res, 200));
 
-    try {
-      await addDoc(collection(firestore, 'streams', stream.id, 'live-chat-messages'), messageData);
-      setNewMessage('');
-    } catch (error) {
-      console.error("Error sending message:", error);
-    } finally {
-      setIsSending(false);
-    }
+    setMessages(prev => [...prev, messageData]);
+    setNewMessage('');
+    setIsSending(false);
   };
     
   return (
@@ -88,18 +81,13 @@ export default function LiveChat({ stream }: { stream: Stream }) {
       </div>
       <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
         <div className="p-4 space-y-4 text-sm">
-          {isLoading && (
-            <div className="flex justify-center items-center h-full">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          )}
-          {!isLoading && displayedMessages.map((msg) => (
+          {displayedMessages.map((msg) => (
             <div key={msg.id} className="flex gap-2 items-start">
               {msg.isBot && <Bot className="h-4 w-4 mt-0.5 text-muted-foreground" />}
               {!msg.isBot && (
                 <span className={cn(
                   "font-bold shrink-0", 
-                  msg.color, 
+                  getUserColor(msg.userId),
                   msg.userId === currentUser?.uid && 'text-primary'
                 )}>
                   {msg.userId === stream.streamerId && <Crown className="inline-block h-4 w-4 mr-1 text-amber-400" />}
@@ -121,7 +109,7 @@ export default function LiveChat({ stream }: { stream: Stream }) {
                 className="bg-background rounded-lg pr-10"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                disabled={isSending || isLoading}
+                disabled={isSending}
               />
               <Button type="submit" variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" disabled={isSending || !newMessage.trim()}>
                 {isSending ? <Loader2 className="h-4 w-4 animate-spin"/> : <Send className="h-4 w-4" />}

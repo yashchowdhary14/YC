@@ -1,51 +1,54 @@
 
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
-import { useUser, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection, query, where, limit } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import LiveStreamPlayer from '@/components/live/live-stream-player';
 import LiveChat from '@/components/live/live-chat';
 import StreamInfo from '@/components/live/stream-info';
 import { Separator } from '@/components/ui/separator';
-import type { Stream, User } from '@/lib/types';
+import type { Stream, User, LiveChatMessage } from '@/lib/types';
+import { dummyStreams } from '@/lib/dummy-data';
 
 export default function LiveWatchPage() {
   const { username } = useParams<{ username: string }>();
   const { user: currentUser, isUserLoading } = useUser();
-  const firestore = useFirestore();
+  const [streams, setStreams] = useState(dummyStreams);
+  const [chatMessages, setChatMessages] = useState<LiveChatMessage[]>([]);
 
-  const streamQuery = useMemoFirebase(() => {
-    if (!firestore || !username) return null;
-    return query(
-      collection(firestore, 'streams'),
-      where('user.username', '==', username),
-      limit(1)
-    );
-  }, [firestore, username]);
+  useEffect(() => {
+    // Effect to listen for storage changes to update live status
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'dummyStreams' && event.newValue) {
+        setStreams(JSON.parse(event.newValue));
+      }
+    };
+    
+    const storedStreams = localStorage.getItem('dummyStreams');
+    if (storedStreams) {
+        setStreams(JSON.parse(storedStreams));
+    }
 
-  const { data: streams, isLoading: isStreamLoading } = useCollection<Stream>(streamQuery);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
-  const stream = useMemo(() => (streams && streams.length > 0 ? streams[0] : null), [streams]);
+  const stream = useMemo(() => {
+    const s = streams.find(s => s.user.username === username);
+    if (!s) return null;
+    return s;
+  }, [streams, username]);
+
 
   const streamer: User | null = useMemo(() => {
     if (!stream) return null;
-    return {
-      id: stream.streamerId,
-      username: stream.user.username,
-      avatarUrl: stream.user.avatarUrl,
-      fullName: stream.user.fullName,
-      bio: stream.user.bio,
-      followersCount: stream.user.followersCount,
-      followingCount: stream.user.followingCount,
-      verified: stream.user.verified,
-    };
+    return stream.user;
   }, [stream]);
 
-  if (isUserLoading || isStreamLoading) {
+  if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,17 +56,8 @@ export default function LiveWatchPage() {
     );
   }
   
-  if (!stream || !streamer) {
-    // Wait until loading is false to show notFound
-    if (!isStreamLoading) {
-      return notFound();
-    }
-    // Return loader while stream is loading and not yet found.
-    return (
-       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+  if (!stream || !streamer || !stream.isLive) {
+     return notFound();
   }
 
   return (
@@ -84,7 +78,7 @@ export default function LiveWatchPage() {
           </div>
         </main>
         <aside className="lg:col-span-3 lg:border-l lg:flex flex-col hidden">
-          <LiveChat stream={stream} />
+          <LiveChat stream={stream} messages={chatMessages} setMessages={setChatMessages} />
         </aside>
       </div>
     </div>

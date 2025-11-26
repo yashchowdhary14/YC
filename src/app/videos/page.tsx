@@ -15,24 +15,25 @@ import VideoCard from '@/components/app/video-card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
 import type { Video } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { dummyVideos } from '@/lib/dummy-data';
 
 type SortOption = 'Trending' | 'Latest';
 
 export default function VideosPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortOption, setSortOption] = useState<SortOption>('Trending');
-  const firestore = useFirestore();
+  const [videos, setVideos] = useState<Video[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const videosQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return collection(firestore, 'videos');
-  }, [firestore]);
-
-  const { data: videos, isLoading } = useCollection<Video>(videosQuery);
+  useEffect(() => {
+    // Simulate fetching data
+    setTimeout(() => {
+      setVideos(dummyVideos);
+      setIsLoading(false);
+    }, 500);
+  }, []);
 
   const categories = useMemo(() => {
     if (!videos) return ['All'];
@@ -45,7 +46,7 @@ export default function VideosPage() {
     
     let processedVideos = videos.map(v => ({
       ...v,
-      createdAt: v.createdAt?.toDate ? v.createdAt.toDate() : new Date(v.createdAt)
+      createdAt: v.createdAt instanceof Date ? v.createdAt : new Date(v.createdAt)
     }));
 
     if (selectedCategory !== 'All') {
@@ -137,5 +138,3 @@ export default function VideosPage() {
     </SidebarProvider>
   );
 }
-
-    

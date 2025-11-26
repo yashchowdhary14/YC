@@ -98,4 +98,12 @@ export interface Stream {
   thumbnailUrl?: string;
 }
 
-    
+export interface LiveChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  timestamp: any; // Can be Date or FieldValue
+  color?: string;
+  isBot?: boolean;
+}
