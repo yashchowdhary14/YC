@@ -1,37 +1,35 @@
-
 {
   "entities": {
     "User": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "User",
       "type": "object",
-      "description": "Represents a user in the application.",
+      "description": "Represents a user in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "Unique identifier for the user entity."
         },
         "username": {
           "type": "string",
-          "description": "User's username."
+          "description": "The username of the user."
         },
         "fullName": {
           "type": "string",
-          "description": "User's full name."
+          "description": "The full name of the user."
         },
         "email": {
           "type": "string",
-          "description": "User's email address.",
+          "description": "The email address of the user.",
           "format": "email"
         },
         "bio": {
           "type": "string",
-          "description": "User's biography."
+          "description": "The biography of the user."
         },
         "profilePhoto": {
           "type": "string",
-          "description": "URL of the user's profile photo.",
-          "format": "uri"
+          "description": "URL of the user's profile photo."
         },
         "followers": {
           "type": "array",
@@ -49,12 +47,12 @@
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the user was created.",
+          "description": "Timestamp indicating when the user account was created.",
           "format": "date-time"
         },
         "verified": {
           "type": "boolean",
-          "description": "Indicates if the user's account is verified."
+          "description": "Indicates whether the user's account is verified."
         }
       },
       "required": [
@@ -68,28 +66,27 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Post",
       "type": "object",
-      "description": "Represents a post in the application.",
+      "description": "Represents a post in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the post."
+          "description": "Unique identifier for the post entity."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Post)"
+          "description": "Reference to User who created this post. (Relationship: User 1:N Post)"
         },
         "imageUrl": {
           "type": "string",
-          "description": "URL of the post's image.",
-          "format": "uri"
+          "description": "URL of the image in the post."
         },
         "caption": {
           "type": "string",
-          "description": "Caption for the post."
+          "description": "The caption of the post."
         },
         "location": {
           "type": "string",
-          "description": "Location where the post was taken."
+          "description": "The location where the post was taken."
         },
         "likes": {
           "type": "array",
@@ -100,11 +97,11 @@
         },
         "commentsCount": {
           "type": "number",
-          "description": "Number of comments on the post."
+          "description": "The number of comments on the post."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the post was created.",
+          "description": "Timestamp indicating when the post was created.",
           "format": "date-time"
         }
       },
@@ -119,33 +116,32 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Story",
       "type": "object",
-      "description": "Represents a story in the application.",
+      "description": "Represents a story in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the story."
+          "description": "Unique identifier for the story entity."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Story)"
+          "description": "Reference to User who created this story. (Relationship: User 1:N Story)"
         },
         "mediaUrl": {
           "type": "string",
-          "description": "URL of the story's media (image or video).",
-          "format": "uri"
+          "description": "URL of the media in the story."
         },
         "type": {
           "type": "string",
-          "description": "Type of the story media (image or video)."
+          "description": "The type of the media (image/video)."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the story was created.",
+          "description": "Timestamp indicating when the story was created.",
           "format": "date-time"
         },
         "expiresAt": {
           "type": "string",
-          "description": "Timestamp of when the story expires.",
+          "description": "Timestamp indicating when the story expires.",
           "format": "date-time"
         }
       },
@@ -162,25 +158,23 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Reel",
       "type": "object",
-      "description": "Represents a reel in the application.",
+      "description": "Represents a reel in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the reel."
+          "description": "Unique identifier for the reel entity."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Reel)"
+          "description": "Reference to User who created this reel. (Relationship: User 1:N Reel)"
         },
         "videoUrl": {
           "type": "string",
-          "description": "URL of the reel's video.",
-          "format": "uri"
+          "description": "URL of the video in the reel."
         },
         "thumbnailUrl": {
           "type": "string",
-          "description": "URL of the reel's thumbnail.",
-          "format": "uri"
+          "description": "URL of the thumbnail for the reel."
         },
         "likes": {
           "type": "array",
@@ -191,11 +185,11 @@
         },
         "commentsCount": {
           "type": "number",
-          "description": "Number of comments on the reel."
+          "description": "The number of comments on the reel."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the reel was created.",
+          "description": "Timestamp indicating when the reel was created.",
           "format": "date-time"
         }
       },
@@ -211,27 +205,27 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Comment",
       "type": "object",
-      "description": "Represents a comment on a post or reel.",
+      "description": "Represents a comment on a post or reel in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the comment."
+          "description": "Unique identifier for the comment entity."
         },
         "parentId": {
           "type": "string",
-          "description": "Reference to Post or Reel to which the comment belongs."
+          "description": "Reference to either a Post or Reel that this comment belongs to."
         },
         "userId": {
           "type": "string",
-          "description": "Reference to User who wrote the comment. (Relationship: User 1:N Comment)"
+          "description": "Reference to User who created this comment. (Relationship: User 1:N Comment)"
         },
         "text": {
           "type": "string",
-          "description": "Text content of the comment."
+          "description": "The text content of the comment."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the comment was created.",
+          "description": "Timestamp indicating when the comment was created.",
           "format": "date-time"
         }
       },
@@ -247,15 +241,15 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Chat",
       "type": "object",
-      "description": "Represents a chat between two users.",
+      "description": "Represents a chat between two users in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the chat."
+          "description": "Unique identifier for the chat entity."
         },
         "users": {
           "type": "array",
-          "description": "References to Users participating in the chat. (Relationship: User N:N Chat)",
+          "description": "References to the Users participating in this chat. (Relationship: User N:N Chat)",
           "items": {
             "type": "string"
           }
@@ -270,56 +264,54 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Message",
       "type": "object",
-      "description": "Represents a message within a chat.",
+      "description": "Represents a message within a chat in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the message."
+          "description": "Unique identifier for the message entity."
         },
         "chatId": {
           "type": "string",
-          "description": "Reference to Chat to which the message belongs. (Relationship: Chat 1:N Message)"
+          "description": "Reference to Chat this message belongs to. (Relationship: Chat 1:N Message)"
         },
         "senderId": {
           "type": "string",
-          "description": "Reference to User who sent the message. (Relationship: User 1:N Message)"
+          "description": "Reference to User who sent this message. (Relationship: User 1:N Message)"
         },
         "text": {
           "type": "string",
-          "description": "Text content of the message.  If mediaUrl is populated, this will contain the AI generated caption."
+          "description": "The text content of the message. If mediaUrl is present, this should be null."
         },
         "mediaUrl": {
           "type": "string",
-          "description": "URL of the message's media (image or video), can be null.",
-          "format": "uri"
+          "description": "URL of the media in the message. If text is present, this should be null."
         },
         "timestamp": {
           "type": "string",
-          "description": "Timestamp of when the message was sent.",
+          "description": "Timestamp indicating when the message was sent.",
           "format": "date-time"
         },
         "isRead": {
           "type": "boolean",
-          "description": "Indicates if the message has been read."
+          "description": "Indicates whether the message has been read."
         }
       },
       "required": [
         "id",
         "chatId",
         "senderId",
-        "timestamp",
-        "isRead"
+        "timestamp"
       ]
     },
     "Call": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Call",
       "type": "object",
-      "description": "Represents a call between two users.",
+      "description": "Represents a call between two users in the YC application.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the call."
+          "description": "Unique identifier for the call entity."
         },
         "callerId": {
           "type": "string",
@@ -331,15 +323,15 @@
         },
         "offer": {
           "type": "string",
-          "description": "SDP offer for the call."
+          "description": "The SDP offer for the call."
         },
         "answer": {
           "type": "string",
-          "description": "SDP answer for the call."
+          "description": "The SDP answer for the call."
         },
         "candidates": {
           "type": "array",
-          "description": "ICE candidates for the call.",
+          "description": "Array of ICE candidates for the call.",
           "items": {
             "type": "string"
           }
@@ -348,39 +340,69 @@
       "required": [
         "id",
         "callerId",
-        "receiverId"
+        "receiverId",
+        "offer",
+        "answer",
+        "candidates"
       ]
     },
-    "Stream": {
+    "LiveStream": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Stream",
+      "title": "LiveStream",
       "type": "object",
-      "description": "Represents a live stream session.",
+      "description": "Represents a live stream in the YC application.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the stream." },
-        "title": { "type": "string", "description": "Title of the stream." },
-        "streamerName": { "type": "string", "description": "Username of the streamer." },
-        "streamerId": { "type": "string", "description": "User ID of the streamer." },
-        "avatarUrl": { "type": "string", "format": "uri", "description": "URL to the streamer's avatar." },
-        "category": { "type": "string", "description": "Category of the stream (e.g., 'Just Chatting')." },
-        "viewerCount": { "type": "number", "description": "Current number of viewers." },
-        "isLive": { "type": "boolean", "description": "Indicates if the stream is currently live." },
-        "thumbnailUrl": { "type": "string", "format": "uri", "description": "URL for the stream's thumbnail." },
-        "tags": { "type": "array", "items": { "type": "string" }, "description": "Tags associated with the stream." }
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the live stream entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User who is hosting the live stream. (Relationship: User 1:N LiveStream)"
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the live stream."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the live stream."
+        },
+        "startTime": {
+          "type": "string",
+          "description": "Timestamp indicating when the live stream started.",
+          "format": "date-time"
+        },
+        "viewerIds": {
+          "type": "array",
+          "description": "References to Users currently watching the live stream. (Relationship: User N:N LiveStream)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "likeIds": {
+          "type": "array",
+          "description": "References to Users who liked this live stream. (Relationship: User N:N LiveStream)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "chatId": {
+          "type": "string",
+          "description": "Reference to the Chat associated with the live stream. (Relationship: Chat 1:1 LiveStream)"
+        },
+        "streamUrl": {
+          "type": "string",
+          "description": "URL for the live stream video."
+        }
       },
-      "required": ["id", "title", "streamerName", "streamerId", "category", "viewerCount", "isLive"]
-    },
-    "Category": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Category",
-      "type": "object",
-      "description": "Represents a content category for streams.",
-      "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the category." },
-        "name": { "type": "string", "description": "Name of the category." },
-        "thumbnailUrl": { "type": "string", "format": "uri", "description": "URL for the category's box art." }
-      },
-      "required": ["id", "name", "thumbnailUrl"]
+      "required": [
+        "id",
+        "userId",
+        "title",
+        "startTime",
+        "streamUrl"
+      ]
     }
   },
   "auth": {
@@ -392,172 +414,166 @@
   "firestore": {
     "structure": [
       {
-        "path": "users/{userId}",
+        "path": "/users/{userId}",
         "definition": {
           "entityName": "User",
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profile information. Path-based ownership ensures only the user can modify their profile.",
+          "description": "Stores user profiles.  Authorization: Users can only modify their own profile data.",
           "params": [
             {
               "name": "userId",
-              "description": "The unique identifier of the user."
+              "description": "The unique identifier for the user."
             }
           ]
         }
       },
       {
-        "path": "posts/{postId}",
+        "path": "/users/{userId}/posts/{postId}",
         "definition": {
           "entityName": "Post",
           "schema": {
             "$ref": "#/backend/entities/Post"
           },
-          "description": "Stores posts. Includes userId for ownership and supports listing all posts.",
+          "description": "Stores posts created by users. Authorization:  Posts are owned by the user specified in userId.  Includes denormalized `userId` for authorization independence.",
           "params": [
             {
+              "name": "userId",
+              "description": "The unique identifier for the user who created the post."
+            },
+            {
               "name": "postId",
-              "description": "The unique identifier of the post."
+              "description": "The unique identifier for the post."
             }
           ]
         }
       },
       {
-        "path": "stories/{storyId}",
+        "path": "/users/{userId}/stories/{storyId}",
         "definition": {
           "entityName": "Story",
           "schema": {
             "$ref": "#/backend/entities/Story"
           },
-          "description": "Stores stories with userId for ownership and supports listing stories based on expiration.",
+          "description": "Stores stories created by users. Authorization: Stories are owned by the user specified in userId.  Includes denormalized `userId` for authorization independence.",
           "params": [
             {
+              "name": "userId",
+              "description": "The unique identifier for the user who created the story."
+            },
+            {
               "name": "storyId",
-              "description": "The unique identifier of the story."
+              "description": "The unique identifier for the story."
             }
           ]
         }
       },
       {
-        "path": "reels/{reelId}",
+        "path": "/users/{userId}/reels/{reelId}",
         "definition": {
           "entityName": "Reel",
           "schema": {
             "$ref": "#/backend/entities/Reel"
           },
-          "description": "Stores reels with userId for ownership and supports listing reels.",
+          "description": "Stores reels created by users. Authorization: Reels are owned by the user specified in userId. Includes denormalized `userId` for authorization independence.",
           "params": [
             {
+              "name": "userId",
+              "description": "The unique identifier for the user who created the reel."
+            },
+            {
               "name": "reelId",
-              "description": "The unique identifier of the reel."
+              "description": "The unique identifier for the reel."
             }
           ]
         }
       },
       {
-        "path": "comments/{commentId}",
+        "path": "/comments/{commentId}",
         "definition": {
           "entityName": "Comment",
           "schema": {
             "$ref": "#/backend/entities/Comment"
           },
-          "description": "Stores comments with parentId referencing the post or reel and userId indicating the author.",
+          "description": "Stores comments on posts and reels.  Authorization:  Any authenticated user can create a comment. Deletion may be restricted to the comment owner or authorized moderators.",
           "params": [
             {
               "name": "commentId",
-              "description": "The unique identifier of the comment."
+              "description": "The unique identifier for the comment."
             }
           ]
         }
       },
       {
-        "path": "chats/{chatId}",
+        "path": "/chats/{chatId}",
         "definition": {
           "entityName": "Chat",
           "schema": {
             "$ref": "#/backend/entities/Chat"
           },
-          "description": "Stores chat metadata, including the users array for authorization.",
+          "description": "Stores chat metadata.  Authorization: Only users included in the 'users' array can access chat details.",
           "params": [
             {
               "name": "chatId",
-              "description": "The unique identifier of the chat."
+              "description": "The unique identifier for the chat."
             }
           ]
         }
       },
       {
-        "path": "chats/{chatId}/messages/{messageId}",
+        "path": "/chats/{chatId}/messages/{messageId}",
         "definition": {
           "entityName": "Message",
           "schema": {
             "$ref": "#/backend/entities/Message"
           },
-          "description": "Stores messages within a chat. Authorization is based on chat membership.",
+          "description": "Stores messages within a chat. Authorization: Only users included in the parent chat's 'users' array can access messages.",
           "params": [
             {
               "name": "chatId",
-              "description": "The unique identifier of the chat."
+              "description": "The unique identifier for the chat."
             },
             {
               "name": "messageId",
-              "description": "The unique identifier of the message."
+              "description": "The unique identifier for the message."
             }
           ]
         }
       },
       {
-        "path": "calls/{callId}",
+        "path": "/calls/{callId}",
         "definition": {
           "entityName": "Call",
           "schema": {
             "$ref": "#/backend/entities/Call"
           },
-          "description": "Stores call metadata for WebRTC signaling. Security rules restrict access to the caller and receiver.",
+          "description": "Stores call information. Authorization: Access restricted to caller and receiver.",
           "params": [
             {
               "name": "callId",
-              "description": "The unique identifier of the call."
+              "description": "The unique identifier for the call."
             }
           ]
         }
       },
       {
-        "path": "streams/{streamId}",
+        "path": "/liveStreams/{liveStreamId}",
         "definition": {
-          "entityName": "Stream",
+          "entityName": "LiveStream",
           "schema": {
-            "$ref": "#/backend/entities/Stream"
+            "$ref": "#/backend/entities/LiveStream"
           },
-          "description": "Stores live stream data. Publicly readable, but only writable by the streamer.",
+          "description": "Stores live stream information. Authorization: Access control based on userId for the host and viewerIds for viewers. The userId, likeIds, and viewerIds are denormalized into the document for authorization independence.",
           "params": [
             {
-              "name": "streamId",
-              "description": "The unique identifier for the stream."
-            }
-          ]
-        }
-      },
-      {
-        "path": "categories/{categoryId}",
-        "definition": {
-          "entityName": "Category",
-          "schema": {
-            "$ref": "#/backend/entities/Category"
-          },
-          "description": "Stores content categories for streams. Generally read-only for clients.",
-          "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier for the category."
+              "name": "liveStreamId",
+              "description": "The unique identifier for the live stream."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to create a scalable and secure Instagram-like application, named YC, prioritizing authorization independence, clarity, and ease of maintenance. The structure segregates data based on access patterns and uses denormalization to avoid complex security rules using `get()` calls. \n\n*   **users/{userId}:**  Path-based ownership ensures only the user can modify their profile. Includes core profile information (username, email, bio, profilePhoto, followers, following, createdAt, verified).\n*   **posts/{postId}:**  Each post is stored in a top-level collection. `userId` indicates ownership. This approach facilitates listing all posts, potentially filtered by user. Includes: userId, imageUrl, caption, location, likes(array), commentsCount, createdAt.  Security rules will enforce that a user can only write posts with their own `userId`.\n*   **stories/{storyId}:**  Each story is stored in a top-level collection to facilitate listing and querying based on expiration (`expiresAt`). The `userId` field denotes ownership. Includes userId, mediaUrl, type(image/video), createdAt, expiresAt.\n*   **reels/{reelId}:** Each reel is stored in a top-level collection to facilitate listing and querying. `userId` indicates ownership. Includes userId, videoUrl, thumbnailUrl, likes(array), commentsCount, createdAt. Security rules will enforce that a user can only write reels with their own `userId`.\n*   **comments/{commentId}:** Each comment is stored in a top-level collection, simplifying queries across posts and reels. `parentId` references either a `postId` or `reelId`.  The `userId` field indicates the comment's author. Includes parentId(postId or reelId), userId, text, createdAt.\n*   **chats/{chatId}:** Represents a chat between two users. The `users` array contains the UIDs of the participants. Includes users: [userId1, userId2].\n*   **chats/{chatId}/messages/{messageId}:** Subcollection of `chats`. Each message contains `senderId`, `text` or `mediaUrl`, `timestamp`, and `isRead`.  Authorization rules will ensure only participants can read messages.\n*   **calls/{callId}:**  Each document stores call metadata for WebRTC signaling, including `callerId`, `receiverId`, SDP `offer`, and `answer`. Security rules restrict access to the caller and receiver to ensure signaling is private.\n*   **streams/{streamId} & categories/{categoryId}**: Added collections for the live-streaming feature. `streams` will be publicly readable to populate the browse page, but write access will be restricted to the streamer. `categories` will be public and read-only for clients.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids `get()` calls in security rules by denormalizing authorization data.  For example, the `posts`, `stories`, `reels`, and `comments` collections all include the `userId` which allow rules to authorize create/update operations based on `request.auth.uid == resource.data.userId`. For chats, a user must be in the `users` array to read/write messages in that chat.\n\n**Query and List Security (QAPs):**\n\n*   The segregation of data into distinct collections (e.g., separating posts and reels) allows for simple `list` operations with straightforward security rules (e.g., `allow read: if request.auth != null`).\n*   The `users` array in `chats` enables secure listing of chats for a specific user (rule: `request.auth.uid in resource.data.users`).\n\nThis structure adheres to the core design principles by:\n\n*   Enabling authorization independence through denormalization.\n*   Providing clarity of intent through a well-defined, predictable schema.\n*   Avoiding custom claims (DBAC) and relying on `request.auth.uid`.\n*   Supporting secure `list` operations (QAPs) via structural segregation and membership maps.\n*   Facilitating the enforcement of data invariants such as ownership and timestamps."
+    "reasoning": "The Firestore data structure is designed to mirror the social media application's features, focusing on user-generated content and interactions. It is built on the principle of path-based ownership and denormalization to ensure security and efficient data retrieval. All collections adhere to Structural Segregation.\n\nAuthorization Independence is achieved by avoiding `get()` calls in security rules. User-specific data (posts, stories, reels) are nested under `/users/{userId}`, which allows simple rules based on `request.auth.uid == userId`. For collaborative data like chats, the `users` array containing user IDs serves as a membership map, enabling authorization based on user presence in the array.  For `LiveStream`, the `userId` field will be duplicated to the document itself, and the `likeIds` and `viewerIds` are also duplicated in the `LiveStream` document. This duplication facilitates authorization checks directly on the `LiveStream` document without requiring a get() operation.\n\nThe structure supports secure `list` operations (QAPs) through segregation. For example, posts are always accessed via `/users/{userId}/posts/{postId}`, ensuring that only the owner can list their posts or any authenticated user can view another user's public posts, depending on your security rules.  Similarly, chats are accessed via `/chats/{chatId}` where security rules ensure only members can access the contents, preventing unauthorized listing."
   }
 }
-
-    
