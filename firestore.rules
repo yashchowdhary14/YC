@@ -97,12 +97,8 @@ service cloud.firestore {
 
     // chats
     match /chats/{chatId} {
-      // Read a single chat only if member
-      allow get: if isMemberOfChat();
-
-      // List only chats where this user is in the users array
-      // Client query must be: where('users', 'array-contains', request.auth.uid)
-      allow list: if isSignedIn() && request.auth.uid in resource.data.users;
+      // Read a single chat or list multiple chats only if the user is a member
+      allow read: if isMemberOfChat();
 
       // Create chat only if current user is in users array of new doc
       allow create: if isCreatingChatWithSelf();
