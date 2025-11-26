@@ -66,11 +66,11 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                                 variant="ghost"
                                 className={cn(
                                     "w-full justify-center gap-4 p-3 text-base h-auto aspect-square text-foreground",
-                                    pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href ? 'bg-accent' : ''
+                                    (pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href ? 'bg-accent' : ''
                                 )}
                                 >
                                 <NextLink href={link.href} className="flex items-center">
-                                    <link.icon className={cn("h-6 w-6", pathname.startsWith(link.href) && link.href !== '/' || pathname === link.href && "font-extrabold")} />
+                                    <link.icon className={cn("h-6 w-6", (pathname.startsWith(link.href) && link.href !== '/') || (pathname === link.href) && "font-extrabold")} />
                                 </NextLink>
                                 </Button>
                             </TooltipTrigger>
