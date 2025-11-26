@@ -1,5 +1,5 @@
 
-import type { Post, User, Chat, Message, Reel } from '@/lib/types';
+import type { Post, User, Chat, Message, Reel, ReelComment } from '@/lib/types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export const dummyUsers: Omit<User, 'avatarUrl'>[] = [
@@ -31,6 +31,12 @@ export const dummyPosts: (Omit<Post, 'user' | 'createdAt' | 'imageUrl' | 'imageH
   { id: 'ethan_post_1', userId: 'user_ethan_bytes', imageId: "9", caption: 'New setup, who dis?', likes: ['user_sam_reviews', 'user_leo_the_lion'], commentsCount: 110, createdAt: new Date('2023-10-26T14:00:00Z') },
 ];
 
+const dummyComments: ReelComment[] = [
+    {id: 'c1', user: 'ethan_bytes', text: 'This is amazing!'},
+    {id: 'c2', user: 'maya_creates', text: 'So inspiring! ❤️'},
+    {id: 'c3', user: 'sam_reviews', text: 'Incredible shot!'},
+];
+
 export const dummyReels: Reel[] = [
     {
         id: 'reel_1',
@@ -39,7 +45,8 @@ export const dummyReels: Reel[] = [
         caption: 'Living my best life in the mountains! 🏔️',
         likes: 1234,
         isLiked: false,
-        commentsCount: 42,
+        comments: dummyComments.slice(0, 2),
+        commentsCount: 2,
     },
     {
         id: 'reel_2',
@@ -48,7 +55,8 @@ export const dummyReels: Reel[] = [
         caption: 'City lights and late nights ✨',
         likes: 567,
         isLiked: true,
-        commentsCount: 18,
+        comments: [dummyComments[2]],
+        commentsCount: 1,
     },
     {
         id: 'reel_3',
@@ -57,6 +65,7 @@ export const dummyReels: Reel[] = [
         caption: 'The art of filmmaking.',
         likes: 8910,
         isLiked: false,
+        comments: [],
         commentsCount: 98,
     },
     {
@@ -66,6 +75,7 @@ export const dummyReels: Reel[] = [
         caption: 'Just another unboxing. You HAVE to see this!',
         likes: 11200,
         isLiked: false,
+        comments: [],
         commentsCount: 150,
     },
     {
@@ -75,6 +85,7 @@ export const dummyReels: Reel[] = [
         caption: 'Best tacos I have ever had. Period. 🌮',
         likes: 432,
         isLiked: true,
+        comments: [],
         commentsCount: 77,
     }
 ];

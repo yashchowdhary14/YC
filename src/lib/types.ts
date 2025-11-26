@@ -21,6 +21,12 @@ export interface Post {
   commentsCount: number;
 }
 
+export interface ReelComment {
+    id: string;
+    user: string;
+    text: string;
+}
+
 export interface Reel {
     id: string;
     videoUrl: string;
@@ -28,6 +34,7 @@ export interface Reel {
     caption: string;
     likes: number;
     isLiked: boolean;
+    comments: ReelComment[];
     commentsCount: number;
 }
 

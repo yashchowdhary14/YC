@@ -14,14 +14,16 @@ import Link from 'next/link';
 interface ReelCardProps {
     reel: Reel;
     onUpdateReel: (updatedReel: Reel) => void;
+    onCommentClick: () => void;
 }
 
-export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
+export default function ReelCard({ reel, onUpdateReel, onCommentClick }: ReelCardProps) {
     const { user } = useUser();
     const { toast } = useToast();
     const videoRef = useRef<HTMLVideoElement>(null);
     const [isMuted, setIsMuted] = useState(true);
     const [showBigHeart, setShowBigHeart] = useState(false);
+    const [isFollowing, setIsFollowing] = useState(false);
 
     const handleLikeToggle = useCallback(() => {
         const newLikedState = !reel.isLiked;
@@ -36,8 +38,6 @@ export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
     }, [reel, onUpdateReel]);
 
     const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        // This is a simple double-click detection.
-        // For more robust detection, you might use a custom hook.
         if (e.detail === 2) {
             handleLikeToggle();
         }
@@ -48,6 +48,11 @@ export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
             videoRef.current.muted = !videoRef.current.muted;
             setIsMuted(videoRef.current.muted);
         }
+    };
+
+    const handleFollow = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsFollowing(prev => !prev);
     };
 
     return (
@@ -80,7 +85,15 @@ export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
                         </Avatar>
                      </Link>
                      <Link href={`/${reel.user.username}`} className="font-semibold text-sm pointer-events-auto">{reel.user.username}</Link>
-                    <Button variant="outline" size="sm" className="h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto">Follow</Button>
+                    <Button 
+                        variant={isFollowing ? 'secondary' : 'outline'} 
+                        size="sm" 
+                        className="h-7 text-xs bg-transparent border-white text-white hover:bg-white/20 hover:text-white pointer-events-auto data-[following=true]:bg-white/90 data-[following=true]:text-black"
+                        onClick={handleFollow}
+                        data-following={isFollowing}
+                    >
+                        {isFollowing ? 'Following' : 'Follow'}
+                    </Button>
                 </div>
                 <p className="text-sm mt-2 truncate">{reel.caption}</p>
                  <div className="flex items-center gap-2 mt-2">
@@ -99,7 +112,7 @@ export default function ReelCard({ reel, onUpdateReel }: ReelCardProps) {
                     <Heart className={cn("h-7 w-7", reel.isLiked && "fill-red-500 text-red-500")} />
                     <span className="text-xs font-semibold">{reel.likes.toLocaleString()}</span>
                 </Button>
-                <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent">
+                <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent" onClick={(e) => { e.stopPropagation(); onCommentClick(); }}>
                     <MessageCircle className="h-7 w-7" />
                     <span className="text-xs font-semibold">{reel.commentsCount.toLocaleString()}</span>
                 </Button>

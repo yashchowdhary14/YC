@@ -13,10 +13,11 @@ import {
 } from '@/components/ui/sidebar';
 import ReelCard from '@/components/app/reel-card';
 import { dummyReels } from '@/lib/dummy-data';
-import type { Reel } from '@/lib/types';
+import type { Reel, ReelComment } from '@/lib/types';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import CommentsSheet from '@/components/app/comments-sheet';
 
 
 export default function ReelsPage() {
@@ -24,6 +25,7 @@ export default function ReelsPage() {
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement>(null);
     const [reels, setReels] = useState<Reel[]>(dummyReels);
+    const [selectedReelForComments, setSelectedReelForComments] = useState<Reel | null>(null);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -37,6 +39,38 @@ export default function ReelsPage() {
           reel.id === updatedReel.id ? updatedReel : reel
         )
       );
+    };
+
+    const handleAddComment = (reelId: string, commentText: string) => {
+        if (!user) return;
+
+        const newComment: ReelComment = {
+            id: `comment-${Date.now()}`,
+            user: user.displayName || 'Guest',
+            text: commentText,
+        };
+
+        const updatedReels = reels.map(reel => {
+            if (reel.id === reelId) {
+                const updatedComments = [...reel.comments, newComment];
+                return { 
+                    ...reel, 
+                    comments: updatedComments,
+                    commentsCount: updatedComments.length 
+                };
+            }
+            return reel;
+        });
+        setReels(updatedReels);
+
+        // also update the selected reel if it's the one being commented on
+        if(selectedReelForComments && selectedReelForComments.id === reelId) {
+            setSelectedReelForComments(prev => {
+                if (!prev) return null;
+                const updatedComments = [...prev.comments, newComment];
+                 return { ...prev, comments: updatedComments, commentsCount: updatedComments.length };
+            });
+        }
     };
 
     useEffect(() => {
@@ -100,11 +134,25 @@ export default function ReelsPage() {
             >
               {reels.map((reel) => (
                 <div key={reel.id} className="reel-card-container h-full w-full snap-start flex items-center justify-center">
-                   <ReelCard reel={reel} onUpdateReel={handleUpdateReel} />
+                   <ReelCard 
+                        reel={reel} 
+                        onUpdateReel={handleUpdateReel} 
+                        onCommentClick={() => setSelectedReelForComments(reel)}
+                    />
                 </div>
               ))}
             </div>
         </main>
+        <CommentsSheet 
+            reel={selectedReelForComments} 
+            onOpenChange={(isOpen) => {
+                if (!isOpen) {
+                    setSelectedReelForComments(null);
+                }
+            }}
+            onAddComment={handleAddComment}
+            currentUser={user}
+        />
       </SidebarInset>
     </SidebarProvider>
   );
