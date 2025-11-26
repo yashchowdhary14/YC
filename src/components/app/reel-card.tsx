@@ -73,7 +73,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     };
 
     return (
-        <div className="relative h-full w-full bg-black rounded-lg" onDoubleClick={handleDoubleClick}>
+        <div className="relative h-full w-full bg-background rounded-lg" onDoubleClick={handleDoubleClick}>
             <video
                 ref={videoRef}
                 src={reel.mediaUrl}
