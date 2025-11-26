@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sidebar';
 import ReelCard from '@/components/app/reel-card';
 import { dummyReels } from '@/lib/dummy-data';
-import type { Reel, ReelComment } from '@/lib/types';
+import type { Reel as ReelType, ReelComment } from '@/lib/types';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -24,8 +24,8 @@ export default function ReelsPage() {
     const { user, isUserLoading, followedUsers, toggleFollow } = useUser();
     const router = useRouter();
     const containerRef = useRef<HTMLDivElement>(null);
-    const [reels, setReels] = useState<Reel[]>(dummyReels);
-    const [selectedReelForComments, setSelectedReelForComments] = useState<Reel | null>(null);
+    const [reels, setReels] = useState<ReelType[]>(dummyReels);
+    const [selectedReelForComments, setSelectedReelForComments] = useState<ReelType | null>(null);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -33,7 +33,7 @@ export default function ReelsPage() {
         }
     }, [isUserLoading, user, router]);
 
-    const handleUpdateReel = (updatedReel: Reel) => {
+    const handleUpdateReel = (updatedReel: ReelType) => {
       setReels(currentReels => 
         currentReels.map(reel => 
           reel.id === updatedReel.id ? updatedReel : reel
@@ -41,18 +41,9 @@ export default function ReelsPage() {
       );
     };
 
-    const handleAddComment = (reelId: string, commentText: string) => {
-        if (!user) return;
-
-        const newComment: ReelComment = {
-            id: `comment-${Date.now()}`,
-            user: user.displayName || 'Guest',
-            text: commentText,
-        };
-
+    const handleUpdateComment = (reelId: string, updatedComments: ReelComment[]) => {
         const updatedReels = reels.map(reel => {
             if (reel.id === reelId) {
-                const updatedComments = [...reel.comments, newComment];
                 return { 
                     ...reel, 
                     comments: updatedComments,
@@ -63,11 +54,9 @@ export default function ReelsPage() {
         });
         setReels(updatedReels);
 
-        // also update the selected reel if it's the one being commented on
         if(selectedReelForComments && selectedReelForComments.id === reelId) {
             setSelectedReelForComments(prev => {
                 if (!prev) return null;
-                const updatedComments = [...prev.comments, newComment];
                  return { ...prev, comments: updatedComments, commentsCount: updatedComments.length };
             });
         }
@@ -152,7 +141,7 @@ export default function ReelsPage() {
                     setSelectedReelForComments(null);
                 }
             }}
-            onAddComment={handleAddComment}
+            onUpdateComment={handleUpdateComment}
             currentUser={user}
         />
       </SidebarInset>

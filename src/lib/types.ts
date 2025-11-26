@@ -24,7 +24,11 @@ export interface Post {
 export interface ReelComment {
     id: string;
     user: string;
+    profilePic: string;
     text: string;
+    likes: number;
+    timeAgo: string;
+    isLiked: boolean;
 }
 
 export interface Reel {

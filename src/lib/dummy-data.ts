@@ -32,9 +32,10 @@ export const dummyPosts: (Omit<Post, 'user' | 'createdAt' | 'imageUrl' | 'imageH
 ];
 
 const dummyComments: ReelComment[] = [
-    {id: 'c1', user: 'ethan_bytes', text: 'This is amazing!'},
-    {id: 'c2', user: 'maya_creates', text: 'So inspiring! ❤️'},
-    {id: 'c3', user: 'sam_reviews', text: 'Incredible shot!'},
+    {id: 'c1', user: 'ethan_bytes', profilePic: `https://picsum.photos/seed/user_ethan_bytes/100/100`, text: 'This is amazing!', likes: 12, timeAgo: '2h', isLiked: false},
+    {id: 'c2', user: 'maya_creates', profilePic: `https://picsum.photos/seed/user_maya_creates/100/100`, text: 'So inspiring! ❤️', likes: 25, timeAgo: '3h', isLiked: true},
+    {id: 'c3', user: 'sam_reviews', profilePic: `https://picsum.photos/seed/user_sam_reviews/100/100`, text: 'Incredible shot!', likes: 5, timeAgo: '1d', isLiked: false},
+    {id: 'c4', user: 'leo_the_lion', profilePic: `https://picsum.photos/seed/user_leo_the_lion/100/100`, text: 'Let\'s gooo! 🚀', likes: 2, timeAgo: '1d', isLiked: false},
 ];
 
 export const dummyReels: Reel[] = [
@@ -45,8 +46,8 @@ export const dummyReels: Reel[] = [
         caption: 'Living my best life in the mountains! 🏔️',
         likes: 1234,
         isLiked: false,
-        comments: dummyComments.slice(0, 2),
-        commentsCount: 2,
+        comments: dummyComments,
+        commentsCount: 4,
     },
     {
         id: 'reel_2',
@@ -144,7 +145,7 @@ const createChat = (user1Id: string, user2Id: string): Chat => {
   };
 };
 
-export const dummyChats: Chat[] = [
+export let dummyChats: Chat[] = [
   createChat('user_sachin', 'user_sakshi'),
   createChat('user_wanderlust_lila', 'user_ethan_bytes'),
   createChat('user_maya_creates', 'user_chloe_films'),
@@ -171,10 +172,10 @@ export function getChat(chatId: string) {
 }
 
 export function addMessageToChat(chatId: string, message: Message) {
-  const chat = getChat(chatId);
-  if (chat) {
-    chat.messages.push(message);
-    chat.lastMessage = message;
+  const chatIndex = dummyChats.findIndex(c => c.id === chatId);
+  if (chatIndex !== -1) {
+    dummyChats[chatIndex].messages.push(message);
+    dummyChats[chatIndex].lastMessage = message;
     return true;
   }
   return false;
