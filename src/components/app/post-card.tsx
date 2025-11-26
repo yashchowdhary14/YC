@@ -29,17 +29,13 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   const { user } = useUser();
   const { toast } = useToast();
 
-  const [optimisticPost, toggleOptimisticLike] = useOptimistic(
-    post,
-    (state, newLikes: number) => {
-      return { ...state, likes: newLikes, isLiked: !state.isLiked };
-    }
-  );
-
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [showBigHeart, setShowBigHeart] = useState(false);
 
-  const handleLike = async () => {
+
+  const handleLike = () => {
     if (!user) {
       toast({
         variant: 'destructive',
@@ -48,11 +44,21 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       });
       return;
     }
-    const newLikesCount = isLiked ? optimisticPost.likes - 1 : optimisticPost.likes + 1;
-    setIsLiked(!isLiked);
-    toggleOptimisticLike(newLikesCount);
+    const newLikedState = !isLiked;
+    const newLikesCount = newLikedState ? likesCount + 1 : likesCount - 1;
+    setIsLiked(newLikedState);
+    setLikesCount(newLikesCount);
+
+    if (newLikedState) {
+        setShowBigHeart(true);
+        setTimeout(() => setShowBigHeart(false), 800);
+    }
   };
   
+  const handleDoubleClick = () => {
+    handleLike();
+  }
+
   const handleBookmark = () => {
     if (!user) {
       toast({
@@ -89,8 +95,8 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       </CardHeader>
       {isCard && (
         <CardContent className="p-0">
-          <Link href={`/p/${post.id}`}>
-            <div className="relative aspect-square">
+          <div onDoubleClick={handleDoubleClick} className="relative aspect-square">
+            <Link href={`/p/${post.id}`}>
               <Image
                 src={post.mediaUrl}
                 alt={post.caption || 'post image'}
@@ -98,8 +104,11 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
-            </div>
-          </Link>
+            </Link>
+            {showBigHeart && (
+                <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-destructive/90 fill-destructive/90 animate-heart-pop pointer-events-none" />
+            )}
+          </div>
         </CardContent>
       )}
       <CardFooter className="flex flex-col items-start gap-2 p-2 md:p-4">
@@ -124,7 +133,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
           </Button>
         </div>
         <div className="text-sm font-semibold px-2">
-          {optimisticPost.likes.toLocaleString()} likes
+          {likesCount.toLocaleString()} likes
         </div>
         <p className="text-sm px-2">
           <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>{' '}
