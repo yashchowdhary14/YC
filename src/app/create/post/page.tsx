@@ -1,34 +1,28 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, ReactNode } from 'react';
+import { useState, useEffect, useMemo, ReactNode, useRef, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Wand2, Loader2, Crop, Sliders, Check, Tag, MapPin, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Loader2, Wand2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { fileToDataUri, uploadFile } from '@/lib/utils';
 import { generateAiCaption, GenerateAiCaptionInput } from '@/ai/flows/generate-ai-caption';
-import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { useCapturedMedia } from '@/lib/captured-media-store';
 import { usePostCreationStore } from '@/lib/post-creation-store';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AspectRatio } from '@/components/ui/aspect-ratio';
 import PostCarousel from '@/components/post-creation/PostCarousel';
 import EditControls from '@/components/post-creation/EditControls';
 import DetailsForm from '@/components/post-creation/DetailsForm';
 
-type PostCreationStep = 'crop' | 'edit' | 'details' | 'sharing';
+type PostCreationStep = 'edit' | 'details' | 'sharing';
 
 export default function CreatePostPage() {
   const { user } = useUser();
-  const firestore = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
-  const { capturedMedia, setCapturedMedia } = useCapturedMedia();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     media,
@@ -44,57 +38,33 @@ export default function CreatePostPage() {
   } = usePostCreationStore();
   
   const [step, setStep] = useState<PostCreationStep>('edit');
-
+  
+  // If no media is loaded, trigger the file input.
   useEffect(() => {
-    // If there's no media in the store AND no media was just captured,
-    // the user shouldn't be here.
-    if (media.length === 0 && !capturedMedia) {
-        if (typeof window !== 'undefined') {
-          router.replace('/create');
-        }
-        return;
+    if (media.length === 0 && fileInputRef.current) {
+        fileInputRef.current.click();
     }
-
-    if (capturedMedia) {
-      const file = capturedMedia;
-      const previewUrl = URL.createObjectURL(file);
-      addMedia({
-        id: `media_${Date.now()}`,
-        file,
-        previewUrl,
-        type: file.type.startsWith('video') ? 'video' : 'photo',
-      });
-      // Clean up the captured media so it's not reused
-      setCapturedMedia(null);
-    }
-  }, [capturedMedia, addMedia, media.length, router, setCapturedMedia]);
+  }, [media.length]);
   
-  const headerText = useMemo(() => {
-    switch (step) {
-      case 'crop': return 'Crop';
-      case 'edit': return 'Edit';
-      case 'details': return 'New post';
-      case 'sharing': return 'Sharing...';
-      default: return 'Create post';
-    }
-  }, [step]);
-  
-  const handleNext = () => {
-    if (step === 'crop') setStep('edit');
-    else if (step === 'edit') setStep('details');
-  };
-  
-  const handleBack = () => {
-    if (step === 'details') setStep('edit');
-    else if (step === 'edit') setStep('crop');
-    else if (step === 'crop') {
-        reset();
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        const previewUrl = URL.createObjectURL(file);
+        addMedia({
+            id: `media_${Date.now()}`,
+            file,
+            previewUrl,
+            type: file.type.startsWith('video') ? 'video' : 'photo',
+        });
+    } else {
+        // If user cancels file selection, go back to create page.
         router.back();
     }
   };
 
   const handleShare = async () => {
-    const { caption, media } = usePostCreationStore.getState();
+    const { caption, media, hideLikes, disableComments } = usePostCreationStore.getState();
     if (!user) {
       toast({ variant: 'destructive', title: 'You must be logged in to share a post.'});
       return;
@@ -108,12 +78,8 @@ export default function CreatePostPage() {
 
     try {
       // Simulate upload and Firestore document creation
+      console.log('Sharing post with data:', { caption, media, hideLikes, disableComments });
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // In a real app, you would upload each file in `media` to storage
-      // and then create a post document with all the media URLs.
-      // const imageUrl = await uploadFile(media[0].file, `posts/${user.uid}/${Date.now()}_${media[0].file.name}`);
-      // await addDoc(collection(firestore, 'posts'), { ... });
       
       toast({ title: 'Post Shared! (Simulation)', description: 'Your post is now live on your profile.'});
       reset();
@@ -126,6 +92,27 @@ export default function CreatePostPage() {
       setStep('details'); // Go back to details screen on failure
     } finally {
       finishSubmitting();
+    }
+  };
+  
+  const headerText = useMemo(() => {
+    switch (step) {
+      case 'edit': return 'Edit';
+      case 'details': return 'New post';
+      case 'sharing': return 'Sharing...';
+      default: return 'Create post';
+    }
+  }, [step]);
+  
+  const handleNext = () => {
+    if (step === 'edit') setStep('details');
+  };
+  
+  const handleBack = () => {
+    if (step === 'details') setStep('edit');
+    else {
+        reset();
+        router.back();
     }
   };
 
@@ -158,7 +145,6 @@ export default function CreatePostPage() {
 
 
   const steps: Record<PostCreationStep, ReactNode> = {
-    crop: <PostCarousel />,
     edit: <PostCarousel />,
     details: <DetailsForm onGenerateCaption={handleGenerateCaption} />,
     sharing: (
@@ -190,19 +176,14 @@ export default function CreatePostPage() {
     )
   };
   
-  // If user lands here without media from the studio, redirect them.
-  if (media.length === 0 && !capturedMedia) {
-    if (typeof window !== 'undefined') {
-      router.replace('/create');
-    }
-    return null; // Return null to prevent rendering anything while redirecting
-  }
-  
   if (media.length === 0) {
      return (
-      <div className="w-full h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+        <div className="bg-background">
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+            <div className="w-full h-screen flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        </div>
     );
   }
 
@@ -238,11 +219,6 @@ export default function CreatePostPage() {
               </AnimatePresence>
           </div>
           {step === 'edit' && <EditControls />}
-           {step === 'crop' && (
-              <div className="h-24 flex-shrink-0 text-center flex items-center justify-center">
-                  <p>Crop controls here</p>
-              </div>
-            )}
         </main>
       </div>
   );

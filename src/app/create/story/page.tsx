@@ -5,45 +5,36 @@ import { useState, useRef, ChangeEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
-import { useCapturedMedia } from '@/lib/captured-media-store';
 
 export default function CreateStoryPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { capturedMedia, setCapturedMedia } = useCapturedMedia();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // If there's no captured media, the user shouldn't be on this page.
-  // Redirect them immediately.
-  if (!capturedMedia) {
-    if (typeof window !== 'undefined') {
-      router.replace('/create');
-    }
-    return null;
-  }
-
   useEffect(() => {
-    // This effect now only runs when there IS captured media.
-    const file = capturedMedia;
-    setMediaFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setMediaPreview(previewUrl);
-    
-    // Clean up the captured media so it's not reused
-    setCapturedMedia(null);
-    
-    // Cleanup URL object when component unmounts
-    return () => {
-      URL.revokeObjectURL(previewUrl);
-    };
-  }, [capturedMedia, setCapturedMedia]);
+    // If no media is loaded, trigger the file input.
+    if (!mediaFile && fileInputRef.current) {
+        fileInputRef.current.click();
+    }
+  }, [mediaFile]);
 
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMediaFile(file);
+      const previewUrl = URL.createObjectURL(file);
+      setMediaPreview(previewUrl);
+    } else {
+        router.back();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,6 +54,17 @@ export default function CreateStoryPage() {
     router.push('/');
   };
 
+  const PageLoader = () => (
+     <div className="flex-1 p-4 sm:p-6 lg:p-8 flex flex-col items-center justify-center bg-background pt-14 min-h-[calc(100vh-3.5rem)]">
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+        <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  );
+
+  if (!mediaPreview) {
+    return <PageLoader />;
+  }
+
   return (
     <div className="flex items-center justify-center bg-background pt-14 min-h-[calc(100vh-3.5rem)]">
       <div className="w-full max-w-sm mx-auto p-4">
@@ -79,13 +81,8 @@ export default function CreateStoryPage() {
               <div 
                 className="relative aspect-[9/16] bg-muted/40 flex items-center justify-center rounded-lg"
               >
-                {mediaPreview ? (
+                {mediaPreview && (
                     <Image src={mediaPreview} alt="Story preview" fill className="object-cover" />
-                ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground p-8 text-center">
-                        <Loader2 className="h-12 w-12 animate-spin" />
-                        <h3 className="font-semibold text-lg">Loading media...</h3>
-                    </div>
                 )}
               </div>
             </CardContent>
