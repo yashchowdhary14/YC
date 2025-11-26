@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Camera, Video, Wifi } from 'lucide-react';
+import { Camera, Video, Clapperboard } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 const creationOptions = [
@@ -15,12 +15,12 @@ const creationOptions = [
     textColor: 'text-blue-400'
   },
   {
-    href: '/studio/broadcast',
-    icon: Wifi,
-    title: 'Go Live',
-    description: 'Start a live broadcast to your audience.',
-    bgColor: 'bg-red-500/10',
-    textColor: 'text-red-400'
+    href: '/reels',
+    icon: Clapperboard,
+    title: 'Create Reel',
+    description: 'Share a short video with your followers.',
+    bgColor: 'bg-green-500/10',
+    textColor: 'text-green-400'
   },
   {
     href: '/create/video',
