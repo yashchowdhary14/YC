@@ -295,33 +295,6 @@ export async function createOrGetChat(user1Id: string, user2Id: string) {
                 lastUpdated: serverTimestamp(),
                 lastMessage: null,
             });
-            
-            // Then, in a separate batch, add the initial messages.
-            const batch = writeBatch(firestore);
-            const messagesRef = collection(firestore, 'chats', chatId, 'messages');
-            
-            const message1 = {
-                chatId,
-                senderId: user1Id,
-                text: 'Hey! 👋',
-                timestamp: serverTimestamp(),
-                isRead: false,
-            };
-            const message2 = {
-                chatId,
-                senderId: user2Id,
-                text: "How's it going?",
-                timestamp: serverTimestamp(),
-                isRead: false,
-            };
-            
-            const newMsg1Ref = doc(messagesRef);
-            batch.set(newMsg1Ref, {...message1, id: newMsg1Ref.id});
-            
-            const newMsg2Ref = doc(messagesRef);
-            batch.set(newMsg2Ref, {...message2, id: newMsg2Ref.id});
-
-            await batch.commit();
         }
         
         return { success: true, chatId: chatId };
