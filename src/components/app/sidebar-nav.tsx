@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -24,12 +23,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from '@/lib/utils';
+import { LiveIcon } from '../icons/live-icon';
 
 
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/search', label: 'Search', icon: Search },
-  { href: '/live', label: 'Live', icon: Compass },
+  { href: '/live', label: 'Live', icon: LiveIcon },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/create', label: 'Create', icon: PlusSquare },
