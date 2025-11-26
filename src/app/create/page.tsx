@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -31,7 +30,7 @@ const creationOptions = [
     color: 'from-purple-500 to-indigo-500',
   },
   {
-    href: '/reels',
+    href: '/create/video',
     title: 'Reel',
     description: 'Create and share short, fun videos.',
     icon: (
