@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -28,7 +29,7 @@ import { LiveIcon } from '../icons/live-icon';
 
 const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/search', label: 'Search', icon: Search },
+  { href: '/videos', label: 'Videos', icon: Video },
   { href: '/live', label: 'Live', icon: LiveIcon },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },

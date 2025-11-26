@@ -63,13 +63,6 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
           </NextLink>
         </div>
 
-        <div className="relative hidden w-full max-w-xs items-center md:block">
-          <NextLink href="/search">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search" className="pl-9 cursor-pointer" readOnly/>
-          </NextLink>
-        </div>
-
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
             <NextLink href="/create">
