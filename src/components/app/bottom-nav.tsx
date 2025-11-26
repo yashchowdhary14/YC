@@ -24,7 +24,7 @@ export default function BottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-background border-t z-50 md:hidden">
-      <nav className="flex h-full items-center justify-around">
+      <nav className="flex h-full items-center justify-around text-foreground">
         {navLinks.map((link) => {
           const isActive = pathname === link.href;
           const IconComponent = isActive ? link.activeIcon : link.icon;

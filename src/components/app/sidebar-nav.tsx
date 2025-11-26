@@ -69,7 +69,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                                     (pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href ? 'bg-accent' : ''
                                 )}
                                 >
-                                <NextLink href={link.href} className="flex items-center">
+                                <NextLink href={link.href} className="flex items-center text-foreground">
                                     <link.icon className={cn("h-6 w-6", (pathname.startsWith(link.href) && link.href !== '/') || (pathname === link.href) && "font-extrabold")} />
                                 </NextLink>
                                 </Button>
@@ -99,7 +99,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
                 (pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href ? 'font-bold' : ''
               )}
             >
-              <NextLink href={link.href} className="flex items-center">
+              <NextLink href={link.href} className="flex items-center text-foreground">
                 <link.icon className="h-6 w-6" />
                 <span className="ml-4">{link.label}</span>
                 {link.href === '/messages' && link.notificationCount && (

@@ -61,7 +61,7 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
       <header className="sticky top-0 z-40 w-full bg-background md:hidden">
         <div className="flex h-14 items-center justify-between px-4">
           <h1 className="font-instagram text-3xl">YCP</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 text-foreground">
             <Button variant="ghost" size="icon" asChild className="text-foreground">
               <NextLink href="/create">
                 <PlusSquare />
