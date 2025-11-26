@@ -43,24 +43,29 @@ const AdjustTab = () => {
 
     if (!activeMedia) return null;
     
+    // Combine multiple filter functions
+    const updateStyle = (key: 'brightness' | 'contrast', value: number) => {
+        updateMedia(activeMedia.id, { [key]: value });
+    };
+
     return (
         <div className="p-4 space-y-6">
             <div className="space-y-2">
                 <Label>Brightness</Label>
                 <Slider 
-                    defaultValue={[100]} 
+                    defaultValue={[activeMedia.brightness]} 
                     max={200} 
                     step={1} 
-                    onValueChange={([value]) => console.log('Brightness:', value)}
+                    onValueChange={([value]) => updateStyle('brightness', value)}
                 />
             </div>
             <div className="space-y-2">
                 <Label>Contrast</Label>
                 <Slider 
-                    defaultValue={[100]} 
+                    defaultValue={[activeMedia.contrast]} 
                     max={200} 
                     step={1} 
-                    onValueChange={([value]) => console.log('Contrast:', value)}
+                    onValueChange={([value]) => updateStyle('contrast', value)}
                 />
             </div>
         </div>

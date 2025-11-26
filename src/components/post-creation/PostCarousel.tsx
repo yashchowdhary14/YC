@@ -13,6 +13,8 @@ const PostCarousel = () => {
 
     if (!activeMedia) return null;
 
+    const combinedFilter = `${activeMedia.filter || ''} brightness(${activeMedia.brightness / 100}) contrast(${activeMedia.contrast / 100})`;
+
     return (
         <div className="w-full h-full flex items-center justify-center">
             <AnimatePresence initial={false}>
@@ -30,7 +32,7 @@ const PostCarousel = () => {
                         fill 
                         className="object-contain"
                         style={{
-                            filter: activeMedia.filter
+                            filter: combinedFilter,
                         }}
                     />
                 </motion.div>
