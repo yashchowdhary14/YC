@@ -13,6 +13,7 @@ import LiveSidebar from '@/components/live/live-sidebar';
 import StreamGrid from '@/components/live/stream-grid';
 import CategoryGrid from '@/components/live/category-grid';
 import FeaturedStreamCarousel from '@/components/live/featured-stream-carousel';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
 export default function LivePage() {
   const { user, isUserLoading } = useUser();
@@ -57,39 +58,41 @@ export default function LivePage() {
   }
 
   return (
-    <div className="flex h-screen bg-zinc-900 text-white">
-      <LiveSidebar recommendedChannels={liveData.recommendedChannels} recommendedCategories={liveData.categories} />
-      <div className="flex-1 flex flex-col md:ml-60">
-        <AppHeader />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <div className="space-y-12">
-                <FeaturedStreamCarousel streams={liveData.featuredStreams} />
+    <SidebarProvider>
+      <div className="flex h-screen bg-zinc-900 text-white">
+        <LiveSidebar recommendedChannels={liveData.recommendedChannels} recommendedCategories={liveData.categories} />
+        <SidebarInset className="flex-1 flex flex-col">
+          <AppHeader />
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              <div className="space-y-12">
+                  <FeaturedStreamCarousel streams={liveData.featuredStreams} />
 
-                <div>
-                    <h2 className="text-xl font-bold mb-4">
-                      <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
-                    </h2>
-                    <StreamGrid streams={liveData.liveStreams.slice(0,4)} />
-                </div>
+                  <div>
+                      <h2 className="text-xl font-bold mb-4">
+                        <span className="text-primary hover:underline cursor-pointer">Live channels</span> we think you'll like
+                      </h2>
+                      <StreamGrid streams={liveData.liveStreams.slice(0,4)} />
+                  </div>
 
-                <Separator className="bg-zinc-700" />
+                  <Separator className="bg-zinc-700" />
 
-                <div>
-                    <h2 className="text-xl font-bold mb-4">
-                        <span className="text-primary hover:underline cursor-pointer">Categories</span> we think you'll like
-                    </h2>
-                    <CategoryGrid categories={liveData.categories} />
-                </div>
+                  <div>
+                      <h2 className="text-xl font-bold mb-4">
+                          <span className="text-primary hover:underline cursor-pointer">Categories</span> we think you'll like
+                      </h2>
+                      <CategoryGrid categories={liveData.categories} />
+                  </div>
 
-                 <div>
-                    <h2 className="text-xl font-bold mb-4">
-                      <span className="text-primary hover:underline cursor-pointer">Just Chatting</span> channels
-                    </h2>
-                    <StreamGrid streams={liveData.liveStreams.filter(s => s.category === 'Just Chatting')} />
-                </div>
-            </div>
-        </main>
+                   <div>
+                      <h2 className="text-xl font-bold mb-4">
+                        <span className="text-primary hover:underline cursor-pointer">Just Chatting</span> channels
+                      </h2>
+                      <StreamGrid streams={liveData.liveStreams.filter(s => s.category === 'Just Chatting')} />
+                  </div>
+              </div>
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }

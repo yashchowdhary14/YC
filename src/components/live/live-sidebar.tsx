@@ -8,7 +8,7 @@ import { Separator } from '../ui/separator';
 import type { Stream, Category } from '@/lib/types';
 import Link from 'next/link';
 import { formatCompactNumber } from '@/lib/utils';
-import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter } from '../ui/sidebar';
+import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, useSidebar } from '../ui/sidebar';
 
 interface LiveSidebarProps {
   recommendedChannels: Stream[];
@@ -16,8 +16,13 @@ interface LiveSidebarProps {
 }
 
 function ChannelItem({ channel }: { channel: Stream }) {
+  const { setOpen } = useSidebar();
   return (
-    <Link href={`/${channel.user.username}`} className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md">
+    <Link 
+      href={`/${channel.user.username}`} 
+      className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md"
+      onClick={() => setOpen(false)}
+    >
       <Avatar className="h-8 w-8">
         <AvatarImage src={channel.user.avatarUrl} alt={channel.user.username} />
         <AvatarFallback>{channel.user.username.charAt(0).toUpperCase()}</AvatarFallback>
@@ -35,8 +40,13 @@ function ChannelItem({ channel }: { channel: Stream }) {
 }
 
 function CategoryItem({ category }: { category: Category }) {
+    const { setOpen } = useSidebar();
     return (
-     <Link href={`/live/category/${category.id}`} className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md">
+     <Link 
+        href={`/live/category/${category.id}`} 
+        className="flex items-center gap-3 px-2 py-1.5 hover:bg-zinc-700 rounded-md"
+        onClick={() => setOpen(false)}
+    >
       <div className="w-8 h-10 bg-zinc-700 rounded-sm overflow-hidden shrink-0">
         <img src={category.thumbnailUrl} alt={category.name} className="w-full h-full object-cover" />
       </div>
@@ -54,8 +64,8 @@ function CategoryItem({ category }: { category: Category }) {
 
 export default function LiveSidebar({ recommendedChannels, recommendedCategories }: LiveSidebarProps) {
   return (
-    <Sidebar className="p-0 border-r border-r-zinc-800 bg-zinc-900 text-white">
-        <SidebarHeader className="h-[4rem] border-b border-zinc-800 flex items-center justify-between px-4">
+    <Sidebar className="p-0 border-r border-r-zinc-800 bg-zinc-900 text-white" side="left">
+        <SidebarHeader className="h-[3.5rem] md:h-[4rem] border-b border-zinc-800 flex items-center justify-between px-4">
             <h2 className="text-lg font-bold">For You</h2>
         </SidebarHeader>
         <SidebarContent className="py-2">
