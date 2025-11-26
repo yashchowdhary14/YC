@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Loader2, ArrowUp } from 'lucide-react';
 import type { Post, User } from '@/lib/types';
 import PostCard from '@/components/app/post-card';
@@ -11,15 +11,14 @@ import StoriesCarousel from '@/components/app/stories-carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useIntersection } from '@/hooks/use-intersection';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { collection, query, where, limit, getDocs } from 'firebase/firestore';
+import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 const POSTS_PER_PAGE = 5;
 
-function SuggestionCard({ suggestion, onFollowToggle }: { suggestion: User, onFollowToggle: (id: string) => void }) {
+function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
-    onFollowToggle(suggestion.id);
+    onFollowToggle(suggestion);
   };
 
   return (
@@ -35,7 +34,7 @@ function SuggestionCard({ suggestion, onFollowToggle }: { suggestion: User, onFo
         </div>
       </Link>
       <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs" onClick={handleFollowToggle}>
-        Follow
+        {isFollowing ? 'Unfollow' : 'Follow'}
       </Button>
     </div>
   )
@@ -56,38 +55,50 @@ export default function Home() {
     }
   }, [user, isUserLoading, router]);
 
-  // Fetch posts from users you follow
-  const followingQuery = useMemo(() => {
+  // Fetch users the current user is following
+  const followingQuery = useMemoFirebase(() => {
     if (!user) return null;
-    return query(collection(firestore, `users/${user.uid}/following`));
+    return collection(firestore, `users/${user.uid}/following`);
   }, [user, firestore]);
-  const { data: followingList } = useCollection<{id: string}>(followingQuery as any);
+  const { data: followingList, isLoading: followingLoading } = useCollection<{id: string}>(followingQuery);
+  const followingIds = useMemo(() => followingList?.map(f => f.id) || [], [followingList]);
 
-  const postsQuery = useMemo(() => {
-    if (!followingList || followingList.length === 0) return null;
-    const followingIds = followingList.map(f => f.id);
+  // Fetch posts from users you follow
+  const postsQuery = useMemoFirebase(() => {
+    if (!user || followingIds.length === 0) return null;
     return query(collection(firestore, 'posts'), where('uploaderId', 'in', followingIds));
-  }, [followingList, firestore]);
-  const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery as any);
+  }, [user, firestore, followingIds]);
+  const { data: posts, isLoading: postsLoading } = useCollection<Post>(postsQuery);
   
-  // Fetch suggestions
+  // Fetch suggestions for you
   useEffect(() => {
-    if (user && firestore) {
+    if (user && firestore && !followingLoading) {
       const fetchSuggestions = async () => {
-        const followingIds = followingList?.map(f => f.id) || [];
-        const excludedIds = [user.uid, ...followingIds];
-
-        const q = query(collection(firestore, 'users'), where('id', 'not-in', excludedIds.slice(0,10)), limit(5));
+        // IDs to exclude: current user + users they already follow
+        const excludedIds = [user.uid, ...followingIds].slice(0, 10); // Firestore 'not-in' has a limit of 10
+        
+        let q;
+        if (excludedIds.length > 0) {
+            q = query(collection(firestore, 'users'), where('id', 'not-in', excludedIds), limit(5));
+        } else {
+            q = query(collection(firestore, 'users'), limit(6)); // Fetch 6 if following no one, to filter self out
+        }
+        
         const snapshot = await getDocs(q);
-        const userSuggestions = snapshot.docs.map(doc => doc.data() as User);
+        const userSuggestions = snapshot.docs
+          .map(doc => doc.data() as User)
+          .filter(suggestion => suggestion.id !== user.uid); // Ensure self is not included
+          
         setSuggestions(userSuggestions);
       };
       fetchSuggestions();
     }
-  }, [user, firestore, followingList]);
+  }, [user, firestore, followingIds, followingLoading]);
 
   useEffect(() => {
     if (posts) {
+      // In a real app, you might do hydration here (e.g., fetch user details for each post)
+      // For now, we assume the Post type from Firestore is sufficient.
       setDisplayedPosts(posts);
     }
   }, [posts]);
@@ -110,7 +121,7 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || postsLoading) {
+  if (isUserLoading || postsLoading || followingLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -118,14 +129,25 @@ export default function Home() {
     );
   }
 
-  const handleFollowToggle = (userId: string) => {
-    // This will be implemented in a future step
-    console.log("Toggling follow for user:", userId);
+  const handleFollowToggle = async (targetUser: User) => {
+    if (!user || !firestore) return;
+
+    const isCurrentlyFollowing = followingIds.includes(targetUser.id);
+    const followRef = doc(firestore, `users/${user.uid}/following`, targetUser.id);
+
+    if (isCurrentlyFollowing) {
+        // Unfollow
+        await deleteDoc(followRef);
+    } else {
+        // Follow
+        await setDoc(followRef, { id: targetUser.id });
+    }
+    // The useCollection hook will automatically update the UI
   };
 
   return (
     <>
-      <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8">
+      <div className="container mx-auto max-w-screen-lg p-4 sm:p-6 lg:p-8 pt-20">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
               <div className="flex flex-col gap-8">
@@ -151,11 +173,18 @@ export default function Home() {
               <div className="sticky top-24">
               <div className="flex items-center justify-between mb-4">
                   <p className="font-semibold text-muted-foreground">Suggestions for you</p>
-                  <Button variant="link" size="sm" className="p-0 h-auto text-xs">See All</Button>
+                  <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                    <Link href="/explore">See All</Link>
+                  </Button>
               </div>
               <div className="flex flex-col gap-4">
                   {suggestions.map((s) => (
-                      <SuggestionCard key={s.id} suggestion={s} onFollowToggle={handleFollowToggle} />
+                      <SuggestionCard 
+                        key={s.id} 
+                        suggestion={s} 
+                        onFollowToggle={handleFollowToggle}
+                        isFollowing={followingIds.includes(s.id)}
+                      />
                   ))}
               </div>
               </div>
@@ -175,3 +204,5 @@ export default function Home() {
     </>
   );
 }
+
+    

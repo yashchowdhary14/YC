@@ -37,20 +37,26 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
     }
   };
   
-  // On homepage with large sidebar, we don't show the trigger or the logo again.
-  const showLogoAndTrigger = pathname !== '/';
+  const isHomePage = pathname === '/';
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-zinc-800 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-4">
            <SidebarTrigger className="md:hidden">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
            </SidebarTrigger>
-          {showLogoAndTrigger && (
+          {!isHomePage && (
             <NextLink href="/" className="hidden font-serif text-2xl font-bold md:block">
               YCP
             </NextLink>
+          )}
+           {isHomePage && (
+             <div className="hidden lg:block w-[180px]">
+                <NextLink href="/" passHref>
+                    <h1 className="text-2xl font-bold p-2 px-4 font-serif">YCP</h1>
+                </NextLink>
+            </div>
           )}
           {children}
         </div>
@@ -108,3 +114,5 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
     </header>
   );
 }
+
+    
