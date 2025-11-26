@@ -33,6 +33,8 @@ interface ProfileHeaderProps {
   animatedHeader: {
     opacity: MotionValue<number>;
   };
+  followedUsers: Set<string>;
+  toggleFollow: (username: string) => void;
 }
 
 const ProfileStats = ({ user, optimisticFollowers }: { user: ProfileHeaderProps['user'], optimisticFollowers: number }) => (
@@ -73,8 +75,10 @@ export default function ProfileHeader({
   isCurrentUser = false,
   animatedAvatar,
   animatedHeader,
+  followedUsers,
+  toggleFollow,
 }: ProfileHeaderProps) {
-  const { user: currentUser, followedUsers, toggleFollow } = useUser();
+  const { user: currentUser } = useUser();
   const { toast } = useToast();
 
   const isFollowing = followedUsers.has(user.username);

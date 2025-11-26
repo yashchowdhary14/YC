@@ -66,7 +66,7 @@ function ProfileSkeleton() {
 
 export default function UserProfilePage() {
   const { username } = useParams<{ username: string }>();
-  const { user: currentUser } = useUser();
+  const { user: currentUser, toggleFollow, followedUsers } = useUser();
   const [profileData, setProfileData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -94,26 +94,23 @@ export default function UserProfilePage() {
 
   }, [username]);
 
-  const { profileUser, posts } = useMemo(() => {
-    if (!profileData) {
-      return { profileUser: null, posts: [] };
-    }
+  const profileUser = useMemo(() => {
+    if (!profileData) return null;
 
     const { user, posts } = profileData;
     
-    const hydratedProfileUser = {
+    return {
       ...user,
-      id: user.id, // Ensure id is present
+      id: user.id,
       profilePhoto: user.profilePhoto || `https://picsum.photos/seed/${user.id}/150/150`,
       postsCount: posts.length,
-      followersCount: user.followers?.length || Math.floor(Math.random() * 5000), // Use dummy data or random
-      followingCount: user.following?.length || Math.floor(Math.random() * 500),
+      followersCount: user.followers?.length || user.followersCount || Math.floor(Math.random() * 5000),
+      followingCount: user.following?.length || user.followingCount || Math.floor(Math.random() * 500),
       verified: user.verified || false
     };
-
-    return { profileUser: hydratedProfileUser, posts };
   }, [profileData]);
 
+  const posts = useMemo(() => profileData?.posts || [], [profileData]);
 
   const handleMessageClick = () => {
     if (!currentUser || !profileUser || isCurrentUser) return;
@@ -157,6 +154,8 @@ export default function UserProfilePage() {
             isCurrentUser={isCurrentUser}
             animatedAvatar={{ scale: avatarScale, y: avatarY }}
             animatedHeader={{ opacity: headerOpacity }}
+            followedUsers={followedUsers}
+            toggleFollow={toggleFollow}
           />
           <div className="my-8">
             <HighlightsCarousel />
