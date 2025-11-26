@@ -34,7 +34,10 @@ const updateDummyStreams = (updatedStream: any) => {
   }
   localStorage.setItem('dummyStreams', JSON.stringify(currentStreams));
   // Dispatch a storage event to notify other tabs/pages
-  window.dispatchEvent(new Event('storage'));
+  window.dispatchEvent(new StorageEvent('storage', {
+    key: 'dummyStreams',
+    newValue: JSON.stringify(currentStreams)
+  }));
 };
 
 
@@ -54,7 +57,9 @@ export default function BroadcastPage() {
     if (!isUserLoading && !user) {
       router.push('/login');
     } else if (user) {
-        const userStream = dummyStreams.find(s => s.streamerId === user.uid);
+        // Load initial state from localStorage
+        const allStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams));
+        const userStream = allStreams.find((s: any) => s.streamerId === user.uid);
         if (userStream) {
             setStreamTitle(userStream.title);
             setIsLive(userStream.isLive);
@@ -92,7 +97,8 @@ export default function BroadcastPage() {
   
   const handleUpdateStream = useCallback((liveStatus: boolean, newTitle: string) => {
     if(!user) return;
-    const userStream = dummyStreams.find(s => s.streamerId === user.uid);
+    const allStreams = JSON.parse(localStorage.getItem('dummyStreams') || JSON.stringify(dummyStreams));
+    const userStream = allStreams.find((s:any) => s.streamerId === user.uid);
     if (userStream) {
       const updatedStream = {
         ...userStream,
@@ -109,8 +115,6 @@ export default function BroadcastPage() {
         return;
     }
     setIsLoading(true);
-    // In a real app, this is where you'd set up the WebRTC connection
-    // and update the stream status in Firestore.
     await new Promise(res => setTimeout(res, 1500)); 
     
     handleUpdateStream(true, streamTitle);
@@ -122,7 +126,6 @@ export default function BroadcastPage() {
 
   const handleStopStream = async () => {
     setIsLoading(true);
-    // In a real app, close the WebRTC connection and update Firestore.
     await new Promise(res => setTimeout(res, 1000));
     
     handleUpdateStream(false, streamTitle);
@@ -203,7 +206,7 @@ export default function BroadcastPage() {
                   </div>
                   {isLive && (
                      <Button onClick={() => handleUpdateStream(true, streamTitle)} variant="outline" className="w-full" disabled={isLoading}>
-                        <Check className="mr-2 h-4 w-4"/>
+                        {isLoading && streamTitle !== (dummyStreams.find(s => s.streamerId === user?.uid)?.title) ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4"/>}
                         Update Stream Info
                     </Button>
                   )}

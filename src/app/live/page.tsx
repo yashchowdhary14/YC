@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import AppHeader from '@/components/app/header';
 import { Loader2 } from 'lucide-react';
 import { useUser } from '@/firebase';
-import type { Stream, Category, User } from '@/lib/types';
+import type { Stream, Category } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import LiveSidebar from '@/components/live/live-sidebar';
 import StreamGrid from '@/components/live/stream-grid';
@@ -21,26 +21,37 @@ export default function LivePage() {
   const { user, isUserLoading } = useUser();
   const router = useRouter();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-  const [streams, setStreams] = useState(initialStreams);
+  const [streams, setStreams] = useState<Omit<Stream, 'user'>[]>(() => {
+    if (typeof window !== 'undefined') {
+      const storedStreams = localStorage.getItem('dummyStreams');
+      if (storedStreams) {
+        return JSON.parse(storedStreams, (key, value) => {
+          if (key === 'createdAt') return new Date(value);
+          return value;
+        });
+      }
+    }
+    return initialStreams;
+  });
 
   useEffect(() => {
-    // This is a workaround to sync state between pages in a dummy data environment.
-    // In a real app, this would be handled by Firestore listeners.
     const handleStorageChange = () => {
-      const updatedStreams = localStorage.getItem('dummyStreams');
-      if (updatedStreams) {
-        setStreams(JSON.parse(updatedStreams, (key, value) => {
-            if (key === 'createdAt') return new Date(value);
-            return value;
+      const storedStreams = localStorage.getItem('dummyStreams');
+      if (storedStreams) {
+        setStreams(JSON.parse(storedStreams, (key, value) => {
+          if (key === 'createdAt') return new Date(value);
+          return value;
         }));
       }
     };
+    
+    // Initial load from storage in case it was updated while this page was inactive
+    handleStorageChange();
 
     window.addEventListener('storage', handleStorageChange);
-    handleStorageChange(); // Initial load
-
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
 
   useEffect(() => {
     setIsPageLoaded(true);
