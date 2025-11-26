@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -18,7 +19,7 @@ export default function StreamCard({ stream }: StreamCardProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   
   return (
-    <Link href={`/${stream.user.username}`} className="group">
+    <Link href={`/live/${stream.user.username}`} className="group">
       <div className="relative mb-3 overflow-hidden rounded-lg transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/20">
         <AspectRatio ratio={16 / 9} className="bg-zinc-800 rounded-lg overflow-hidden">
             <Image

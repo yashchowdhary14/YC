@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -83,7 +84,7 @@ export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarous
         <CarouselContent className="-ml-4">
           {streams.map((stream) => (
             <CarouselItem key={stream.id} className="pl-4">
-              <Link href={`/${stream.user.username}`} className="block">
+              <Link href={`/live/${stream.user.username}`} className="block">
                 <FeaturedStreamCard stream={stream} />
               </Link>
             </CarouselItem>

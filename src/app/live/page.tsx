@@ -79,7 +79,7 @@ export default function LivePage() {
           recommendedChannels={recommendedChannels} 
           recommendedCategories={categories.slice(0,6)} 
         />
-        <SidebarInset className="flex-1 flex flex-col">
+        <SidebarInset className="flex-1 flex flex-col overscroll-contain">
           <AppHeader>
              <SidebarTrigger>
                 <Button variant="ghost" size="icon">
