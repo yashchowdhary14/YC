@@ -68,6 +68,7 @@ export default function BroadcastPage() {
             tags: ['IRL', 'New Streamer'],
             viewerCount: 0,
             isLive: false,
+            thumbnailUrl: `https://picsum.photos/seed/${user.uid}/640/360`,
             user: {
                 id: userData.id,
                 username: userData.username,
@@ -278,3 +279,5 @@ export default function BroadcastPage() {
     </SidebarProvider>
   );
 }
+
+    
