@@ -33,7 +33,7 @@ const ExploreGrid: React.FC<ExploreGridProps> = ({ items }) => {
                 },
             },
         }}
-        className="grid grid-cols-3 auto-rows-fr gap-1"
+        className="grid grid-cols-2 md:grid-cols-3 auto-rows-fr gap-1"
         style={{ gridAutoRows: 'minmax(0, 1fr)' }}
     >
       {items.map((item, index) => (
