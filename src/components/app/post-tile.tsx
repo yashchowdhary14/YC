@@ -20,7 +20,7 @@ export default function PostTile({ post }: PostTileProps) {
   return (
     <Link href={`/p/${post.id}`} className="block w-full h-full group">
       <motion.div
-        className="relative w-full aspect-square overflow-hidden rounded-none md:rounded-lg"
+        className="relative w-full aspect-square overflow-hidden rounded-none md:rounded-none"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}

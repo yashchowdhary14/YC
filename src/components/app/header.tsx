@@ -1,11 +1,11 @@
 
 'use client';
 
-import { Heart, MessageCircle, PlusSquare } from 'lucide-react';
+import { Heart, MessageCircle, PlusSquare, Menu, UserPlus } from 'lucide-react';
 import NextLink from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useUser, useAuth } from '@/firebase';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useParams } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ThemeSwitcher } from './theme-switcher';
@@ -15,6 +15,7 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
   const auth = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const params = useParams<{ username?: string }>();
 
   const handleSignOut = async () => {
     try {
@@ -26,6 +27,27 @@ export default function AppHeader({ children }: { children?: React.ReactNode }) 
   };
   
   const isHomePage = pathname === '/';
+  const isProfilePage = !!params.username;
+
+  // Mobile Header for Profile Page
+  if (isProfilePage) {
+    return (
+       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center">
+            <h2 className="text-lg font-bold flex-1">{params.username}</h2>
+            <div className="flex items-center gap-2">
+                <ThemeSwitcher />
+                <Button variant="ghost" size="icon">
+                    <UserPlus />
+                </Button>
+                 <Button variant="ghost" size="icon">
+                    <Menu />
+                </Button>
+            </div>
+        </div>
+       </header>
+    )
+  }
 
   return (
     <>
