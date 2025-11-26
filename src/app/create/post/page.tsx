@@ -1,19 +1,27 @@
 
 'use client';
 
-import { useState, useRef, ChangeEvent, useEffect } from 'react';
+import { useState, useEffect, useMemo, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Wand2, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Wand2, Loader2, Crop, Sliders, Check, Tag, MapPin, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import { fileToDataUri, uploadFile } from '@/lib/utils';
 import { generateAiCaption, GenerateAiCaptionInput } from '@/ai/flows/generate-ai-caption';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useCapturedMedia } from '@/lib/captured-media-store';
+import { usePostCreationStore } from '@/lib/post-creation-store';
+import { AnimatePresence, motion } from 'framer-motion';
+import { AspectRatio } from '@/components/ui/aspect-ratio';
+import PostCarousel from '@/components/post-creation/PostCarousel';
+import EditControls from '@/components/post-creation/EditControls';
+import DetailsForm from '@/components/post-creation/DetailsForm';
+
+type PostCreationStep = 'crop' | 'edit' | 'details' | 'sharing';
 
 export default function CreatePostPage() {
   const { user } = useUser();
@@ -21,57 +29,119 @@ export default function CreatePostPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { capturedMedia, setCapturedMedia } = useCapturedMedia();
-  
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [caption, setCaption] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
 
-  // If there's no captured media, the user shouldn't be on this page.
-  // Redirect them immediately.
-  if (!capturedMedia) {
-    if (typeof window !== 'undefined') {
-      router.replace('/create');
-    }
-    return null;
-  }
+  const {
+    media,
+    addMedia,
+    setCaption,
+    isGeneratingCaption,
+    isSubmitting,
+    startCaptionGeneration,
+    finishCaptionGeneration,
+    startSubmitting,
+    finishSubmitting,
+  } = usePostCreationStore();
+  
+  const [step, setStep] = useState<PostCreationStep>('crop');
 
   useEffect(() => {
-    // This effect now only runs when there IS captured media.
-    const file = capturedMedia;
-    setImageFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
-    
-    // Clean up the captured media so it's not reused on next visit
-    setCapturedMedia(null);
-    
-    // Cleanup URL object when component unmounts
-    return () => {
-      URL.revokeObjectURL(previewUrl);
-    };
-  }, [capturedMedia, setCapturedMedia]);
-
-  const handleGenerateCaption = async () => {
-    if (!imageFile) {
-        toast({ variant: 'destructive', title: 'Please upload an image first.' });
+    // If there's no media in the store AND no media was just captured,
+    // the user shouldn't be here.
+    if (media.length === 0 && !capturedMedia) {
+        if (typeof window !== 'undefined') {
+          router.replace('/create');
+        }
         return;
     }
-    setIsGenerating(true);
+
+    if (capturedMedia) {
+      const file = capturedMedia;
+      const previewUrl = URL.createObjectURL(file);
+      addMedia({
+        id: `media_${Date.now()}`,
+        file,
+        previewUrl,
+        type: file.type.startsWith('video') ? 'video' : 'photo',
+      });
+      // Clean up the captured media so it's not reused
+      setCapturedMedia(null);
+    }
+  }, [capturedMedia, addMedia, media.length, router, setCapturedMedia]);
+  
+  const headerText = useMemo(() => {
+    switch (step) {
+      case 'crop': return 'Crop';
+      case 'edit': return 'Edit';
+      case 'details': return 'New post';
+      case 'sharing': return 'Sharing...';
+      default: return 'Create post';
+    }
+  }, [step]);
+  
+  const handleNext = () => {
+    if (step === 'crop') setStep('edit');
+    else if (step === 'edit') setStep('details');
+  };
+  
+  const handleBack = () => {
+    if (step === 'details') setStep('edit');
+    else if (step === 'edit') setStep('crop');
+    else if (step === 'crop') router.back();
+  };
+
+  const handleShare = async () => {
+    const { caption } = usePostCreationStore.getState();
+    if (!user || !firestore) {
+      toast({ variant: 'destructive', title: 'You must be logged in to share a post.'});
+      return;
+    }
+    if (media.length === 0) {
+      toast({ variant: 'destructive', title: 'Please add at least one photo or video.'});
+      return;
+    }
+    startSubmitting();
+    setStep('sharing');
+
     try {
-        const dataUri = await fileToDataUri(imageFile);
-        
+      // In a real app, this would be a multi-file upload. We simulate with the first media item.
+      const firstMedia = media[0];
+      const imageUrl = await uploadFile(firstMedia.file, `posts/${user.uid}/${Date.now()}_${firstMedia.file.name}`);
+
+      await addDoc(collection(firestore, 'posts'), {
+        type: 'photo', // Or 'video' or 'carousel'
+        mediaUrl: imageUrl,
+        thumbnailUrl: imageUrl,
+        uploaderId: user.uid,
+        caption: caption,
+        tags: [],
+        views: 0,
+        likes: 0,
+        commentsCount: 0,
+        createdAt: serverTimestamp(),
+      });
+      
+      toast({ title: 'Post Shared!', description: 'Your post is now live.'});
+      router.push(`/${user.displayName || user.email?.split('@')[0]}`);
+
+    } catch(error) {
+      console.error("Error sharing post:", error);
+      toast({ variant: 'destructive', title: 'Failed to share post.'});
+      setStep('details'); // Go back to details screen on failure
+    } finally {
+      finishSubmitting();
+    }
+  };
+
+  const handleGenerateCaption = async () => {
+    if (media.length === 0) {
+        toast({ variant: 'destructive', title: 'Please add an image first.' });
+        return;
+    }
+    startCaptionGeneration();
+    try {
+        const dataUri = await fileToDataUri(media[0].file);
         const input: GenerateAiCaptionInput = {
             mediaDataUri: dataUri,
-            ...(user && {
-              userProfile: {
-                username: user.displayName || user.email?.split('@')[0] || '',
-                bio: 'A passionate creator sharing my world.', 
-                followers: [],
-                following: [],
-              }
-            })
         };
         const result = await generateAiCaption(input);
         setCaption(result.caption);
@@ -79,112 +149,64 @@ export default function CreatePostPage() {
         console.error("Error generating caption:", error);
         toast({ variant: 'destructive', title: 'Failed to generate caption.' });
     } finally {
-        setIsGenerating(false);
+        finishCaptionGeneration();
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!imageFile || !caption.trim() || !user || !firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Missing information',
-        description: 'Please provide an image and a caption.',
-      });
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const imageUrl = await uploadFile(imageFile, `posts/${user.uid}/${Date.now()}_${imageFile.name}`);
 
-      const postsCollection = collection(firestore, 'posts');
-      await addDoc(postsCollection, {
-        type: 'photo',
-        mediaUrl: imageUrl,
-        thumbnailUrl: imageUrl,
-        uploaderId: user.uid,
-        caption: caption,
-        tags: ['photography'],
-        views: 0,
-        likes: 0,
-        commentsCount: 0,
-        createdAt: serverTimestamp(),
-      });
-
-      toast({
-        title: 'Post Created!',
-        description: 'Your post has been successfully shared.',
-      });
-      
-      router.push(`/${user.displayName || user.email?.split('@')[0]}`);
-
-    } catch (error) {
-      console.error("Error creating post:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Failed to create post',
-        description: 'An error occurred while saving your post. Please try again.'
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  const steps: Record<PostCreationStep, ReactNode> = {
+    crop: <PostCarousel />,
+    edit: <PostCarousel />,
+    details: <DetailsForm onGenerateCaption={handleGenerateCaption} />,
+    sharing: (
+      <div className="flex flex-col items-center justify-center h-full text-foreground">
+        <Loader2 className="h-16 w-16 animate-spin" />
+        <p className="mt-4 text-lg">Sharing your post...</p>
+      </div>
+    )
   };
+  
+  if (media.length === 0) {
+     return (
+      <div className="w-full h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8 flex items-center justify-center bg-background pt-14">
-      <div className="w-full max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-            <Button variant="ghost" size="icon" onClick={() => router.back()}>
-                <ArrowLeft />
-            </Button>
-            <h1 className="text-2xl font-bold tracking-tight">Create New Post</h1>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <Card>
-            <CardContent className="p-0 lg:grid lg:grid-cols-2 lg:gap-0">
-              <div className="relative aspect-square bg-muted/40 flex items-center justify-center lg:rounded-l-lg">
-                {imagePreview ? (
-                    <Image src={imagePreview} alt="Image preview" fill className="object-contain lg:rounded-l-lg" />
-                ) : (
-                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground p-8 text-center">
-                        <Loader2 className="h-12 w-12 animate-spin" />
-                        <h3 className="font-semibold text-lg">Loading image...</h3>
-                    </div>
-                )}
-              </div>
-
-              <div className="p-6 flex flex-col space-y-4">
-                <div className="flex items-center gap-4">
-                    <h2 className="font-semibold text-lg flex-1">Write a caption</h2>
-                    <Button 
-                        type="button" 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handleGenerateCaption}
-                        disabled={!imageFile || isGenerating}
-                    >
-                        {isGenerating ? <Loader2 className="animate-spin" /> : <Wand2 />}
-                        <span className="ml-2 hidden sm:inline">Generate with AI</span>
-                    </Button>
-                </div>
-                <Textarea
-                  placeholder="What's on your mind?"
-                  className="flex-1 resize-none min-h-[200px] lg:min-h-0"
-                  value={caption}
-                  onChange={(e) => setCaption(e.target.value)}
-                />
-                <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || !imageFile || !caption.trim()}>
-                  {isSubmitting ? <Loader2 className="animate-spin" /> : null}
-                  {isSubmitting ? 'Sharing...' : 'Share Post'}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </form>
+      <div className="w-full h-screen bg-black text-white flex flex-col">
+        {/* Header */}
+        <header className="flex items-center justify-between p-2 flex-shrink-0 h-14">
+          <Button variant="ghost" size="icon" onClick={handleBack} disabled={isSubmitting}>
+            <ArrowLeft />
+          </Button>
+          <h1 className="font-semibold text-lg">{headerText}</h1>
+          {step === 'details' ? (
+            <Button variant="link" onClick={handleShare} disabled={isSubmitting}>Share</Button>
+          ) : step === 'crop' || step === 'edit' ? (
+            <Button variant="link" onClick={handleNext}>Next</Button>
+          ) : <div className="w-14" />}
+        </header>
+        
+        {/* Main Content */}
+        <main className="flex-1 flex flex-col min-h-0">
+          <div className="relative w-full aspect-square bg-black flex items-center justify-center">
+             <AnimatePresence mode="wait">
+                  <motion.div
+                      key={step}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="w-full h-full"
+                  >
+                      {steps[step]}
+                  </motion.div>
+              </AnimatePresence>
+          </div>
+          {step === 'edit' && <EditControls />}
+        </main>
       </div>
-    </div>
   );
 }
