@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { collection, query, where, limit, getDocs, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { motion } from 'framer-motion';
 
 function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestion: User, onFollowToggle: (user: User) => void, isFollowing: boolean }) {
   const handleFollowToggle = () => {
@@ -153,11 +154,22 @@ export default function Home() {
                   <StoriesCarousel />
                 </div>
                 {displayedPosts.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-0">
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                        visible: {
+                            transition: {
+                                staggerChildren: 0.05,
+                            },
+                        },
+                    }}
+                    className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4 mt-4 md:mt-0"
+                  >
                     {displayedPosts.map((post) => (
                       <PostTile key={post.id} post={post} />
                     ))}
-                  </div>
+                  </motion.div>
                 ) : (
                   <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
                     <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
