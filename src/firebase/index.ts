@@ -1,3 +1,4 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
@@ -25,14 +26,6 @@ export function initializeFirebase() {
       }
       firebaseApp = initializeApp(firebaseConfig);
     }
-
-    // Seed the database in development
-    if (process.env.NODE_ENV === 'development') {
-      const db = getFirestore(firebaseApp);
-      seedDatabase(db).catch(console.error);
-    }
-
-    return getSdks(firebaseApp);
   }
 
   // If already initialized, return the SDKs with the already initialized App
@@ -49,8 +42,6 @@ export function getSdks(firebaseApp: FirebaseApp) {
 
 export * from './provider';
 export * from './client-provider';
-export * from './firestore/use-collection';
-export * from './firestore/use-doc';
 export * from './non-blocking-updates';
 export * from './non-blocking-login';
 export * from './errors';

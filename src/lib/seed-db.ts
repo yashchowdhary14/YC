@@ -25,53 +25,6 @@ const dummyCategories: Category[] = [
 ];
 
 export async function seedDatabase(db: Firestore) {
-  if(!db) {
-    console.error("Firestore instance is not available. Skipping seeding.");
-    return;
-  }
-  const batch = writeBatch(db);
-
-  // Seed Streams
-  const streamsCol = collection(db, "streams");
-  streamsToSeed().forEach((streamData) => {
-    const user = dummyUsers.find(u => u.id === streamData.streamerId);
-    if (!user) return;
-    
-    const streamDoc: Omit<LiveBroadcast, 'id'> = {
-      ...streamData,
-      user: {
-          id: user.id,
-          username: user.username,
-          avatarUrl: `https://picsum.photos/seed/${user.id}/100/100`,
-          fullName: user.fullName,
-          bio: user.bio,
-          followersCount: user.followersCount,
-          followingCount: user.followingCount,
-          verified: user.verified
-      }
-    };
-    const docRef = doc(streamsCol, streamData.streamerId);
-    batch.set(docRef, streamDoc);
-  });
-
-  // Seed Categories
-  const categoriesCol = collection(db, "categories");
-  dummyCategories.forEach((category) => {
-    const docRef = doc(categoriesCol, category.id);
-    batch.set(docRef, category);
-  });
-  
-  // Seed Users
-  const usersCol = collection(db, "users");
-  dummyUsers.forEach((user) => {
-    const docRef = doc(usersCol, user.id);
-    batch.set(docRef, user);
-  });
-
-  try {
-    await batch.commit();
-    console.log("Database seeded successfully!");
-  } catch (error) {
-    console.error("Error seeding database:", error);
-  }
+  // This function is currently not used when the app is in full dummy data mode.
+  // It's kept for potential future use when re-connecting to Firestore.
 }
