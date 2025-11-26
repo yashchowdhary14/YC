@@ -1,242 +1,136 @@
-/**
- * Core Philosophy: This ruleset enforces a user-centric security model for a social media application.
- * Public content (posts, stories, reels, user profiles) is generally readable by anyone to facilitate a social experience,
- * but can only be created, modified, or deleted by the content's owner. Private interactions, such as chats and calls,
- * are strictly confined to the participating users.
- *
- * Data Structure: The data is organized into top-level collections for discoverability and simple querying (e.g., /users, /posts, /reels).
- * Private, conversational data (messages) is nested within a parent document (/chats/{chatId}/messages/{messageId}) to allow
- * security rules to be inherited and enforced based on the parent chat's membership.
- *
- * Key Security Decisions:
- * - Public Read, Owner Write: Top-level content collections (/posts, /reels, etc.) are publicly readable to build feeds, but
- *   writes are strictly limited to the user who created the content, identified by a 'userId' field.
- * - Profile Visibility: User profiles in the /users collection are publicly readable to allow for user search and profile viewing,
- *   but a user can only edit their own profile.
- * - Collaborative Privacy: Access to /chats and their nested /messages subcollections is governed by a 'users' array on the chat
- *   document. Only users whose UID is in this array can read or write to the chat.
- * - Default Denial: Any operation not explicitly granted is denied. Write operations are never left open.
- *
- * Denormalization for Authorization: To ensure performant and simple rules, this ruleset relies on denormalized data.
- * - Ownership fields (e.g., 'userId', 'senderId') are stored directly on documents like posts and messages. This avoids costly
- *   and slow `get()` calls to other documents just to verify ownership.
- * - Chat membership is stored in a 'users' array directly on each /chats/{chatId} document. This allows a single document read
- *   to authorize access to the entire chat and its subcollections.
- *
- * Structural Segregation: There is a clear separation between public content (e.g., /posts) and private content (/chats). This
- * structural choice simplifies list operations and prevents accidental data leakage, as rules for each collection can be tailored
- * specifically to its public or private nature without complex conditional logic.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to promote readable and reusable rules.
-
-    /**
-     * Checks if a user is authenticated.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the authenticated user's UID matches the provided userId.
-     * This is the core of the ownership model.
-     */
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    /**
-     * Checks for ownership on an existing document. Used for update and delete.
-     */
     function isExistingOwner(ownerId) {
       return resource != null && isOwner(ownerId);
     }
 
-    /**
-     * Validates that the user creating a new document is the author.
-     * Checks the incoming document's 'userId' field.
-     */
     function isAuthor() {
       return request.resource.data.userId == request.auth.uid;
     }
 
-    /**
-     * Checks if the user is a participant in a chat by checking the parent
-     * chat document's 'users' array. Requires one document read.
-     */
     function isChatParticipant(chatId) {
-      return isSignedIn() && get(/databases/$(database)/documents/chats/$(chatId)).data.users.hasAny([request.auth.uid]);
+      return isSignedIn()
+        && get(/databases/$(database)/documents/chats/$(chatId)).data.users.hasAny([request.auth.uid]);
     }
 
-    /**
-     * Validates if the user is a participant of the chat document being accessed.
-     * Does not require a get() call as it operates on the resource directly.
-     */
     function isMemberOfChat() {
       return isSignedIn() && request.auth.uid in resource.data.users;
     }
 
-    /**
-     * Validates that the user is a participant in the chat they are creating.
-     */
     function isCreatingChatWithSelf() {
-        return isSignedIn() && request.auth.uid in request.resource.data.users;
+      return isSignedIn() && request.auth.uid in request.resource.data.users;
     }
 
-    /**
-     * Checks if a user is either the caller or receiver for a call.
-     */
     function isCallParticipant(callDoc) {
-        return isSignedIn() && (request.auth.uid == callDoc.callerId || request.auth.uid == callDoc.receiverId);
+      return isSignedIn() &&
+        (request.auth.uid == callDoc.callerId || request.auth.uid == callDoc.receiverId);
     }
 
-
-    /**
-     * @description Manages user profile data. Profiles are publicly readable,
-     * but a user can only write to their own document.
-     * @path /users/{userId}
-     * @allow (get) Any user, signed in or not, to view a user's profile.
-     * @deny (update) A user trying to update another user's profile.
-     * @principle Restricts access to a user's own data tree for writes, while allowing public reads for social features.
-     */
+    // users
     match /users/{userId} {
       allow get, list: if true;
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource != null && request.resource.data.id == resource.data.id;
-      allow delete: if false; // Users should not be able to delete their own profiles.
+      allow update: if isOwner(userId)
+        && resource != null
+        && request.resource.data.id == resource.data.id;
+      allow delete: if false;
 
-      /**
-       * @description Manages the posts subcollection within a user's document.
-       * Only the owner of the profile can read or write to this subcollection.
-       * This is used for displaying posts on a user's own profile page.
-       */
       match /posts/{postId} {
         allow read, write: if isOwner(userId);
       }
 
-      /**
-       * @description Manages the followers subcollection.
-       * Anyone can read who follows a user, but only the follower can add/remove themselves.
-       */
       match /followers/{followerId} {
         allow read: if true;
         allow write: if isOwner(followerId);
       }
 
-      /**
-       * @description Manages the following subcollection.
-       * Anyone can read who a user is following, but only the user can modify their own following list.
-       */
       match /following/{followingId} {
         allow read: if true;
         allow write: if isOwner(userId);
       }
     }
 
-    /**
-     * @description Manages user-created posts. Posts are public, but only the
-     * author can create, update, or delete their own posts.
-     * @path /posts/{postId}
-     * @allow (create) An authenticated user creating a post with their own userId.
-     * @deny (update) A user attempting to change the 'userId' of an existing post.
-     * @principle Enforces document ownership for writes using a 'userId' field, enabling a public-read model.
-     */
+    // posts
     match /posts/{postId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow update: if isExistingOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    /**
-     * @description Manages user-created stories. Stories are public, but only the
-     * author can create or delete them. Updates are disallowed.
-     * @path /stories/{storyId}
-     * @allow (create) An authenticated user creating a story with their own userId.
-     * @deny (delete) A user attempting to delete a story they do not own.
-     * @principle Enforces document ownership for writes using a 'userId' field.
-     */
+    // stories
     match /stories/{storyId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
-      allow update: if false; // Stories are typically immutable.
+      allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    /**
-     * @description Manages user-created reels. Reels are public, but only the
-     * author can create, update, or delete their own reels.
-     * @path /reels/{reelId}
-     * @allow (create) An authenticated user creating a reel with their own userId.
-     * @deny (update) A user trying to modify another user's reel.
-     * @principle Enforces document ownership for writes using a 'userId' field, enabling a public-read model.
-     */
+    // reels
     match /reels/{reelId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow update: if isExistingOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    /**
-     * @description Manages comments on posts or reels. Comments are public, but
-     * only the author can interact with their own comments.
-     * @path /comments/{commentId}
-     * @allow (create) An authenticated user creating a comment with their own userId.
-     * @deny (delete) A user trying to delete someone else's comment.
-     * @principle Enforces document ownership for writes using a 'userId' field.
-     */
+    // comments
     match /comments/{commentId} {
       allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
-      allow update: if isExistingOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
+      allow update: if isExistingOwner(resource.data.userId)
+        && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    /**
-     * @description Manages chat sessions. Access is restricted to users who are
-     * listed as participants in the chat's 'users' array.
-     * @path /chats/{chatId}
-     * @allow (get) A user whose UID is in the chat's 'users' array.
-     * @deny (get) A user trying to read a chat they are not a part of.
-     * @principle Implements a closed collaborator model where access is granted based on membership in a list.
-     */
+    // chats
     match /chats/{chatId} {
+      // Read a single chat only if member
       allow get: if isMemberOfChat();
+
+      // List only chats where this user is in the users array
+      // IMPORTANT: client must query with:
+      //   where('users', 'array-contains', request.auth.uid)
       allow list: if isSignedIn() && request.query.where.users.hasAny([request.auth.uid]);
+
+      // Create chat only if current user is in users array of new doc
       allow create: if isCreatingChatWithSelf();
-      allow update: if isMemberOfChat() && resource != null && request.resource.data.users == resource.data.users; // Participants can update, but not the user list.
-      allow delete: if false; // Chats cannot be deleted for now.
-      
-      /**
-       * @description Manages messages within a chat. Access is inherited from the parent
-       * chat document, ensuring only participants can read or send messages.
-       * @path /chats/{chatId}/messages/{messageId}
-       * @allow (create) A chat participant sending a message with their own senderId.
-       * @deny (list) A non-participant trying to read the messages in a chat.
-       * @principle Secures a subcollection by checking for membership on the parent document.
-       */
+
+      // Allow updates but forbid changing users list
+      allow update: if isMemberOfChat()
+                    && resource != null
+                    && request.resource.data.users == resource.data.users;
+
+      allow delete: if false;
+
+      // messages subcollection
       match /messages/{messageId} {
         allow get, list: if isChatParticipant(chatId);
-        allow create: if isChatParticipant(chatId) && isOwner(request.resource.data.senderId);
-        allow update: if isChatParticipant(chatId) && isExistingOwner(resource.data.senderId);
-        allow delete: if isChatParticipant(chatId) && isExistingOwner(resource.data.senderId);
+        allow create: if isChatParticipant(chatId)
+                      && isOwner(request.resource.data.senderId);
+        allow update: if isChatParticipant(chatId)
+                      && isExistingOwner(resource.data.senderId);
+        allow delete: if isChatParticipant(chatId)
+                      && isExistingOwner(resource.data.senderId);
       }
     }
 
-    /**
-     * @description Manages call metadata for WebRTC. Access is restricted to the caller and receiver.
-     * @path /calls/{callId}
-     * @allow (get) The caller or receiver reading the call details (e.g., SDP offers).
-     * @deny (create) A user initiating a call where they are not the designated caller.
-     * @principle Restricts access to a document based on multiple specific ownership fields (callerId, receiverId).
-     */
+    // calls
     match /calls/{callId} {
       allow get: if isCallParticipant(resource.data);
-      allow list: if false; // Listing active calls is not allowed.
+      allow list: if false;
       allow create: if isOwner(request.resource.data.callerId);
       allow update: if resource != null && isCallParticipant(resource.data);
       allow delete: if resource != null && isCallParticipant(resource.data);
