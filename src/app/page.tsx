@@ -42,6 +42,37 @@ function SuggestionCard({ suggestion, onFollowToggle, isFollowing }: { suggestio
 
 const POSTS_PER_PAGE = 5;
 
+function EmptyFeedContent({ suggestions, onFollowToggle, followedUsers }: { suggestions: User[], onFollowToggle: (user: User) => void, followedUsers: Set<string> }) {
+  return (
+    <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
+      <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
+      <p className="mt-2">Your feed is empty because you aren't following anyone yet.</p>
+      <p>Find people to follow to see their posts here.</p>
+      
+      {suggestions.length > 0 && (
+        <div className="max-w-sm mx-auto text-left mt-8">
+          <h4 className="font-semibold text-foreground mb-4">Suggestions For You</h4>
+          <div className="flex flex-col gap-4">
+            {suggestions.map((s) => (
+              <SuggestionCard 
+                key={s.id} 
+                suggestion={s} 
+                onFollowToggle={onFollowToggle}
+                isFollowing={followedUsers.has(s.username)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Button asChild className="mt-8">
+        <Link href="/explore">Explore More</Link>
+      </Button>
+    </div>
+  );
+}
+
+
 export default function Home() {
   const { user, isUserLoading, followedUsers, toggleFollow } = useUser();
   const firestore = useFirestore();
@@ -53,6 +84,7 @@ export default function Home() {
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   
   const loaderRef = useRef<HTMLDivElement>(null);
   const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
@@ -72,7 +104,14 @@ export default function Home() {
   }, [user, followedUsers]);
   
   const fetchPosts = useCallback(async (lastVisible: QueryDocumentSnapshot<DocumentData> | null = null) => {
-    if (!user || followingIds.length === 0 || isLoadingMore || !hasMore) return;
+    if (!user || followingIds.length === 0 || isLoadingMore || !hasMore) {
+        if (followingIds.length === 0) {
+            setPosts([]);
+            setHasMore(false);
+            setIsInitialLoad(false);
+        }
+        return;
+    }
     setIsLoadingMore(true);
 
     const postCollection = collection(firestore, 'posts');
@@ -96,15 +135,16 @@ export default function Home() {
     setLastDoc(lastVisibleDoc || null);
     setHasMore(newPosts.length === POSTS_PER_PAGE);
     setIsLoadingMore(false);
-  }, [user, firestore, followingIds, isLoadingMore, hasMore]);
+    if(isInitialLoad) setIsInitialLoad(false);
+  }, [user, firestore, followingIds, isLoadingMore, hasMore, isInitialLoad]);
 
 
   // Initial post fetch
   useEffect(() => {
-    if (user && followingIds.length > 0 && posts.length === 0) {
+    if (user && !isUserLoading) {
       fetchPosts();
     }
-  }, [user, followingIds.length, posts.length]);
+  }, [user, isUserLoading, followedUsers]); // Depend on followedUsers to refetch if they change
   
   // Infinite scroll
   useEffect(() => {
@@ -158,7 +198,7 @@ export default function Home() {
   };
 
 
-  if (isUserLoading || (followingIds.length > 0 && posts.length === 0)) {
+  if (isUserLoading || isInitialLoad) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -197,14 +237,7 @@ export default function Home() {
                       <div ref={loaderRef} />
                     </div>
                 ) : (
-                  <div className="text-center py-16 text-muted-foreground bg-background rounded-lg mt-4 md:mt-0">
-                    <h3 className="text-xl font-semibold text-foreground">Welcome to YCP</h3>
-                    <p className="mt-2">Your feed is empty.</p>
-                    <p>Start following people to see their posts here.</p>
-                    <Button asChild className="mt-4">
-                        <Link href="/explore">Find People to Follow</Link>
-                    </Button>
-                  </div>
+                  <EmptyFeedContent suggestions={suggestions} onFollowToggle={handleFollowToggleInSuggestion} followedUsers={followedUsers} />
                 )}
               </div>
             </div>
@@ -256,3 +289,5 @@ export default function Home() {
     </>
   );
 }
+
+    
