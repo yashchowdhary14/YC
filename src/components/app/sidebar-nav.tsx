@@ -44,12 +44,6 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
 
   const allLinks = [
     ...mainLinks,
-    { href: '/profile', label: 'Profile', icon: user ? () => (
-      <Avatar className={cn("h-6 w-6", pathname === '/profile' && "ring-2 ring-foreground")}>
-        <AvatarImage src={user.photoURL || ''} />
-        <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
-      </Avatar>
-    ) : Compass },
   ];
 
   if (isCollapsed) {

@@ -36,9 +36,9 @@ export default function BottomNav() {
           );
         })}
         {user && (
-          <NextLink href="/profile" passHref>
+          <NextLink href="/" passHref>
             <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
-              <Avatar className={cn("h-6 w-6", pathname === '/profile' && "ring-2 ring-offset-2 ring-offset-background ring-foreground")}>
+              <Avatar className={cn("h-6 w-6")}>
                 <AvatarImage src={user.photoURL || ''} />
                 <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
