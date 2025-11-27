@@ -21,3 +21,12 @@ export type FinalizedCreateData = {
     storyAudience?: "everyone" | "close-friends" | "custom";
   };
 };
+
+export type SimulatedUploadResult = {
+  id: string;
+  mediaUrls: string[];
+  thumbnailUrl: string;
+  duration?: number;
+  mode: CreateMode;
+  metadata: FinalizedCreateData;
+};
