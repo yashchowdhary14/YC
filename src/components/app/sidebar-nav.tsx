@@ -43,7 +43,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
   const { user } = useUser();
 
-  const profileLink = user ? { href: `/`, label: 'Profile', icon: (props: any) => (
+  const profileLink = user ? { href: `/profile2`, label: 'PROFILE2.0', icon: (props: any) => (
       <Avatar {...props}>
           <AvatarImage src={user.photoURL || ''} />
           <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>

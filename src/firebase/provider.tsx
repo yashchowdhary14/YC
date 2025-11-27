@@ -237,5 +237,3 @@ export const useUser = (): UserHookResult => {
     toggleFollow: context.toggleFollow,
   };
 };
-
-    
