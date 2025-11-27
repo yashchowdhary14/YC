@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCompactNumber } from '@/lib/utils';
 import Story from '../app/story';
 import { useUser } from '@/firebase';
-import { dummyUsers } from '@/lib/dummy-data';
+import { Skeleton } from '../ui/skeleton';
 
 interface ProfileHeaderProps {
   user: User;
@@ -27,20 +27,44 @@ const StoryHighlight = ({ id, label }: { id: string; label: string }) => (
   </div>
 );
 
+const ProfileHeaderSkeleton = () => (
+    <header>
+        <div className="flex flex-col sm:flex-row gap-8">
+            <div className="flex-shrink-0 mx-auto sm:mx-0">
+                 <Skeleton className="w-24 h-24 sm:w-36 sm:h-36 rounded-full" />
+            </div>
+            <div className="flex-grow space-y-4">
+                <div className="flex flex-wrap items-center gap-4">
+                    <Skeleton className="h-8 w-40" />
+                    <div className="flex items-center gap-2">
+                       <Skeleton className="h-9 w-24 rounded-md" />
+                       <Skeleton className="h-9 w-24 rounded-md" />
+                    </div>
+                </div>
+                <div className="hidden sm:flex items-center gap-8">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-20" />
+                </div>
+                <div className="text-sm space-y-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                </div>
+            </div>
+        </div>
+    </header>
+);
+
+
 export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) {
     const { user: currentUser, isUserLoading, followedUsers, toggleFollow } = useUser();
-    const isMyProfile = currentUser?.uid === user.id;
-
+    
     if (isUserLoading) {
-      // Render a loading state or a simplified header
-      return (
-        <header>
-          {/* You can put a skeleton loader here */}
-          <div>Loading profile...</div>
-        </header>
-      );
+      return <ProfileHeaderSkeleton />;
     }
 
+    const isMyProfile = currentUser?.uid === user.id;
     const isFollowing = followedUsers.has(user.username);
 
     const storyHighlights = [
