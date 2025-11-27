@@ -21,7 +21,7 @@ const navLinks = [
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
-  const profileHref = user ? `/profile3` : '/login';
+  const profileHref = user ? `/profile` : '/login';
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-background border-t z-50 md:hidden">
