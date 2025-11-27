@@ -1,7 +1,8 @@
 
 import type { StorySlide } from '../story-creation-store';
 import { getSvgPathFromPoints, drawText, getFitDimensions, loadImage, loadVideo, generateThumbnailFromCanvas } from './render-utils';
-import { filters } from '@/components/story-creation/FilterStrip';
+import { filters as filterPresets } from '@/components/story-creation/FilterStrip';
+import { interpolateFilter } from './filterUtils';
 
 const RENDER_WIDTH = 1080;
 const RENDER_HEIGHT = 1920;
@@ -40,10 +41,10 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
     const image = await loadImage(state.media.url);
 
     // Apply CSS Filter
-    const filter = filters.find(f => f.className === state.filterClassName);
-    if(filter) {
-        ctx.filter = filter.style;
-    }
+    const activeFilterPreset = filterPresets.find(p => p.name === state.filterName);
+    ctx.filter = activeFilterPreset
+      ? interpolateFilter(activeFilterPreset.style, state.filterIntensity)
+      : 'none';
 
     // 2. Draw background and image
     ctx.fillStyle = 'black';
@@ -106,6 +107,11 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
     let firstFrameCaptured = false;
     let thumbnail: Blob | null = null;
     
+    const activeFilterPreset = filterPresets.find(p => p.name === state.filterName);
+    const canvasFilter = activeFilterPreset
+      ? interpolateFilter(activeFilterPreset.style, state.filterIntensity)
+      : 'none';
+    
     const renderFrame = async () => {
         if (video.paused || video.ended) {
             if (recorder.state !== 'inactive') {
@@ -115,10 +121,7 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
         }
         
         // Apply CSS Filter
-        const filter = filters.find(f => f.className === state.filterClassName);
-        if(filter) {
-            ctx.filter = filter.style;
-        }
+        ctx.filter = canvasFilter;
 
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);

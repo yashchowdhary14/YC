@@ -4,13 +4,15 @@
 import { useStoryCreationStore, useActiveStorySlide } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import FilterIntensitySlider from './filters/FilterIntensitySlider';
+
 
 export const filters = [
     { name: 'Original', className: '', style: 'none' },
-    { name: 'Clarendon', className: 'filter-clarendon', style: 'contrast(1.2) saturate(1.35)' },
-    { name: 'Gingham', className: 'filter-gingham', style: 'brightness(1.05) hue-rotate(-10deg)' },
-    { name: 'Moon', className: 'filter-moon', style: 'grayscale(1) contrast(1.1) brightness(1.1)' },
-    { name: 'Lark', className: 'filter-lark', style: 'contrast(0.9) brightness(1.2)' },
+    { name: 'Clarendon', className: 'filter-clarendon', style: 'brightness(1.05) contrast(1.12) saturate(1.12)' },
+    { name: 'Gingham', className: 'filter-gingham', style: 'contrast(0.95) brightness(1.02) saturate(0.9)' },
+    { name: 'Moon', className: 'filter-moon', style: 'grayscale(1) contrast(1.06) brightness(1.02)' },
+    { name: 'Lark', className: 'filter-lark', style: 'brightness(1.03) saturate(1.15) contrast(1.02)' },
     { name: 'Reyes', className: 'filter-reyes', style: 'sepia(0.22) brightness(1.1) contrast(0.85) saturate(0.75)' },
     { name: 'Slumber', className: 'filter-slumber', style: 'saturate(0.66) brightness(1.05)' },
     { name: 'Crema', className: 'filter-crema', style: 'sepia(0.5) contrast(1.25) brightness(1.15)' },
@@ -31,7 +33,8 @@ function FilterPreview({ filter, imageUrl, onSelect, isSelected }: { filter: any
                     alt={filter.name} 
                     width={80} 
                     height={96}
-                    className={`object-cover w-full h-full ${filter.className}`}
+                    className="object-cover w-full h-full"
+                    style={{ filter: filter.style }}
                 />
             </div>
             <p className={`text-xs font-semibold transition-colors ${isSelected ? 'text-primary' : 'text-white'}`}>{filter.name}</p>
@@ -45,8 +48,8 @@ export default function FilterStrip() {
 
     if (!activeSlide) return null;
 
-    const handleSelectFilter = (filterClassName: string) => {
-        updateSlide(activeSlide.id, { filterClassName });
+    const handleSelectFilter = (filterName: string) => {
+        updateSlide(activeSlide.id, { filterName, filterIntensity: 1 });
     }
 
     return (
@@ -56,14 +59,20 @@ export default function FilterStrip() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
         >
+            {activeSlide.filterName && (
+                <FilterIntensitySlider 
+                    intensity={activeSlide.filterIntensity}
+                    onIntensityChange={(intensity) => updateSlide(activeSlide.id, { filterIntensity: intensity })}
+                />
+            )}
             <div className="flex gap-4 overflow-x-auto pb-2 px-4">
                 {filters.map(filter => (
                     <FilterPreview 
                         key={filter.name}
                         filter={filter}
                         imageUrl={activeSlide.media.url}
-                        onSelect={() => handleSelectFilter(filter.className)}
-                        isSelected={activeSlide.filterClassName === filter.className}
+                        onSelect={() => handleSelectFilter(filter.name)}
+                        isSelected={activeSlide.filterName === filter.name}
                     />
                 ))}
             </div>

@@ -43,7 +43,8 @@ export type StorySlide = {
   texts: TextElement[];
   drawings: DrawingElement[];
   stickers: StickerElement[];
-  filterClassName: string | null;
+  filterName: string | null;
+  filterIntensity: number;
 };
 
 // The main state for the story creation process
@@ -85,7 +86,8 @@ export const useStoryCreationStore = create<StoryCreationState & StoryCreationAc
       texts: [],
       drawings: [],
       stickers: [],
-      filterClassName: null,
+      filterName: null,
+      filterIntensity: 1,
     };
     set((state) => {
       const newMediaArray = [...state.media, newSlide];

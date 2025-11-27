@@ -11,7 +11,9 @@ import { useState } from 'react';
 import { Button } from '../ui/button';
 import { renderStory } from '@/lib/story/story-renderer';
 import { useToast } from '@/hooks/use-toast';
-import FilterStrip from './FilterStrip';
+import FilterStrip, { filters as filterPresets } from './FilterStrip';
+import { interpolateFilter } from '@/lib/story/filterUtils';
+
 
 export default function StoryEditor() {
   const activeSlide = useActiveStorySlide();
@@ -84,6 +86,12 @@ export default function StoryEditor() {
     }
   };
 
+  const activeFilterPreset = filterPresets.find(p => p.name === activeSlide?.filterName);
+  const liveFilterStyle = activeFilterPreset
+    ? interpolateFilter(activeFilterPreset.style, activeSlide?.filterIntensity ?? 1)
+    : 'none';
+
+
   if (!activeSlide) {
     if (typeof window !== 'undefined') {
        router.replace('/create');
@@ -105,22 +113,24 @@ export default function StoryEditor() {
        )}
       {/* Media Preview */}
       <div className="absolute inset-0">
-        {activeSlide.media.type === 'photo' ? (
-          <Image
-            src={activeSlide.media.url}
-            alt="Story preview"
-            fill
-            className={`object-contain ${activeSlide.filterClassName}`}
-          />
-        ) : (
-          <video
-            src={activeSlide.media.url}
-            className={`w-full h-full object-contain ${activeSlide.filterClassName}`}
-            autoPlay
-            loop
-            muted
-          />
-        )}
+        <div className="w-full h-full" style={{ filter: liveFilterStyle }}>
+            {activeSlide.media.type === 'photo' ? (
+            <Image
+                src={activeSlide.media.url}
+                alt="Story preview"
+                fill
+                className={`object-contain`}
+            />
+            ) : (
+            <video
+                src={activeSlide.media.url}
+                className={`w-full h-full object-contain`}
+                autoPlay
+                loop
+                muted
+            />
+            )}
+        </div>
       </div>
       
        {/* Interactive Elements */}
