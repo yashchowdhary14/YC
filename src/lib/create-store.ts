@@ -75,7 +75,7 @@ export type MediaObject = {
 
 // The main state for the story creation process
 type CreateState = {
-  step: "select-type" | "media-picker" | "media-preview" | "media-details" | "publish" | "success";
+  step: "select-type" | "media-picker" | "media-preview" | "media-details" | "publish" | "success" | "story-editor";
   mode: CreateMode | null;
   media: MediaObject[];
   activeMediaId: string | null;
@@ -87,7 +87,7 @@ type CreateState = {
   addMedia: (files: File[]) => Promise<void>;
   removeMedia: (mediaId: string) => void;
   setActiveMediaId: (mediaId: string | null) => void;
-  updateMedia: (mediaId: string, updates: Partial<MediaObject> | { effects: Partial<StoryEffects> }) => void;
+  updateMedia: (mediaId: string, updates: Partial<Omit<MediaObject, 'effects'>> & { effects?: Partial<StoryEffects> }) => void;
   setFinalizedData: (data: FinalizedCreateData | null) => void;
   reset: () => void;
 };
@@ -158,13 +158,13 @@ export const useCreateStore = create<CreateState>((set, get) => ({
     set((state) => ({
       media: state.media.map((s) => {
         if (s.id === mediaId) {
-          if ('effects' in updates && typeof updates.effects === 'object' && !Array.isArray(updates.effects)) {
-            return {
-              ...s,
-              effects: { ...s.effects, ...updates.effects },
-            };
+          // Special handling for nested 'effects' object
+          const { effects, ...restUpdates } = updates;
+          const updatedSlide = { ...s, ...restUpdates };
+          if (effects) {
+            updatedSlide.effects = { ...s.effects, ...effects };
           }
-          return { ...s, ...(updates as Partial<MediaObject>) };
+          return updatedSlide;
         }
         return s;
       }),

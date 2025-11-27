@@ -55,15 +55,10 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     if (!open) {
       // Delay reset to allow animations to finish
       setTimeout(() => {
-        setStep('select-type');
-        setMode(null);
-        setFinalizedData(null);
-        setUploadResult(null);
-        // Also reset media files in the store
         resetStore();
       }, 300);
     }
-  }, [open, setStep, setMode, setFinalizedData, resetStore]);
+  }, [open, resetStore]);
 
 
   const handleSelect = (selectedMode: CreateMode) => {
@@ -138,7 +133,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
             return <MediaPreview onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
         case "media-details":
              if (!mode || mode === 'live' || media.length === 0) return null;
-             return <MediaDetailsForm mode={mode} files={media.map(m => m.file)} onBack={handleBack} onSubmit={handleSubmitDetails} />
+             return <MediaDetailsForm mode={mode} onBack={handleBack} onSubmit={handleSubmitDetails} />
         case "publish":
             if (!finalizedData) return null;
             return <UploadManager data={finalizedData} onComplete={handleUploadComplete} />;

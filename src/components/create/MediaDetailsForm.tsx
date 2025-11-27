@@ -16,16 +16,19 @@ import AccessibilityModal from './details/AccessibilityModal';
 import PostSettings from './details/PostSettings';
 import VideoSettings from './details/VideoSettings';
 import StorySettings from './details/StorySettings';
+import { useCreateStore } from '@/lib/create-store';
 
 type MediaDetailsFormProps = {
   mode: Exclude<CreateMode, 'live'>;
-  files: File[];
   onBack: () => void;
   onSubmit: (payload: FinalizedCreateData) => void;
 };
 
-export default function MediaDetailsForm({ mode, files, onBack, onSubmit }: MediaDetailsFormProps) {
+export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetailsFormProps) {
   const { toast } = useToast();
+  const { media } = useCreateStore();
+  
+  // Local state for the form
   const [caption, setCaption] = useState('');
   const [mentions, setMentions] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
@@ -38,7 +41,7 @@ export default function MediaDetailsForm({ mode, files, onBack, onSubmit }: Medi
   // Data state
   const [taggedUsers, setTaggedUsers] = useState<string[]>([]);
   const [location, setLocation] = useState<string | undefined>(undefined);
-  const [altTexts, setAltTexts] = useState<string[]>(() => files.map((_, i) => `Media ${i + 1}`));
+  const [altTexts, setAltTexts] = useState<string[]>(() => media.map((_, i) => ''));
   
   // Settings State
   const [settings, setSettings] = useState<FinalizedCreateData['settings']>({
@@ -48,7 +51,8 @@ export default function MediaDetailsForm({ mode, files, onBack, onSubmit }: Medi
       storyAudience: 'everyone'
   });
 
-  const previewUrl = useMemo(() => files.length > 0 ? URL.createObjectURL(files[0]) : '', [files]);
+  const previewUrl = useMemo(() => media.length > 0 ? media[0].url : '', [media]);
+  const files = useMemo(() => media.map(m => m.file), [media]);
 
   const handlePublish = () => {
     const payload: FinalizedCreateData = {
@@ -58,7 +62,7 @@ export default function MediaDetailsForm({ mode, files, onBack, onSubmit }: Medi
         tags: hashtags,
         mentions,
         location,
-        collaborators: [], // To be implemented
+        collaborators: taggedUsers,
         productTags: [], // To be implemented
         accessibility: {
             alt: altTexts,
@@ -113,7 +117,10 @@ export default function MediaDetailsForm({ mode, files, onBack, onSubmit }: Medi
                            <Users className="h-5 w-5"/>
                            <span className="font-medium">Tag people</span>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                         <div className="flex items-center gap-2">
+                            {taggedUsers.length > 0 && <span className="text-sm text-muted-foreground">{taggedUsers.length} tagged</span>}
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
                     </button>
                     
                     <Separator />
