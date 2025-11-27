@@ -79,6 +79,15 @@ service cloud.firestore {
       allow update: if false;
       allow delete: if isExistingOwner(resource.data.userId);
     }
+    
+    // highlights
+    match /highlights/{highlightId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && isAuthor();
+      allow update: if isExistingOwner(resource.data.userId)
+                    && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
 
     // reels
     match /reels/{reelId} {

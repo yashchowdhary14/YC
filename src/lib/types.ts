@@ -29,6 +29,26 @@ export interface Post {
   comments?: ReelComment[]; // Optional for reels
 }
 
+export interface Story {
+    id: string;
+    userId: string;
+    mediaUrl: string;
+    type: 'photo' | 'video';
+    createdAt: any;
+    expiresAt: any;
+    highlighted?: boolean;
+}
+
+export interface Highlight {
+    id: string;
+    userId: string;
+    title: string;
+    coverImage: string;
+    storyIds: string[];
+    createdAt: any;
+}
+
+
 export interface LiveBroadcast {
   id: string;
   liveId: string;
