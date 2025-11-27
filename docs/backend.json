@@ -183,6 +183,20 @@
           "type": "string",
           "description": "Timestamp of when the story expires.",
           "format": "date-time"
+        },
+        "taggedUsers": {
+          "type": "array",
+          "description": "An array of user IDs tagged in this story.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reactions": {
+          "type": "object",
+          "description": "A map of user IDs to their emoji reaction.",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -788,5 +802,4 @@
   }
 }
     
-
-    
+  
