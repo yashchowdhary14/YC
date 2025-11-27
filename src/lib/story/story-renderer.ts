@@ -53,10 +53,14 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
         drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
     }
     
-    // 5. Export final image
+    // 5. Render Stickers (New)
+    // await renderStickers(ctx, state.stickers);
+
+
+    // 6. Export final image
     const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
     
-    // 6. Generate thumbnail
+    // 7. Generate thumbnail
     const thumbnail = await generateThumbnailFromCanvas(canvas);
 
     return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'image' };
@@ -106,6 +110,9 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
         for (const text of state.texts) {
             drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
         }
+
+        // Render Stickers (New)
+        // await renderStickers(ctx, state.stickers);
         
         if (!firstFrameCaptured) {
             thumbnail = await generateThumbnailFromCanvas(canvas);

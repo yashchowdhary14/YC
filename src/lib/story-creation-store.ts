@@ -24,7 +24,7 @@ export interface DrawingElement {
 
 export interface StickerElement {
   id: string;
-  type: 'location' | 'mention' | 'hashtag' | 'gif' | 'poll' | 'question';
+  type: 'image' | 'gif' | 'location' | 'mention' | 'hashtag' | 'poll' | 'question';
   position: { x: number; y: number };
   scale: number;
   rotation: number;

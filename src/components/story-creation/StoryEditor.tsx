@@ -4,7 +4,7 @@
 import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Type, Pen, Loader2 } from 'lucide-react';
+import { ArrowLeft, Type, Pen, Loader2, Sticker } from 'lucide-react';
 import TextElement from './TextElement';
 import DrawingCanvas from './DrawingCanvas';
 import { useState } from 'react';
@@ -135,6 +135,9 @@ export default function StoryEditor() {
                    <Button onClick={toggleDrawing} variant="secondary" size="sm" disabled={isRendering}>Done</Button>
                 ) : (
                    <>
+                    <button className="p-2 text-white" disabled={isRendering}>
+                        <Sticker className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
                     <button onClick={toggleDrawing} className="p-2 text-white" disabled={isRendering}>
                         <Pen className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
