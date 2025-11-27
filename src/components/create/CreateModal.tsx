@@ -13,13 +13,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import CreateChoiceScreen, { CreateMode } from "./CreateChoiceScreen";
 import MediaPicker from "./MediaPicker";
 import MediaPreview from "./MediaPreview";
+import MediaDetailsForm from "./MediaDetailsForm";
+import type { FinalizedCreateData } from "./types";
+import { Button } from "../ui/button";
+import { ArrowLeft } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 
 type CreateModalProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type Step = "select-type" | "media-picker" | "media-preview" | "editor" | "publish";
+type Step = "select-type" | "media-picker" | "media-preview" | "media-details" | "publish";
 
 
 export function CreateModal({ open, onClose }: CreateModalProps) {
@@ -46,13 +52,21 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   };
   
   const handlePreviewConfirmed = (validatedFiles: File[]) => {
-    console.log("Preview validated, proceeding to next step with:", validatedFiles);
-    // For now, just close the modal. In A5, this will go to the caption/publish step.
+    setFiles(validatedFiles);
+    setStep("media-details");
+  }
+
+  const handleSubmitDetails = (payload: FinalizedCreateData) => {
+    console.log("Final payload for publishing:", payload);
+    // TODO: In a future step, this will trigger the upload and Firestore creation process.
+    // For now, we just close the modal.
     onClose();
   }
 
   const handleBack = () => {
-    if (step === 'media-preview') {
+    if (step === 'media-details') {
+      setStep('media-preview');
+    } else if (step === 'media-preview') {
       setStep('media-picker');
     } else if (step === 'media-picker') {
         setStep('select-type');
@@ -69,11 +83,49 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         case "media-preview":
             if (!mode || mode === 'live' || files.length === 0) return null;
             return <MediaPreview mode={mode} files={files} onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
+        case "media-details":
+             if (!mode || mode === 'live' || files.length === 0) return null;
+             return <MediaDetailsForm mode={mode} files={files} onBack={handleBack} onSubmit={handleSubmitDetails} />
         default:
             return <CreateChoiceScreen onSelect={handleSelect} />;
     }
   }
   
+  const stepTitles = {
+    'select-type': 'Create',
+    'media-picker': mode === 'post' ? 'New Post' : mode === 'reel' ? 'New Reel' : mode === 'video' ? 'Upload Video' : 'Create Story',
+    'media-preview': 'Preview',
+    'media-details': 'Add Details'
+  };
+
+  const title = stepTitles[step] || 'Create';
+
+  const resetFlow = () => {
+    onClose();
+    // Delay reset to allow animations to finish
+    setTimeout(() => {
+        setStep('select-type');
+        setMode(null);
+        setFiles([]);
+    }, 300);
+  }
+
+  const renderHeader = () => (
+    <DialogHeader className="p-0 sm:p-4 text-center border-b sm:border-none relative">
+        <DialogTitle className={cn("text-lg font-semibold", isMobile && "p-4 border-b")}>{title}</DialogTitle>
+        {step !== 'select-type' && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute left-2 top-1/2 -translate-y-1/2" 
+              onClick={handleBack}
+            >
+              <ArrowLeft />
+            </Button>
+        )}
+    </DialogHeader>
+  );
+
   const renderContent = () => (
      <div className="h-full">
         <AnimatePresence mode="wait">
@@ -91,32 +143,14 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
      </div>
   );
 
-  const title = {
-    'select-type': 'Create',
-    'media-picker': mode === 'post' ? 'New Post' : mode === 'reel' ? 'New Reel' : mode === 'video' ? 'Upload Video' : 'Create Story',
-    'media-preview': 'Preview',
-  }[step] || 'Create';
-
-  const resetFlow = () => {
-    onClose();
-    // Delay reset to allow animations to finish
-    setTimeout(() => {
-        setStep('select-type');
-        setMode(null);
-        setFiles([]);
-    }, 300);
-  }
-
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={resetFlow}>
-        <SheetContent side="bottom" className="h-[80vh] flex flex-col rounded-t-2xl p-0">
-          <div className="w-full pt-3 pb-2 flex justify-center">
+        <SheetContent side="bottom" className="h-[90vh] flex flex-col rounded-t-2xl p-0 gap-0">
+          <div className="w-full pt-3 pb-2 flex justify-center sticky top-0 bg-background z-10">
             <div className="w-8 h-1 bg-muted rounded-full" />
           </div>
-          <DialogHeader className="text-center pb-2 border-b">
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
+          {renderHeader()}
           <div className="p-0 flex-1 overflow-hidden">
             {renderContent()}
           </div>
@@ -128,9 +162,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   return (
     <Dialog open={open} onOpenChange={resetFlow}>
       <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-4xl h-[80vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-4">
-          <DialogTitle className="text-center text-lg font-semibold border-b pb-4">{title}</DialogTitle>
-        </DialogHeader>
+        {renderHeader()}
         <div className="flex-1 overflow-hidden">
           {renderContent()}
         </div>
