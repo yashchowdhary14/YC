@@ -5,6 +5,7 @@ import { useEffect, RefObject } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, CameraOff } from 'lucide-react';
 import { useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CameraPreviewProps {
   videoRef: RefObject<HTMLVideoElement>;
@@ -18,10 +19,17 @@ export default function CameraPreview({
 }: CameraPreviewProps) {
   const { toast } = useToast();
   const [permissionState, setPermissionState] = useState<'loading' | 'granted' | 'denied'>('loading');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     let stream: MediaStream | null = null;
     let currentTrack: MediaStreamTrack | null = null;
+    
+    // Only run if on a mobile device
+    if (!isMobile) {
+        setPermissionState('denied');
+        return;
+    }
 
     const getCameraStream = async () => {
       try {
@@ -60,20 +68,21 @@ export default function CameraPreview({
         stream.getTracks().forEach((track) => track.stop());
       }
     };
-  }, [facingMode, toast, videoRef]);
+  }, [facingMode, toast, videoRef, isMobile]);
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center">
-      {permissionState === 'loading' && (
+    <div className="absolute inset-0 flex items-center justify-center bg-black">
+      {permissionState === 'loading' && isMobile && (
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin" />
               <p>Starting camera...</p>
           </div>
       )}
       {permissionState === 'denied' && (
-           <div className="flex flex-col items-center gap-2 text-destructive">
-              <CameraOff className="h-12 w-12" />
-              <p className="font-semibold">Camera access denied</p>
+           <div className="flex flex-col items-center gap-2 text-center p-4">
+              <CameraOff className="h-12 w-12 text-muted-foreground" />
+              <p className="font-semibold text-foreground">{isMobile ? 'Camera access denied' : 'Camera is disabled on web'}</p>
+              <p className="text-muted-foreground text-sm">{isMobile ? 'Please enable camera permissions in your browser settings.' : 'You can still upload media from your device.'}</p>
           </div>
       )}
       <video
