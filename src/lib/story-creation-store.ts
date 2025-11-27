@@ -1,4 +1,3 @@
-
 'use client';
 
 import { create } from 'zustand';
@@ -32,6 +31,17 @@ export interface StickerElement {
   data: any;
 }
 
+export interface StoryEffects {
+  grain: number;      // 0–1
+  vignette: number;   // 0–1
+  glow: number;       // 0–1
+  blur: number;       // 0-1
+  tiltShift: {
+    mode: "none" | "linear" | "radial";
+    intensity: number; // 0–1
+  };
+}
+
 // A single slide in a story
 export type StorySlide = {
   id: string;
@@ -43,8 +53,9 @@ export type StorySlide = {
   texts: TextElement[];
   drawings: DrawingElement[];
   stickers: StickerElement[];
-  filterName: string | null;
+  filterName: string;
   filterIntensity: number;
+  effects: StoryEffects;
 };
 
 // The main state for the story creation process
@@ -61,11 +72,19 @@ type StoryCreationActions = {
   addSlide: (media: StorySlide['media']) => void;
   removeSlide: (slideId: string) => void;
   setActiveSlideId: (slideId: string | null) => void;
-  updateSlide: (slideId: string, updates: Partial<StorySlide>) => void;
+  updateSlide: (slideId: string, updates: Partial<StorySlide> | { effects: Partial<StoryEffects> }) => void;
   setMode: (mode: StoryCreationState['mode']) => void;
   setSharePrivacy: (privacy: StoryCreationState['shareSettings']['privacy']) => void;
   reset: () => void;
 };
+
+export const defaultEffects: StoryEffects = {
+    grain: 0,
+    vignette: 0,
+    glow: 0,
+    blur: 0,
+    tiltShift: { mode: 'none', intensity: 0 },
+}
 
 const initialState: StoryCreationState = {
   media: [],
@@ -86,8 +105,9 @@ export const useStoryCreationStore = create<StoryCreationState & StoryCreationAc
       texts: [],
       drawings: [],
       stickers: [],
-      filterName: null,
+      filterName: 'Original',
       filterIntensity: 1,
+      effects: defaultEffects,
     };
     set((state) => {
       const newMediaArray = [...state.media, newSlide];
@@ -111,9 +131,19 @@ export const useStoryCreationStore = create<StoryCreationState & StoryCreationAc
 
   updateSlide: (slideId, updates) =>
     set((state) => ({
-      media: state.media.map((s) =>
-        s.id === slideId ? { ...s, ...updates } : s
-      ),
+      media: state.media.map((s) => {
+        if (s.id === slideId) {
+          // Check if the update is for effects specifically
+          if ('effects' in updates && typeof updates.effects === 'object' && !Array.isArray(updates.effects)) {
+            return {
+              ...s,
+              effects: { ...s.effects, ...updates.effects },
+            };
+          }
+          return { ...s, ...updates as Partial<StorySlide> };
+        }
+        return s;
+      }),
     })),
   
   setMode: (mode) => set({ mode }),

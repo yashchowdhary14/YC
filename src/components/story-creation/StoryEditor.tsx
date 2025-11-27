@@ -1,18 +1,20 @@
 
 'use client';
 
-import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType } from '@/lib/story-creation-store';
+import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType, StoryEffects } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles } from 'lucide-react';
+import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles, SlidersHorizontal } from 'lucide-react';
 import TextElement from './TextElement';
 import DrawingCanvas from './DrawingCanvas';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { renderStory } from '@/lib/story/story-renderer';
 import { useToast } from '@/hooks/use-toast';
 import FilterStrip, { filters as filterPresets } from './FilterStrip';
 import { interpolateFilter } from '@/lib/story/filterUtils';
+import { cn } from '@/lib/utils';
+import EffectsPanel from './effects/EffectsPanel';
 
 
 export default function StoryEditor() {
@@ -24,7 +26,7 @@ export default function StoryEditor() {
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
+  const [activePanel, setActivePanel] = useState<'none' | 'filters' | 'effects'>('none');
 
   const handleBack = () => {
     reset();
@@ -51,11 +53,11 @@ export default function StoryEditor() {
         // Here you might want to confirm changes or just exit drawing mode
     }
     setIsDrawing(!isDrawing);
-    setShowFilters(false);
+    setActivePanel('none');
   }
 
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
+  const togglePanel = (panel: 'filters' | 'effects') => {
+    setActivePanel(prev => (prev === panel ? 'none' : panel));
     setIsDrawing(false);
   }
 
@@ -90,6 +92,23 @@ export default function StoryEditor() {
   const liveFilterStyle = activeFilterPreset
     ? interpolateFilter(activeFilterPreset.style, activeSlide?.filterIntensity ?? 1)
     : 'none';
+  
+  const effects = activeSlide?.effects;
+  const effectsStyle: React.CSSProperties = useMemo(() => {
+    if (!effects) return {};
+    const filters: string[] = [];
+    if (effects.glow > 0) filters.push(`blur(${effects.glow * 5}px)`);
+    if (effects.blur > 0) filters.push(`blur(${effects.blur * 10}px)`);
+    return { filter: filters.join(' ') };
+  }, [effects]);
+
+  const overlayStyle: React.CSSProperties = useMemo(() => {
+    if (!effects) return {};
+    return {
+      '--grain-opacity': effects.grain,
+      '--vignette-opacity': effects.vignette,
+    } as React.CSSProperties;
+  }, [effects]);
 
 
   if (!activeSlide) {
@@ -113,23 +132,31 @@ export default function StoryEditor() {
        )}
       {/* Media Preview */}
       <div className="absolute inset-0">
-        <div className="w-full h-full" style={{ filter: liveFilterStyle }}>
-            {activeSlide.media.type === 'photo' ? (
-            <Image
-                src={activeSlide.media.url}
-                alt="Story preview"
-                fill
-                className={`object-contain`}
-            />
-            ) : (
-            <video
-                src={activeSlide.media.url}
-                className={`w-full h-full object-contain`}
-                autoPlay
-                loop
-                muted
-            />
-            )}
+        <div 
+          className="w-full h-full relative" 
+          style={{ ...effectsStyle, ...overlayStyle }}
+        >
+            <div className="w-full h-full" style={{ filter: liveFilterStyle }}>
+              {activeSlide.media.type === 'photo' ? (
+                <Image
+                    src={activeSlide.media.url}
+                    alt="Story preview"
+                    fill
+                    className="object-contain"
+                />
+              ) : (
+                <video
+                    src={activeSlide.media.url}
+                    className="w-full h-full object-contain"
+                    autoPlay
+                    loop
+                    muted
+                />
+              )}
+            </div>
+            {/* Effects Overlays */}
+            <div className={cn("absolute inset-0 pointer-events-none vignette-overlay")}></div>
+            <div className={cn("absolute inset-0 pointer-events-none grain-overlay")}></div>
         </div>
       </div>
       
@@ -156,8 +183,11 @@ export default function StoryEditor() {
                     <button className="p-2 text-white" disabled={isRendering}>
                         <Sticker className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
-                     <button onClick={toggleFilters} className="p-2 text-white" disabled={isRendering}>
+                     <button onClick={() => togglePanel('filters')} className="p-2 text-white" disabled={isRendering}>
                         <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                     <button onClick={() => togglePanel('effects')} className="p-2 text-white" disabled={isRendering}>
+                        <SlidersHorizontal className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
                     <button onClick={toggleDrawing} className="p-2 text-white" disabled={isRendering}>
                         <Pen className="h-6 w-6 sm:h-7 sm:w-7" />
@@ -173,8 +203,9 @@ export default function StoryEditor() {
       
       {/* Footer / Sharing Tools */}
        <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
-          {showFilters && <FilterStrip />}
-          {!showFilters && (
+          {activePanel === 'filters' && <FilterStrip />}
+          {activePanel === 'effects' && <EffectsPanel />}
+          {activePanel === 'none' && !isDrawing && (
             <div className="bg-gradient-to-t from-black/50 to-transparent -m-4 p-4 pt-16 flex items-center justify-end">
               <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
                   Post Story

@@ -3,6 +3,7 @@ import type { StorySlide } from '../story-creation-store';
 import { getSvgPathFromPoints, drawText, getFitDimensions, loadImage, loadVideo, generateThumbnailFromCanvas } from './render-utils';
 import { filters as filterPresets } from '@/components/story-creation/FilterStrip';
 import { interpolateFilter } from './filterUtils';
+import { renderEffects } from './renderEffects';
 
 const RENDER_WIDTH = 1080;
 const RENDER_HEIGHT = 1920;
@@ -40,7 +41,7 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
     // 1. Load the base image
     const image = await loadImage(state.media.url);
 
-    // Apply CSS Filter
+    // Apply Filter
     const activeFilterPreset = filterPresets.find(p => p.name === state.filterName);
     ctx.filter = activeFilterPreset
       ? interpolateFilter(activeFilterPreset.style, state.filterIntensity)
@@ -55,15 +56,18 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
 
     ctx.filter = 'none'; // Reset filter before drawing overlays
     
-    // 3. Render drawings
+    // 3. Render Effects
+    await renderEffects(ctx, state.effects, RENDER_WIDTH, RENDER_HEIGHT);
+
+    // 4. Render drawings
     renderDrawing(ctx, state.drawings);
 
-    // 4. Draw text layers
+    // 5. Draw text layers
     for (const text of state.texts) {
         drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
     }
     
-    // 5. Render Stickers
+    // 6. Render Stickers
     for (const sticker of state.stickers) {
       // In a real implementation, you would load the sticker image here.
       // For now, we'll just draw a placeholder rectangle.
@@ -73,10 +77,10 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
       ctx.fillRect(stickerX - 50, stickerY - 50, 100, 100);
     }
 
-    // 6. Export final image
+    // 7. Export final image
     const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
     
-    // 7. Generate thumbnail
+    // 8. Generate thumbnail
     const thumbnail = await generateThumbnailFromCanvas(canvas);
 
     return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'image' };
@@ -120,7 +124,7 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
             return;
         }
         
-        // Apply CSS Filter
+        // Apply Filter
         ctx.filter = canvasFilter;
 
         ctx.fillStyle = 'black';
@@ -130,6 +134,8 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
         ctx.drawImage(video, x, y, width, height);
 
         ctx.filter = 'none'; // Reset filter before drawing overlays
+
+        await renderEffects(ctx, state.effects, RENDER_WIDTH, RENDER_HEIGHT);
 
         renderDrawing(ctx, state.drawings);
 
