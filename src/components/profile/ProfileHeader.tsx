@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -29,8 +28,19 @@ const StoryHighlight = ({ id, label }: { id: string; label: string }) => (
 );
 
 export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) {
-    const { user: currentUser, followedUsers, toggleFollow } = useUser();
+    const { user: currentUser, isUserLoading, followedUsers, toggleFollow } = useUser();
     const isMyProfile = currentUser?.uid === user.id;
+
+    if (isUserLoading) {
+      // Render a loading state or a simplified header
+      return (
+        <header>
+          {/* You can put a skeleton loader here */}
+          <div>Loading profile...</div>
+        </header>
+      );
+    }
+
     const isFollowing = followedUsers.has(user.username);
 
     const storyHighlights = [
