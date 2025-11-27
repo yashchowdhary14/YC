@@ -498,6 +498,26 @@
           ]
         }
       },
+       {
+        "path": "users/{userId}/highlights/{highlightId}",
+        "definition": {
+          "entityName": "Highlight",
+          "schema": {
+            "$ref": "#/backend/entities/Highlight"
+          },
+          "description": "Stores story highlights as a subcollection of a user. Enforces ownership through path.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "highlightId",
+              "description": "The unique identifier of the highlight."
+            }
+          ]
+        }
+      },
       {
         "path": "posts/{postId}",
         "definition": {
@@ -526,22 +546,6 @@
             {
               "name": "storyId",
               "description": "The unique identifier of the story."
-            }
-          ]
-        }
-      },
-       {
-        "path": "highlights/{highlightId}",
-        "definition": {
-          "entityName": "Highlight",
-          "schema": {
-            "$ref": "#/backend/entities/Highlight"
-          },
-          "description": "Stores story highlights for user profiles.",
-          "params": [
-            {
-              "name": "highlightId",
-              "description": "The unique identifier of the highlight."
             }
           ]
         }
@@ -706,7 +710,7 @@
           }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to create a scalable and secure Instagram-like application, named YC, prioritizing authorization independence, clarity, and ease of maintenance. The structure segregates data based on access patterns and uses denormalization to avoid complex security rules using `get()` calls. \n\n*   **users/{userId}:**  Path-based ownership ensures only the user can modify their profile. Includes core profile information (username, email, bio, profilePhoto, followers, following, createdAt, verified).\n*   **posts/{postId}:**  Each post is stored in a top-level collection. `userId` indicates ownership. This approach facilitates listing all posts, potentially filtered by user. Includes: userId, imageUrl, caption, location, likes(array), commentsCount, createdAt.  Security rules will enforce that a user can only write posts with their own `userId`.\n*   **stories/{storyId}:**  Each story is stored in a top-level collection to facilitate listing and querying based on expiration (`expiresAt`). The `userId` field denotes ownership. Includes userId, mediaUrl, type(image/video), createdAt, expiresAt.\n*   **highlights/{highlightId}:** Stores story highlights. `userId` indicates ownership. Includes title, coverImage, and an array of `storyIds`.\n*   **reels/{reelId}:** Each reel is stored in a top-level collection to facilitate listing and querying. `userId` indicates ownership. Includes userId, videoUrl, thumbnailUrl, likes(array), commentsCount, createdAt. Security rules will enforce that a user can only write reels with their own `userId`.\n*   **comments/{commentId}:** Each comment is stored in a top-level collection, simplifying queries across posts and reels. `parentId` references either a `postId` or `reelId`.  The `userId` field indicates the comment's author. Includes parentId(postId or reelId), userId, text, createdAt.\n*   **chats/{chatId}:** Represents a chat between two users. The `users` array contains the UIDs of the participants. Includes users: [userId1, userId2].\n*   **chats/{chatId}/messages/{messageId}:** Subcollection of `chats`. Each message contains `senderId`, `text` or `mediaUrl`, `timestamp`, and `isRead`.  Authorization rules will ensure only participants can read messages.\n*   **calls/{callId}:**  Each document stores call metadata for WebRTC signaling, including `callerId`, `receiverId`, SDP `offer`, and `answer`. Security rules restrict access to the caller and receiver to ensure signaling is private.\n*   **streams/{streamId} & categories/{categoryId}**: Added collections for the live-streaming feature. `streams` will be publicly readable, but write access will be restricted to the streamer. `categories` will be public and read-only for clients. A `live-chat-messages` subcollection is added to `streams` to store chat messages, which will be publicly readable but writable only by authenticated users.\n*   **videos/{videoId}**: Added for the YouTube-like feature. This collection will store all long-form videos and will be publicly readable. A `comments` subcollection is added for video-specific comments.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids `get()` calls in security rules by denormalizing authorization data.  For example, the `posts`, `stories`, `reels`, and `comments` collections all include the `userId` which allow rules to authorize create/update operations based on `request.auth.uid == resource.data.userId`. For chats, a user must be in the `users` array to read/write messages in that chat.\n\n**Query and List Security (QAPs):**\n\n*   The segregation of data into distinct collections (e.g., separating posts and reels) allows for simple `list` operations with straightforward security rules (e.g., `allow read: if request.auth != null`).\n*   The `users` array in `chats` enables secure listing of chats for a specific user (rule: `request.auth.uid in resource.data.users`).\n\nThis structure adheres to the core design principles by:\n\n*   Enabling authorization independence through denormalization.\n*   Providing clarity of intent through a well-defined, predictable schema.\n*   Avoiding custom claims (DBAC) and relying on `request.auth.uid`.\n*   Supporting secure `list` operations (QAPs) via structural segregation and membership maps.\n*   Facilitating the enforcement of data invariants such as ownership and timestamps."
+    "reasoning": "The Firestore data structure is designed to create a scalable and secure Instagram-like application, named YC, prioritizing authorization independence, clarity, and ease of maintenance. The structure segregates data based on access patterns and uses denormalization to avoid complex security rules using `get()` calls. \n\n*   **users/{userId}:**  Path-based ownership ensures only the user can modify their profile. Includes core profile information (username, email, bio, profilePhoto, followers, following, createdAt, verified).\n*   **posts/{postId}:**  Each post is stored in a top-level collection. `userId` indicates ownership. This approach facilitates listing all posts, potentially filtered by user. Includes: userId, imageUrl, caption, location, likes(array), commentsCount, createdAt.  Security rules will enforce that a user can only write posts with their own `userId`.\n*   **stories/{storyId}:**  Each story is stored in a top-level collection to facilitate listing and querying based on expiration (`expiresAt`). The `userId` field denotes ownership. Includes userId, mediaUrl, type(image/video), createdAt, expiresAt.\n*   **users/{userId}/highlights/{highlightId}:** Stores story highlights as a subcollection under the user, which simplifies security rules. `userId` indicates ownership. Includes title, coverImage, and an array of `storyIds`.\n*   **reels/{reelId}:** Each reel is stored in a top-level collection to facilitate listing and querying. `userId` indicates ownership. Includes userId, videoUrl, thumbnailUrl, likes(array), commentsCount, createdAt. Security rules will enforce that a user can only write reels with their own `userId`.\n*   **comments/{commentId}:** Each comment is stored in a top-level collection, simplifying queries across posts and reels. `parentId` references either a `postId` or `reelId`.  The `userId` field indicates the comment's author. Includes parentId(postId or reelId), userId, text, createdAt.\n*   **chats/{chatId}:** Represents a chat between two users. The `users` array contains the UIDs of the participants. Includes users: [userId1, userId2].\n*   **chats/{chatId}/messages/{messageId}:** Subcollection of `chats`. Each message contains `senderId`, `text` or `mediaUrl`, `timestamp`, and `isRead`.  Authorization rules will ensure only participants can read messages.\n*   **calls/{callId}:**  Each document stores call metadata for WebRTC signaling, including `callerId`, `receiverId`, SDP `offer`, and `answer`. Security rules restrict access to the caller and receiver to ensure signaling is private.\n*   **streams/{streamId} & categories/{categoryId}**: Added collections for the live-streaming feature. `streams` will be publicly readable, but write access will be restricted to the streamer. `categories` will be public and read-only for clients. A `live-chat-messages` subcollection is added to `streams` to store chat messages, which will be publicly readable but writable only by authenticated users.\n*   **videos/{videoId}**: Added for the YouTube-like feature. This collection will store all long-form videos and will be publicly readable. A `comments` subcollection is added for video-specific comments.\n\n**Authorization Independence (Denormalization):**\n\n*   The structure avoids `get()` calls in security rules by denormalizing authorization data.  For example, the `posts`, `stories`, `reels`, and `comments` collections all include the `userId` which allow rules to authorize create/update operations based on `request.auth.uid == resource.data.userId`. For chats, a user must be in the `users` array to read/write messages in that chat.\n\n**Query and List Security (QAPs):**\n\n*   The segregation of data into distinct collections (e.g., separating posts and reels) allows for simple `list` operations with straightforward security rules (e.g., `allow read: if request.auth != null`).\n*   The `users` array in `chats` enables secure listing of chats for a specific user (rule: `request.auth.uid in resource.data.users`).\n\nThis structure adheres to the core design principles by:\n\n*   Enabling authorization independence through denormalization.\n*   Providing clarity of intent through a well-defined, predictable schema.\n*   Avoiding custom claims (DBAC) and relying on `request.auth.uid`.\n*   Supporting secure `list` operations (QAPs) via structural segregation and membership maps.\n*   Facilitating the enforcement of data invariants such as ownership and timestamps."
   }
 }
     

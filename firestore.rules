@@ -61,6 +61,11 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isOwner(userId);
       }
+
+      match /highlights/{highlightId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
     }
     
     // posts
@@ -77,15 +82,6 @@ service cloud.firestore {
       allow get, list: if true;
       allow create: if isSignedIn() && isAuthor();
       allow update: if false;
-      allow delete: if isExistingOwner(resource.data.userId);
-    }
-    
-    // highlights
-    match /highlights/{highlightId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && isAuthor();
-      allow update: if isExistingOwner(resource.data.userId)
-                    && request.resource.data.userId == resource.data.userId;
       allow delete: if isExistingOwner(resource.data.userId);
     }
 

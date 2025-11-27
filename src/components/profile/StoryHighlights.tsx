@@ -4,8 +4,8 @@
 import { HighlightBubble } from './HighlightBubble';
 import { Skeleton } from '../ui/skeleton';
 import { useUser, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import type { User } from '@/lib/types';
+import { collection, query, orderBy } from 'firebase/firestore';
+import type { User, Highlight } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 
 interface StoryHighlightsProps {
@@ -19,14 +19,14 @@ export default function StoryHighlights({ profileUser }: StoryHighlightsProps) {
 
   const highlightsQuery = useMemoFirebase(() => {
     if (!profileUser) return null;
+    // Query the subcollection path: users/{userId}/highlights
     return query(
-        collection(firestore, 'highlights'),
-        where('userId', '==', profileUser.id),
+        collection(firestore, 'users', profileUser.id, 'highlights'),
         orderBy('createdAt', 'desc')
     );
   }, [firestore, profileUser]);
 
-  const { data: highlights, isLoading } = useCollection(highlightsQuery);
+  const { data: highlights, isLoading } = useCollection<Highlight>(highlightsQuery);
 
   if (isLoading) {
     return (

@@ -45,7 +45,7 @@
     },
     {
       "collectionGroup": "highlights",
-      "queryScope": "COLLECTION",
+      "queryScope": "COLLECTION_GROUP",
       "fields": [
         {
           "fieldPath": "userId",
