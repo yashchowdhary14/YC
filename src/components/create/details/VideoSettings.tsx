@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { FinalizedCreateData } from '../types';
+import { Separator } from '@/components/ui/separator';
 
 const categories = ["Tech", "Food", "Science", "Travel", "Art", "Fitness", "Sports"];
 
@@ -84,5 +85,3 @@ export default function VideoSettings({ settings, setSettings }: VideoSettingsPr
     </div>
   );
 }
-// Separator is not exported from this file, assuming it's imported globally or from another UI component library file.
-import { Separator } from '@/components/ui/separator';
