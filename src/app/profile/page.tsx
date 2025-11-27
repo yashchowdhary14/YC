@@ -32,8 +32,14 @@ export default function ProfilePage() {
     return dummyPosts.slice(5, 10);
   }, []);
 
-  if (!profileUser) {
-    return notFound();
+  if (isUserLoading || !profileUser) {
+    return (
+      <div className="min-h-screen bg-background pt-14">
+        <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+          <ProfileHeader user={profileUser} postsCount={0} />
+        </div>
+      </div>
+    );
   }
 
   return (

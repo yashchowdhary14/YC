@@ -1,9 +1,10 @@
+
 'use client';
 
 import Image from 'next/image';
 import type { User } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Settings, UserPlus } from 'lucide-react';
+import { Settings, UserPlus, Share2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCompactNumber } from '@/lib/utils';
 import Story from '../app/story';
