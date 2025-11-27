@@ -8,7 +8,10 @@ export type FinalizedCreateData = {
   mentions: string[];
   location?: string;
   collaborators: string[];
+<<<<<<< HEAD
   taggedUsers: Record<string, string[]>;
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   productTags: string[];
   accessibility: {
     alt: string[];
@@ -19,7 +22,10 @@ export type FinalizedCreateData = {
     disableComments?: boolean;
     disableRemix?: boolean;
     storyAudience?: "everyone" | "close-friends" | "custom";
+<<<<<<< HEAD
     category?: string;
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   };
 };
 

@@ -1,7 +1,11 @@
 
 'use client';
 
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
+=======
+import { useState } from 'react';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -9,6 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { dummyUsers } from '@/lib/dummy-data';
 import { Search } from 'lucide-react';
+<<<<<<< HEAD
 import { debounce } from '@/lib/utils';
 import {
   Carousel,
@@ -20,10 +25,13 @@ import {
 } from "@/components/ui/carousel";
 import Image from 'next/image';
 import { MediaObject } from '@/lib/create-store';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 interface TagPeopleModalProps {
   isOpen: boolean;
   onClose: () => void;
+<<<<<<< HEAD
   media: MediaObject[];
   taggedUsers: Record<string, string[]>;
   setTaggedUsers: (users: Record<string, string[]>) => void;
@@ -84,10 +92,32 @@ export default function TagPeopleModal({ isOpen, onClose, media, taggedUsers, se
       ...taggedUsers,
       [activeMediaId]: newTags
     });
+=======
+  taggedUsers: string[];
+  setTaggedUsers: (users: string[]) => void;
+}
+
+export default function TagPeopleModal({ isOpen, onClose, taggedUsers, setTaggedUsers }: TagPeopleModalProps) {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredUsers = dummyUsers.filter(user => 
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const handleToggleUser = (username: string) => {
+    const isTagged = taggedUsers.includes(username);
+    if (isTagged) {
+        setTaggedUsers(taggedUsers.filter(u => u !== username));
+    } else {
+        setTaggedUsers([...taggedUsers, username]);
+    }
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+<<<<<<< HEAD
       <DialogContent className="flex flex-col h-[80vh] sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-center">Tag people</DialogTitle>
@@ -124,11 +154,22 @@ export default function TagPeopleModal({ isOpen, onClose, media, taggedUsers, se
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search for people"
+=======
+      <DialogContent className="flex flex-col h-[70vh]">
+        <DialogHeader>
+          <DialogTitle>Tag people</DialogTitle>
+        </DialogHeader>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search for people" 
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+<<<<<<< HEAD
 
         <div className="px-1 py-2 text-xs text-muted-foreground text-center">
           Tagging for item {activeSlideIndex + 1} of {media.length}
@@ -160,6 +201,31 @@ export default function TagPeopleModal({ isOpen, onClose, media, taggedUsers, se
                 </div>
               )
             })}
+=======
+        <ScrollArea className="flex-1 -mx-6">
+          <div className="px-6 space-y-1">
+            {filteredUsers.map(user => (
+              <div 
+                key={user.id} 
+                onClick={() => handleToggleUser(user.username)}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer"
+              >
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={`https://picsum.photos/seed/${user.id}/100/100`} />
+                  <AvatarFallback>{user.username.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <p className="font-semibold">{user.username}</p>
+                  <p className="text-sm text-muted-foreground">{user.fullName}</p>
+                </div>
+                <Checkbox 
+                  checked={taggedUsers.includes(user.username)} 
+                  onCheckedChange={() => handleToggleUser(user.username)}
+                  aria-label={`Tag ${user.username}`}
+                />
+              </div>
+            ))}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
           </div>
         </ScrollArea>
       </DialogContent>

@@ -1,6 +1,7 @@
 
 'use client';
 
+<<<<<<< HEAD
 import { Heart, Search, Bell } from 'lucide-react';
 import { CreateButton } from '../create';
 import { Input } from '@/components/ui/input';
@@ -99,6 +100,18 @@ export default function AppHeader({ onNewPostClick }: { onNewPostClick: () => vo
             </DropdownMenuContent>
           </DropdownMenu>
         )}
+=======
+import { Heart } from 'lucide-react';
+import { CreateButton } from '../create';
+
+export default function AppHeader({ onNewPostClick }: { onNewPostClick: () => void; }) {
+  return (
+    <header className="bg-background text-foreground p-4 flex justify-between items-center border-b">
+      <h1 className="text-2xl font-serif font-instagram">YCP</h1>
+      <div className="flex items-center space-x-4">
+        <CreateButton onClick={onNewPostClick} />
+        <Heart />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       </div>
     </header>
   );

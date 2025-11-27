@@ -1,6 +1,10 @@
 
 'use client';
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import { useState, useEffect } from 'react';
 import {
   DocumentReference,
@@ -45,6 +49,7 @@ export function useDoc<T = any>(
   type StateDataType = WithId<T> | null;
 
   const [data, setData] = useState<StateDataType>(null);
+<<<<<<< HEAD
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
@@ -64,6 +69,11 @@ export function useDoc<T = any>(
     }
   }, [memoizedDocRef]);
 
+=======
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<FirestoreError | Error | null>(null);
+
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   useEffect(() => {
     if (!memoizedDocRef) {
       setData(null);
@@ -80,6 +90,7 @@ export function useDoc<T = any>(
       memoizedDocRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {
         if (snapshot.exists()) {
+<<<<<<< HEAD
           const docData = { ...(snapshot.data() as T), id: snapshot.id };
           setData(docData);
 
@@ -99,6 +110,12 @@ export function useDoc<T = any>(
             const key = `firestore_cache_doc_${memoizedDocRef.path}`;
             localStorage.removeItem(key);
           } catch (e) { }
+=======
+          setData({ ...(snapshot.data() as T), id: snapshot.id });
+        } else {
+          // Document does not exist
+          setData(null);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         }
         setError(null); // Clear any previous error on successful snapshot (even if doc doesn't exist)
         setIsLoading(false);

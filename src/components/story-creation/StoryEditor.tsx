@@ -19,8 +19,13 @@ import AudioPanel from './AudioPanel';
 
 
 interface StoryEditorProps {
+<<<<<<< HEAD
   onStoryReady?: (file: File) => void;
   onExit?: () => void;
+=======
+    onStoryReady?: (file: File) => void;
+    onExit?: () => void;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 
@@ -30,7 +35,11 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
   const updateMedia = useCreateStore((s) => s.updateMedia);
   const router = useRouter();
   const { toast } = useToast();
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const [isDrawing, setIsDrawing] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
   const [activePanel, setActivePanel] = useState<'none' | 'filters' | 'effects' | 'audio'>('none');
@@ -39,11 +48,16 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
     reset();
     router.push('/create');
   });
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const addTextElement = () => {
     if (!activeSlide) return;
 
     const newText: TextElementType = {
+<<<<<<< HEAD
       id: `text_${Date.now()}`,
       text: 'Your Text',
       font: 'sans-serif',
@@ -58,6 +72,22 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
   const toggleDrawing = () => {
     if (isDrawing) {
       // Here you might want to confirm changes or just exit drawing mode
+=======
+        id: `text_${Date.now()}`,
+        text: 'Your Text',
+        font: 'sans-serif',
+        color: '#FFFFFF',
+        position: { x: 50, y: 50 }, // Center percentage
+        scale: 1,
+        rotation: 0,
+    };
+    updateMedia(activeSlide.id, { texts: [...activeSlide.texts, newText] });
+  };
+  
+  const toggleDrawing = () => {
+    if (isDrawing) {
+        // Here you might want to confirm changes or just exit drawing mode
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
     setIsDrawing(!isDrawing);
     setActivePanel('none');
@@ -72,6 +102,7 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
     if (!activeSlide || !onStoryReady) return;
     setIsRendering(true);
     try {
+<<<<<<< HEAD
       const renderedOutput = await renderStory(activeSlide);
       const fileName = renderedOutput.type === 'image' ? 'story.jpg' : 'story.webm';
       const finalFile = new File([renderedOutput.file], fileName, { type: renderedOutput.file.type });
@@ -87,6 +118,23 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
       });
     } finally {
       setIsRendering(false);
+=======
+        const renderedOutput = await renderStory(activeSlide);
+        const fileName = renderedOutput.type === 'image' ? 'story.jpg' : 'story.webm';
+        const finalFile = new File([renderedOutput.file], fileName, { type: renderedOutput.file.type });
+
+        onStoryReady(finalFile);
+
+    } catch (error) {
+        console.error("Failed to render story:", error);
+        toast({
+            variant: "destructive",
+            title: "Rendering Failed",
+            description: "Could not process your story. Please try again.",
+        });
+    } finally {
+        setIsRendering(false);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
   };
 
@@ -94,7 +142,11 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
   const liveFilterStyle = activeFilterPreset
     ? interpolateFilter(activeFilterPreset.style, activeSlide?.filterIntensity ?? 1)
     : 'none';
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const effects = activeSlide?.effects;
   const effectsStyle: React.CSSProperties = useMemo(() => {
     if (!effects) return {};
@@ -124,6 +176,7 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
+<<<<<<< HEAD
       {isRendering && (
         <div className="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4 text-white">
           <Loader2 className="h-12 w-12 animate-spin" />
@@ -175,11 +228,65 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
         ))}
       </div>
 
+=======
+       {isRendering && (
+            <div className="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4 text-white">
+                <Loader2 className="h-12 w-12 animate-spin" />
+                <p className="text-lg font-semibold">Rendering your story...</p>
+            </div>
+       )}
+      {/* Media Preview */}
+      <div className="absolute inset-0">
+        <div 
+          className="w-full h-full relative" 
+          style={{ ...effectsStyle, ...overlayStyle }}
+        >
+            <div className="w-full h-full" style={{ filter: liveFilterStyle }}>
+              {activeSlide.type === 'photo' ? (
+                <Image
+                    src={activeSlide.url}
+                    alt="Story preview"
+                    fill
+                    className="object-contain"
+                />
+              ) : (
+                <video
+                    src={activeSlide.url}
+                    className="w-full h-full object-contain"
+                    autoPlay
+                    loop
+                    muted
+                />
+              )}
+            </div>
+            {/* Effects Overlays */}
+            <div className={cn("absolute inset-0 pointer-events-none vignette-overlay")}></div>
+            <div className={cn("absolute inset-0 pointer-events-none grain-overlay")}></div>
+        </div>
+      </div>
+      
+       {/* Interactive Elements */}
+      <div className="absolute inset-0 pointer-events-none">
+        {activeSlide.texts.map(text => (
+            <TextElement key={text.id} element={text} slideId={activeSlide.id} />
+        ))}
+        {activeSlide.stickers.map(sticker => (
+            <div key={sticker.id} style={{ position: 'absolute', top: `${sticker.position.y}%`, left: `${sticker.position.x}%`}}>
+                {/* Basic Sticker Rendering Placeholder */}
+                <div className="w-24 h-24 bg-purple-500/50 flex items-center justify-center text-white rounded-md">
+                    Sticker
+                </div>
+            </div>
+        ))}
+      </div>
+      
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       {isDrawing && <DrawingCanvas />}
 
       {/* Header Tools */}
       <div className="absolute top-0 left-0 right-0 p-2 sm:p-4 bg-gradient-to-b from-black/50 to-transparent z-30">
         <div className="flex items-center justify-between">
+<<<<<<< HEAD
           <button onClick={handleBack} className="p-2 text-white" disabled={isRendering}>
             <ArrowLeft className="h-7 w-7" />
           </button>
@@ -224,6 +331,52 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
             </button>
           </div>
         )}
+=======
+           <button onClick={handleBack} className="p-2 text-white" disabled={isRendering}>
+              <ArrowLeft className="h-7 w-7" />
+           </button>
+            <div className="flex items-center gap-2 sm:gap-4">
+                 {isDrawing ? (
+                   <Button onClick={toggleDrawing} variant="secondary" size="sm" disabled={isRendering}>Done</Button>
+                ) : (
+                   <>
+                    <button onClick={() => togglePanel('audio')} className="p-2 text-white" disabled={isRendering}>
+                        <Music className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                    <button className="p-2 text-white" disabled={isRendering}>
+                        <Sticker className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                     <button onClick={() => togglePanel('filters')} className="p-2 text-white" disabled={isRendering}>
+                        <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                     <button onClick={() => togglePanel('effects')} className="p-2 text-white" disabled={isRendering}>
+                        <SlidersHorizontal className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                    <button onClick={toggleDrawing} className="p-2 text-white" disabled={isRendering}>
+                        <Pen className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                    <button onClick={addTextElement} className="p-2 text-white" disabled={isRendering}>
+                        <Type className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
+                   </>
+                )}
+            </div>
+        </div>
+      </div>
+      
+      {/* Footer / Sharing Tools */}
+       <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
+          {activePanel === 'filters' && <FilterStrip />}
+          {activePanel === 'effects' && <EffectsPanel />}
+          {activePanel === 'audio' && <AudioPanel />}
+          {activePanel === 'none' && !isDrawing && (
+            <div className="bg-gradient-to-t from-black/50 to-transparent -m-4 p-4 pt-16 flex items-center justify-end">
+              <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
+                  Next
+              </button>
+            </div>
+          )}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       </div>
     </div>
   );

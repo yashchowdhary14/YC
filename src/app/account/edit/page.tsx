@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -93,6 +94,37 @@ export default function EditProfilePage() {
         setHasChanges(false);
         router.push('/profile');
     };
+=======
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useUser } from '@/firebase';
+import { Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+
+import DashboardNav from '@/components/account/DashboardNav';
+import EditProfileForm from '@/components/account/EditProfileForm';
+import PrivacySettings from '@/components/account/PrivacySettings';
+import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
+import { Card, CardContent } from '@/components/ui/card';
+
+export type ActiveTab = 'edit' | 'saved' | 'privacy' | 'liked';
+
+export default function AccountEditPage() {
+    const { user, appUser, isUserLoading } = useUser();
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    
+    const [activeTab, setActiveTab] = useState<ActiveTab>('edit');
+
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab') as ActiveTab;
+        if (tabFromUrl && ['edit', 'saved', 'privacy', 'liked'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams]);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
     if (isUserLoading) {
         return (
@@ -102,6 +134,7 @@ export default function EditProfilePage() {
         );
     }
 
+<<<<<<< HEAD
     if (!user) {
         return null;
     }
@@ -284,5 +317,46 @@ export default function EditProfilePage() {
                 </div>
             </div>
         </div>
+=======
+    if (!user || !appUser) {
+        router.push('/login');
+        return null;
+    }
+    
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'edit':
+                return <EditProfileForm user={user} appUser={appUser} />;
+            case 'saved':
+                return <SavedPostsGrid userId={user.uid} />;
+            case 'liked':
+                // For now, we can re-use the saved posts grid.
+                // In a future step, this would be a dedicated LikedPostsGrid component.
+                return <SavedPostsGrid userId={user.uid} />;
+            case 'privacy':
+                return <PrivacySettings />;
+            default:
+                return null;
+        }
+    }
+
+    return (
+        <main className="min-h-screen bg-background pt-14">
+            <div className="container mx-auto max-w-5xl p-4 sm:p-6 lg:p-8">
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <aside className="md:col-span-1">
+                       <DashboardNav activeTab={activeTab} setActiveTab={setActiveTab} />
+                    </aside>
+                    <div className="md:col-span-3">
+                        <Card className="min-h-[60vh]">
+                            <CardContent className="p-2 sm:p-4 md:p-6">
+                                {renderContent()}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </main>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     );
 }

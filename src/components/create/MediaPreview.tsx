@@ -11,12 +11,21 @@ import VideoPreview from './preview/VideoPreview';
 import { useCreateStore } from '@/lib/create-store';
 
 type MediaPreviewProps = {
+<<<<<<< HEAD
     onBack: () => void;
     onConfirm: (validatedFiles: File[]) => void;
 };
 
 // Helper function to get video duration
 const getVideoMetadata = (file: File): Promise<{ duration: number, width: number, height: number }> => {
+=======
+  onBack: () => void;
+  onConfirm: (validatedFiles: File[]) => void;
+};
+
+// Helper function to get video duration
+const getVideoMetadata = (file: File): Promise<{duration: number, width: number, height: number}> => {
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     return new Promise((resolve, reject) => {
         const video = document.createElement('video');
         video.preload = 'metadata';
@@ -55,13 +64,18 @@ export default function MediaPreview({ onBack, onConfirm }: MediaPreviewProps) {
                     return;
                 }
                 if (!file.type.startsWith('video/')) {
+<<<<<<< HEAD
                     if (mode === 'story' && file.type.startsWith('image/')) {
+=======
+                    if(mode === 'story' && file.type.startsWith('image/')) {
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                         // image is ok for story
                     } else {
                         toast({ variant: 'destructive', title: 'Invalid file type', description: `Please select a video for your ${mode}.` });
                         isValid = false;
                     }
                 } else {
+<<<<<<< HEAD
                     const metadata = await getVideoMetadata(file);
 
                     // Strict duration checks
@@ -112,6 +126,15 @@ export default function MediaPreview({ onBack, onConfirm }: MediaPreviewProps) {
                             });
                         }
                     }
+=======
+                     const metadata = await getVideoMetadata(file);
+                     if (mode === 'reel' && metadata.duration > 90) {
+                        toast({ title: 'Video may be too long', description: 'Reels are best under 90 seconds.' });
+                     }
+                     if (mode === 'story' && metadata.duration > 60) {
+                         toast({ title: 'Video may be too long', description: 'Stories are best under 60 seconds.' });
+                     }
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                 }
             }
             if (!isValid) {
@@ -126,6 +149,7 @@ export default function MediaPreview({ onBack, onConfirm }: MediaPreviewProps) {
     const handleConfirm = () => {
         onConfirm(files);
     };
+<<<<<<< HEAD
 
     const renderPreview = () => {
         switch (mode) {
@@ -137,6 +161,17 @@ export default function MediaPreview({ onBack, onConfirm }: MediaPreviewProps) {
                 // Long-form videos can be any aspect ratio, but usually 16:9 or 9:16. 
                 // Let's default to a flexible container or 16:9 for now.
                 return <VideoPreview file={files[0]} aspectRatio="16:9" />;
+=======
+    
+    const renderPreview = () => {
+        switch(mode) {
+            case 'post':
+                return <PostPreview />;
+            case 'reel':
+                 return <VideoPreview file={files[0]} aspectRatio="9:16" />;
+            case 'video':
+                 return <VideoPreview file={files[0]} aspectRatio="16:9" />;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             case 'story':
                 if (files[0]?.type.startsWith('video/')) {
                     return <VideoPreview file={files[0]} aspectRatio="9:16" isStory={true} />;

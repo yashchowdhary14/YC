@@ -5,7 +5,10 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import { FirebaseApp } from 'firebase/app';
 import { Firestore, doc, getDoc, collection, onSnapshot, writeBatch, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+<<<<<<< HEAD
 import { getStorage } from 'firebase/storage';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
@@ -58,6 +61,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     followedUsers: new Set(),
   });
 
+<<<<<<< HEAD
   // Listen for real Firebase auth state changes
   useEffect(() => {
     if (!auth) return;
@@ -111,6 +115,27 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     return () => unsubscribe();
   }, [auth]);
+=======
+  // --- MOCK AUTHENTICATION & DATA ---
+  // This useEffect bypasses real Firebase auth and sets a mock user.
+  useEffect(() => {
+    const mockAppUser = dummyUsers.find(u => u.username === 'wanderlust_lila')!;
+    const mockUser = {
+        uid: mockAppUser.id,
+        displayName: mockAppUser.fullName,
+        email: 'lila.kim@example.com',
+        photoURL: `https://picsum.photos/seed/${mockAppUser.id}/150/150`,
+    } as User;
+
+    setUserAuthState({
+        user: mockUser,
+        appUser: { ...mockAppUser, avatarUrl: mockUser.photoURL },
+        isUserLoading: false,
+        userError: null,
+        followedUsers: new Set(['user_ethan_bytes', 'user_maya_creates']),
+    });
+  }, []);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
   const toggleFollow = useCallback(async (profileUser: AppUser) => {
     const { user: currentUser } = userAuthState;
@@ -123,6 +148,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
     const isCurrentlyFollowing = userAuthState.followedUsers.has(profileUser.id);
     const updatedFollowedUsers = new Set(userAuthState.followedUsers);
+<<<<<<< HEAD
 
     // Optimistic UI update
     if (isCurrentlyFollowing) {
@@ -155,6 +181,40 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       // Revert optimistic update on failure
       setUserAuthState(prev => ({ ...prev, followedUsers: prev.followedUsers }));
       toast({ variant: 'destructive', title: 'Something went wrong', description: 'Could not update follow status.' })
+=======
+    
+    // Optimistic UI update
+    if (isCurrentlyFollowing) {
+        updatedFollowedUsers.delete(profileUser.id);
+    } else {
+        updatedFollowedUsers.add(profileUser.id);
+    }
+    setUserAuthState(prev => ({...prev, followedUsers: updatedFollowedUsers}));
+
+    try {
+        const batch = writeBatch(firestore);
+        
+        const currentUserRef = doc(firestore, 'users', currentUser.uid);
+        const profileUserRef = doc(firestore, 'users', profileUser.id);
+
+        if (isCurrentlyFollowing) {
+            batch.update(currentUserRef, { following: arrayRemove(profileUser.id) });
+            batch.update(profileUserRef, { followers: arrayRemove(currentUser.uid) });
+        } else {
+            batch.update(currentUserRef, { following: arrayUnion(profileUser.id) });
+            batch.update(profileUserRef, { followers: arrayUnion(currentUser.uid) });
+        }
+
+        await batch.commit();
+
+        toast({ title: isCurrentlyFollowing ? `Unfollowed ${profileUser.username}` : `Followed ${profileUser.username}` });
+
+    } catch (error) {
+        console.error("Error toggling follow:", error);
+        // Revert optimistic update on failure
+        setUserAuthState(prev => ({...prev, followedUsers: prev.followedUsers}));
+        toast({ variant: 'destructive', title: 'Something went wrong', description: 'Could not update follow status.'})
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
   }, [userAuthState, firestore, toast]);
 
@@ -209,6 +269,7 @@ export const useFirebaseApp = (): FirebaseApp => {
   return firebaseApp;
 };
 
+<<<<<<< HEAD
 export const useStorage = () => {
   const { firebaseApp } = useFirebase();
   return getStorage(firebaseApp);
@@ -222,5 +283,15 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   if (typeof memoized !== 'object' || memoized === null) return memoized;
   (memoized as MemoFirebase<T>).__memo = true;
 
+=======
+type MemoFirebase <T> = T & {__memo?: boolean};
+
+export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+  const memoized = useMemo(factory, deps);
+  
+  if(typeof memoized !== 'object' || memoized === null) return memoized;
+  (memoized as MemoFirebase<T>).__memo = true;
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   return memoized;
 }

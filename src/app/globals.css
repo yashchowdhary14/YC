@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,6 +10,7 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+<<<<<<< HEAD
 * {
   scroll-behavior: smooth;
 }
@@ -40,11 +45,20 @@ body {
 
     --card: 0 0% 0%;
     /* Black cards */
+=======
+@layer base {
+  :root, .dark {
+    --background: 0 0% 0%; /* True Black */
+    --foreground: 0 0% 98%; /* White */
+
+    --card: 0 0% 0%; /* Black cards */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     --card-foreground: 0 0% 98%;
 
     --popover: 0 0% 8%;
     --popover-foreground: 0 0% 98%;
 
+<<<<<<< HEAD
     --primary: 330 80% 58%;
     /* Vibrant Pink/Magenta */
     --primary-foreground: 0 0% 100%;
@@ -56,6 +70,16 @@ body {
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 65%;
     /* Lighter gray for muted text */
+=======
+    --primary: 330 80% 58%; /* Vibrant Pink/Magenta */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 15%; /* Dark Gray for buttons */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%; /* Lighter gray for muted text */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
     --accent: 0 0% 20%;
     --accent-foreground: 0 0% 98%;
@@ -63,6 +87,7 @@ body {
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
+<<<<<<< HEAD
     --border: 0 0% 15%;
     /* Dark gray borders */
     --input: 0 0% 15%;
@@ -77,6 +102,18 @@ body {
     /* White */
     --foreground: 0 0% 3.9%;
     /* Black */
+=======
+    --border: 0 0% 15%; /* Dark gray borders */
+    --input: 0 0% 15%;
+    --ring: 330 80% 58%;
+
+    --radius: 0.5rem; /* rounded-lg */
+  }
+
+  .light {
+    --background: 0 0% 100%; /* White */
+    --foreground: 0 0% 3.9%; /* Black */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
@@ -84,12 +121,19 @@ body {
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 3.9%;
 
+<<<<<<< HEAD
     --primary: 330 80% 58%;
     /* Vibrant Pink/Magenta */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96.1%;
     /* Light Gray */
+=======
+    --primary: 330 80% 58%; /* Vibrant Pink/Magenta */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96.1%; /* Light Gray */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     --secondary-foreground: 0 0% 9%;
 
     --muted: 0 0% 96.1%;
@@ -109,10 +153,15 @@ body {
   }
 
   .minimalist {
+<<<<<<< HEAD
     --background: 0 0% 98%;
     /* Off-white */
     --foreground: 0 0% 20%;
     /* Dark Gray */
+=======
+    --background: 0 0% 98%; /* Off-white */
+    --foreground: 0 0% 20%; /* Dark Gray */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
     --card: 0 0% 98%;
     --card-foreground: 0 0% 20%;
@@ -120,12 +169,19 @@ body {
     --popover: 0 0% 98%;
     --popover-foreground: 0 0% 20%;
 
+<<<<<<< HEAD
     --primary: 240 5% 50%;
     /* Desaturated Blue/Gray */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 90%;
     /* Lighter Gray */
+=======
+    --primary: 240 5% 50%; /* Desaturated Blue/Gray */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 90%; /* Lighter Gray */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     --secondary-foreground: 0 0% 20%;
 
     --muted: 0 0% 90%;
@@ -134,20 +190,29 @@ body {
     --accent: 0 0% 90%;
     --accent-foreground: 0 0% 20%;
 
+<<<<<<< HEAD
     --destructive: 0 70% 50%;
     /* Softer Red */
+=======
+    --destructive: 0 70% 50%; /* Softer Red */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 85%;
     --input: 0 0% 85%;
     --ring: 240 5% 50%;
 
+<<<<<<< HEAD
     --radius: 0.25rem;
     /* Less rounded */
+=======
+    --radius: 0.25rem; /* Less rounded */
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   }
 }
 
 @layer utilities {
+<<<<<<< HEAD
   .filter-clarendon {
     filter: contrast(1.2) saturate(1.35);
   }
@@ -301,3 +366,58 @@ body {
     transition: box-shadow 0.2s ease;
   }
 }
+=======
+    .filter-clarendon { filter: contrast(1.2) saturate(1.35); }
+    .filter-gingham { filter: brightness(1.05) hue-rotate(-10deg); }
+    .filter-moon { filter: grayscale(1) contrast(1.1) brightness(1.1); }
+    .filter-lark { filter: contrast(0.9) brightness(1.2); }
+    .filter-reyes { filter: sepia(0.22) brightness(1.1) contrast(0.85) saturate(0.75); }
+    .filter-slumber { filter: saturate(0.66) brightness(1.05); }
+    .filter-crema { filter: sepia(0.5) contrast(1.25) brightness(1.15); }
+    .filter-ludwig { filter: contrast(1.05) saturate(1.5) brightness(0.95); }
+    .filter-aden { filter: hue-rotate(-20deg) contrast(0.9) saturate(0.85) brightness(1.2); }
+    .filter-perpetua { filter: contrast(1.1) brightness(1.25) saturate(1.1); }
+
+    .vignette-overlay::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle, transparent 50%, black 150%);
+      opacity: var(--vignette-opacity, 0);
+      pointer-events: none;
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    .grain-overlay::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)"/></svg>');
+      background-size: 300px 300px;
+      opacity: var(--grain-opacity, 0);
+      pointer-events: none;
+      mix-blend-mode: overlay;
+      animation: grain-animation 0.5s steps(1) infinite;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    @keyframes grain-animation {
+      0%, 100% { transform: translate(0, 0); }
+      10% { transform: translate(-5%, -10%); }
+      20% { transform: translate(-15%, 5%); }
+      30% { transform: translate(7%, -25%); }
+      40% { transform: translate(-5%, 25%); }
+      50% { transform: translate(-15%, 10%); }
+      60% { transform: translate(15%, 0%); }
+      70% { transform: translate(0%, 15%); }
+      80% { transform: translate(3%, 35%); }
+      90% { transform: translate(-10%, 10%); }
+    }
+}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

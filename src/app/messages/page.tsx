@@ -6,7 +6,10 @@ import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import ChatList from '@/components/messages/chat-list';
 import ChatDisplay from '@/components/messages/chat-display';
+<<<<<<< HEAD
 import ChatDetails from '@/components/messages/chat-details';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import type { Chat, User as UserType } from '@/lib/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -40,7 +43,11 @@ export default function MessagesPage() {
   const selectedChat = useMemo(() => {
     return chats.find(c => c.id === selectedChatId) || null;
   }, [selectedChatId, chats]);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   useEffect(() => {
     const chatIdFromUrl = searchParams.get('chatId');
     if (chatIdFromUrl) {
@@ -69,7 +76,11 @@ export default function MessagesPage() {
           </div>
           <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} isMobile={isMobile} />
         </div>
+<<<<<<< HEAD
 
+=======
+        
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         <div className={cn('h-screen flex flex-col', showChatDisplay ? 'block' : 'hidden')}>
           {selectedChat ? (
             <ChatDisplay
@@ -83,6 +94,7 @@ export default function MessagesPage() {
   }
 
   return (
+<<<<<<< HEAD
     <main className="min-h-screen bg-background pt-14">
       <div className="grid grid-cols-12 border-t h-[calc(100vh-3.5rem)]">
         <div className="col-span-3 border-r">
@@ -112,5 +124,27 @@ export default function MessagesPage() {
         </div>
       </div>
     </main>
+=======
+      <main className="min-h-screen bg-background pt-14">
+        <div className="grid grid-cols-12 border-t h-[calc(100vh-3.5rem)]">
+          <div className="col-span-4 border-r">
+            <ChatList chats={chats} selectedChat={selectedChat} onSelectChat={handleSelectChat} />
+          </div>
+          <div className="col-span-8">
+            {selectedChat ? (
+              <ChatDisplay chatId={selectedChat.id} />
+            ) : (
+              <div className="flex h-full flex-col items-center justify-center text-muted-foreground text-center">
+                <div className="h-24 w-24 rounded-full border-2 border-foreground flex items-center justify-center mb-4">
+                  <svg aria-label="Direct" fill="currentColor" height="48" role="img" viewBox="0 0 96 96" width="48"><path d="M48 0C21.532 0 0 21.533 0 48s21.532 48 48 48 48-21.532 48-48S74.468 0 48 0zm0 88C26.038 88 8 69.962 8 48S26.038 8 48 8s40 17.962 40 40-17.962 40-40 40zm21.362-49.332l-40-12A4.002 4.002 0 0 0 24.1 21.41l14.887 34.738a4 4 0 0 0 7.375.242l6.516-19.548 19.548-6.516a4 4 0 0 0-2.064-7.658z"></path></svg>
+                </div>
+                <h2 className="text-xl font-light">Your Messages</h2>
+                <p className="text-sm">Send private photos and messages to a friend or group.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   );
 }

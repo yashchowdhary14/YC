@@ -30,23 +30,36 @@ export default function BottomNav({ onNewPostClick }: { onNewPostClick: () => vo
   ];
 
   return (
+<<<<<<< HEAD
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-background/95 backdrop-blur-sm border-t border-border/50 z-50 md:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.1)]">
+=======
+    <div className="fixed bottom-0 left-0 right-0 h-14 bg-background border-t z-50 md:hidden">
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       <nav className="flex h-full items-center justify-around text-foreground">
         {navItems.map((link, index) => {
           if (!link) {
             return (
+<<<<<<< HEAD
               <div key="create-button" className="flex flex-col items-center justify-center">
                 <CreateButton
                   onClick={onNewPostClick}
                   size="md"
                 />
               </div>
+=======
+              <CreateButton
+                key="create-button"
+                onClick={onNewPostClick}
+                size="md"
+              />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             );
           }
           const isActive = pathname === link.href;
           const IconComponent = isActive ? link.activeIcon : link.icon;
           return (
             <NextLink key={link.href} href={link.href} passHref>
+<<<<<<< HEAD
               <Button
                 variant="ghost"
                 size="icon"
@@ -68,12 +81,17 @@ export default function BottomNav({ onNewPostClick }: { onNewPostClick: () => vo
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary animate-pulse" />
                   )}
                 </div>
+=======
+              <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
+                <IconComponent className={cn("h-6 w-6", isActive && 'fill-foreground')} />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
               </Button>
             </NextLink>
           );
         })}
         {user && (
           <NextLink href={profileHref} passHref>
+<<<<<<< HEAD
             <Button
               variant="ghost"
               size="icon"
@@ -91,6 +109,13 @@ export default function BottomNav({ onNewPostClick }: { onNewPostClick: () => vo
                   <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
                 </Avatar>
               </div>
+=======
+            <Button variant="ghost" size="icon" className="h-full w-auto px-4 text-foreground">
+              <Avatar className={cn("h-6 w-6", pathname.startsWith('/profile') && "border-2 border-foreground")}>
+                <AvatarImage src={user.photoURL || ''} />
+                <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             </Button>
           </NextLink>
         )}

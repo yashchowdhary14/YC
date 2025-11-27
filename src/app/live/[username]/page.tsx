@@ -11,7 +11,10 @@ import StreamInfo from '@/components/live/stream-info';
 import { Separator } from '@/components/ui/separator';
 import type { LiveBroadcast, User, LiveChatMessage } from '@/lib/types';
 import { dummyLiveBroadcasts, getInitialChatMessages } from '@/lib/dummy-data';
+<<<<<<< HEAD
 import { cn } from '@/lib/utils';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 export default function LiveWatchPage() {
   const { username } = useParams<{ username: string }>();
@@ -36,8 +39,11 @@ export default function LiveWatchPage() {
     return stream.user;
   }, [stream]);
 
+<<<<<<< HEAD
   const [isTheaterMode, setIsTheaterMode] = useState(false);
 
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   if (isUserLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -45,13 +51,20 @@ export default function LiveWatchPage() {
       </div>
     );
   }
+<<<<<<< HEAD
 
   if (!stream || !streamer || !stream.isLive) {
     return notFound();
+=======
+  
+  if (!stream || !streamer || !stream.isLive) {
+     return notFound();
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   }
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground pt-14">
+<<<<<<< HEAD
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden relative">
         <main className={cn(
           "flex flex-col overflow-y-auto transition-all duration-300",
@@ -103,6 +116,25 @@ export default function LiveWatchPage() {
             <LiveChat stream={stream} messages={chatMessages} setMessages={setChatMessages} />
           </aside>
         )}
+=======
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        <main className="lg:col-span-9 flex flex-col overflow-y-auto">
+          <div className="aspect-video">
+             <LiveStreamPlayer src={stream.streamUrl}/>
+          </div>
+          <div className="p-4 flex-1">
+             <StreamInfo streamer={streamer} stream={{...stream, viewers: stream.viewerCount}} />
+             <Separator className="my-4" />
+             <div className="bg-secondary/30 p-4 rounded-lg">
+                <h3 className="font-bold mb-2">About {streamer.username}</h3>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{streamer.bio}</p>
+             </div>
+          </div>
+        </main>
+        <aside className="lg:col-span-3 lg:border-l lg:flex flex-col hidden">
+          <LiveChat stream={stream} messages={chatMessages} setMessages={setChatMessages} />
+        </aside>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       </div>
     </div>
   );

@@ -23,6 +23,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     const { user } = useUser();
     const { toast } = useToast();
     const videoRef = useRef<HTMLVideoElement>(null);
+<<<<<<< HEAD
     const containerRef = useRef<HTMLDivElement>(null);
     const [isMuted, setIsMuted] = useState(true);
     const [showBigHeart, setShowBigHeart] = useState(false);
@@ -72,6 +73,11 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
         }
     };
 
+=======
+    const [isMuted, setIsMuted] = useState(true);
+    const [showBigHeart, setShowBigHeart] = useState(false);
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     // Manage like state locally within the card
     const [isLiked, setIsLiked] = useState(false);
     const [likesCount, setLikesCount] = useState(reel.likes);
@@ -83,11 +89,19 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
         }
         const newLikedState = !isLiked;
         const newLikesCount = newLikedState ? likesCount + 1 : likesCount - 1;
+<<<<<<< HEAD
 
         setIsLiked(newLikedState);
         setLikesCount(newLikesCount);
 
         if (newLikedState) {
+=======
+        
+        setIsLiked(newLikedState);
+        setLikesCount(newLikesCount);
+        
+        if(newLikedState) {
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             setShowBigHeart(true);
             setTimeout(() => setShowBigHeart(false), 800);
         }
@@ -99,7 +113,11 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
         if ((e.target as HTMLElement).closest('button, a')) return;
         handleLikeToggle();
     };
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     const handleToggleMute = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (videoRef.current) {
@@ -119,6 +137,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
     };
 
     return (
+<<<<<<< HEAD
         <div ref={containerRef} className="relative h-full w-full bg-black rounded-lg overflow-hidden" onDoubleClick={handleDoubleClick}>
             <video
                 ref={videoRef}
@@ -128,30 +147,60 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                 className="h-full w-full object-cover"
                 playsInline
                 onClick={handleTogglePlay}
+=======
+        <div className="relative h-full w-full bg-background rounded-lg" onDoubleClick={handleDoubleClick}>
+            <video
+                ref={videoRef}
+                src={reel.mediaUrl}
+                loop
+                autoPlay
+                muted={isMuted}
+                className="h-full w-full object-contain"
+                playsInline
+                onClick={handleToggleMute}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             />
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
 
             {showBigHeart && (
+<<<<<<< HEAD
                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-destructive/90 fill-destructive/90 animate-heart-pop pointer-events-none" />
             )}
 
+=======
+                 <Heart className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-24 w-24 text-destructive/90 fill-destructive/90 animate-heart-pop pointer-events-none" />
+            )}
+            
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             <div onClick={handleToggleMute} className="absolute top-4 right-4 p-2 bg-black/50 rounded-full cursor-pointer">
                 {isMuted ? <VolumeX className="h-5 w-5 text-white" /> : <Volume2 className="h-5 w-5 text-white" />}
             </div>
 
             <div className="absolute bottom-0 left-0 p-4 text-white w-full pointer-events-none">
                 <div className="flex items-center gap-3">
+<<<<<<< HEAD
                     <Link href={`/${reel.user.username}`} className="pointer-events-auto">
+=======
+                     <Link href={`/${reel.user.username}`} className="pointer-events-auto">
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                         <Avatar>
                             <AvatarImage src={reel.user.avatarUrl} />
                             <AvatarFallback>{reel.user.username.charAt(0)}</AvatarFallback>
                         </Avatar>
+<<<<<<< HEAD
                     </Link>
                     <Link href={`/${reel.user.username}`} className="font-semibold text-sm pointer-events-auto">{reel.user.username}</Link>
                     <Button
                         variant={isFollowing ? 'secondary' : 'default'}
                         size="sm"
+=======
+                     </Link>
+                     <Link href={`/${reel.user.username}`} className="font-semibold text-sm pointer-events-auto">{reel.user.username}</Link>
+                    <Button 
+                        variant={isFollowing ? 'secondary' : 'default'} 
+                        size="sm" 
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                         className={cn(
                             "h-7 text-xs px-3 py-1 rounded-md pointer-events-auto font-semibold",
                             isFollowing && "bg-secondary/80 text-secondary-foreground"
@@ -162,11 +211,19 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                     </Button>
                 </div>
                 <p className="text-sm mt-2 truncate">{reel.caption}</p>
+<<<<<<< HEAD
                 <div className="flex items-center gap-2 mt-2">
                     <Music className="h-4 w-4" />
                     <p className="text-sm truncate w-40">{reel.user.username} - Original audio</p>
                     <div className="ml-auto flex items-center gap-2">
                         <div className="w-6 h-6 bg-muted/50 rounded-full border-2 border-white animate-spin-slow">
+=======
+                 <div className="flex items-center gap-2 mt-2">
+                    <Music className="h-4 w-4" />
+                    <p className="text-sm truncate w-40">{reel.user.username} - Original audio</p>
+                    <div className="ml-auto flex items-center gap-2">
+                         <div className="w-6 h-6 bg-muted/50 rounded-full border-2 border-white animate-spin-slow">
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                             <Music className="h-4 w-4 text-white m-auto mt-0.5" />
                         </div>
                     </div>
@@ -188,7 +245,11 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                 <Button variant="ghost" size="icon" className="h-auto p-0 flex-col gap-1 hover:bg-transparent">
                     <MoreHorizontal className="h-7 w-7" />
                 </Button>
+<<<<<<< HEAD
                 <div className="h-10 w-10 rounded-md border-2 border-white overflow-hidden mt-2">
+=======
+                 <div className="h-10 w-10 rounded-md border-2 border-white overflow-hidden mt-2">
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                     <Music className="h-full w-full text-white p-1" />
                 </div>
             </div>

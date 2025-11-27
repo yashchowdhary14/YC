@@ -9,6 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCompactNumber(number: number) {
+<<<<<<< HEAD
   if (number < 1000) {
     return number.toString();
   }
@@ -19,6 +20,18 @@ export function formatCompactNumber(number: number) {
     return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
   return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+=======
+    if (number < 1000) {
+        return number.toString();
+    }
+    if (number < 1000000) {
+        return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    if (number < 1000000000) {
+        return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    }
+    return (number / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 export function fileToDataUri(file: File): Promise<string> {
@@ -44,7 +57,11 @@ export async function uploadFile(file: File, path: string): Promise<string> {
   const { firebaseApp } = initializeFirebase();
   const storage = getStorage(firebaseApp);
   const storageRef = ref(storage, path);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   try {
     const snapshot = await uploadBytes(storageRef, file);
     const downloadURL = await getDownloadURL(snapshot.ref);
@@ -54,6 +71,7 @@ export async function uploadFile(file: File, path: string): Promise<string> {
     throw new Error("File upload failed.");
   }
 }
+<<<<<<< HEAD
 
 export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
@@ -81,3 +99,5 @@ export function throttle<T extends (...args: any[]) => void>(func: T, limit: num
     }
   };
 }
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

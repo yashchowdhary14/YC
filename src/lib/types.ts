@@ -16,11 +16,16 @@ export interface User {
 export interface Post {
   id: string;
   type: 'photo' | 'reel' | 'video';
+<<<<<<< HEAD
   mediaUrls: string[];
+=======
+  mediaUrl: string;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   thumbnailUrl: string;
   uploaderId: string;
   user: User;
   caption: string;
+<<<<<<< HEAD
   location?: string;
   category?: string;
   tags: string[];
@@ -34,12 +39,18 @@ export interface Post {
   disableComments?: boolean;
   disableRemix?: boolean;
   visibility?: "public" | "unlisted" | "private";
+=======
+  tags: string[];
+  views: number;
+  likes: number;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   commentsCount: number;
   createdAt: any; // Can be Date or Timestamp
   comments?: ReelComment[]; // Optional for reels
 }
 
 export interface Story {
+<<<<<<< HEAD
   id: string;
   userId: string;
   mediaUrl: string;
@@ -56,6 +67,24 @@ export interface Highlight {
   coverImage: string;
   storyIds: string[];
   createdAt: any;
+=======
+    id: string;
+    userId: string;
+    mediaUrl: string;
+    type: 'photo' | 'video';
+    createdAt: any;
+    expiresAt: any;
+    highlighted?: boolean;
+}
+
+export interface Highlight {
+    id: string;
+    userId: string;
+    title: string;
+    coverImage: string;
+    storyIds: string[];
+    createdAt: any;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 
@@ -75,6 +104,7 @@ export interface LiveBroadcast {
 }
 
 export interface ReelComment {
+<<<<<<< HEAD
   id: string;
   user: string;
   profilePic: string;
@@ -89,6 +119,22 @@ export interface VideoComment {
   text: string;
   createdAt: any; // Can be Date or Timestamp
   user: User;
+=======
+    id: string;
+    user: string;
+    profilePic: string;
+    text: string;
+    likes: number;
+    timeAgo: string;
+    isLiked: boolean;
+}
+
+export interface VideoComment {
+    id: string;
+    text: string;
+    createdAt: any; // Can be Date or Timestamp
+    user: User;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 export interface Message {
@@ -103,7 +149,11 @@ export interface Message {
 }
 
 export interface Chat {
+<<<<<<< HEAD
   id: string;
+=======
+  id:string;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   users: string[]; // Array of user IDs
   messages: Message[];
   lastMessage?: Message;
@@ -126,5 +176,11 @@ export interface LiveChatMessage {
   isBot?: boolean;
 }
 
+<<<<<<< HEAD
 
 
+=======
+    
+
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

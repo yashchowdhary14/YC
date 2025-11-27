@@ -12,9 +12,14 @@
         "destination": "/index.html"
       }
     ]
+<<<<<<< HEAD
   },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   }
 }
+=======
+  }
+}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

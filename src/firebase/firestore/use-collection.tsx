@@ -12,7 +12,10 @@ import {
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+<<<<<<< HEAD
 import { throttle } from '@/lib/utils';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 /** Utility type to add an 'id' field to a given type T. */
 export type WithId<T> = T & { id: string };
@@ -53,6 +56,7 @@ export interface InternalQuery extends Query<DocumentData> {
  * The Firestore CollectionReference or Query. Waits if null/undefined.
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
+<<<<<<< HEAD
 export interface UseCollectionOptions {
   throttle?: number;
 }
@@ -60,11 +64,16 @@ export interface UseCollectionOptions {
 export function useCollection<T = any>(
   memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & { __memo?: boolean }) | null | undefined,
   options?: UseCollectionOptions
+=======
+export function useCollection<T = any>(
+    memoizedTargetRefOrQuery: ((CollectionReference<DocumentData> | Query<DocumentData>) & {__memo?: boolean})  | null | undefined,
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
   const [data, setData] = useState<StateDataType>(null);
+<<<<<<< HEAD
   const [isLoading, setIsLoading] = useState<boolean>(true); // Start loading true to show cached data or skeleton
   const [error, setError] = useState<FirestoreError | Error | null>(null);
 
@@ -96,6 +105,11 @@ export function useCollection<T = any>(
     }
   }, [memoizedTargetRefOrQuery]);
 
+=======
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<FirestoreError | Error | null>(null);
+
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   useEffect(() => {
     if (!memoizedTargetRefOrQuery) {
       setData(null);
@@ -108,6 +122,7 @@ export function useCollection<T = any>(
     setError(null);
 
     // Directly use memoizedTargetRefOrQuery as it's assumed to be the final query
+<<<<<<< HEAD
     const handleSnapshot = (snapshot: QuerySnapshot<DocumentData>) => {
       const results: ResultItemType[] = [];
       for (const doc of snapshot.docs) {
@@ -134,6 +149,19 @@ export function useCollection<T = any>(
     const unsubscribe = onSnapshot(
       memoizedTargetRefOrQuery,
       onNext,
+=======
+    const unsubscribe = onSnapshot(
+      memoizedTargetRefOrQuery,
+      (snapshot: QuerySnapshot<DocumentData>) => {
+        const results: ResultItemType[] = [];
+        for (const doc of snapshot.docs) {
+          results.push({ ...(doc.data() as T), id: doc.id });
+        }
+        setData(results);
+        setError(null);
+        setIsLoading(false);
+      },
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       (error: FirestoreError) => {
         // This logic extracts the path from either a ref or a query
         const path: string =
@@ -161,6 +189,10 @@ export function useCollection<T = any>(
 
     return () => unsubscribe();
   }, [memoizedTargetRefOrQuery]); // Re-run if the target query/reference changes.
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   return { data, isLoading, error };
 }

@@ -37,8 +37,11 @@ const TabsTrigger = React.forwardRef<
 ))
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
 
+<<<<<<< HEAD
 import { motion } from "framer-motion"
 
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 const TabsContent = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
@@ -50,6 +53,7 @@ const TabsContent = React.forwardRef<
       className
     )}
     {...props}
+<<<<<<< HEAD
     asChild
   >
     <motion.div
@@ -61,6 +65,9 @@ const TabsContent = React.forwardRef<
       {props.children}
     </motion.div>
   </TabsPrimitive.Content>
+=======
+  />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 ))
 TabsContent.displayName = TabsPrimitive.Content.displayName
 

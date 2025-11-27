@@ -1,8 +1,13 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
+<<<<<<< HEAD
 import {
   getFirestore,
   initializeFirestore,
@@ -10,6 +15,9 @@ import {
   persistentMultipleTabManager,
   Firestore
 } from 'firebase/firestore';
+=======
+import { getFirestore } from 'firebase/firestore'
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
@@ -37,6 +45,7 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+<<<<<<< HEAD
   let firestoreInstance: Firestore | null = null;
 
   try {
@@ -59,6 +68,12 @@ export function getSdks(firebaseApp: FirebaseApp) {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: firestoreInstance
+=======
+  return {
+    firebaseApp,
+    auth: getAuth(firebaseApp),
+    firestore: getFirestore(firebaseApp)
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   };
 }
 

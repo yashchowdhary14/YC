@@ -24,6 +24,7 @@ interface VideoSettingsProps {
 export default function VideoSettings({ settings, setSettings }: VideoSettingsProps) {
   return (
     <div className="space-y-4">
+<<<<<<< HEAD
       <div>
         <Label className="font-semibold">Visibility</Label>
         <RadioGroup
@@ -62,6 +63,46 @@ export default function VideoSettings({ settings, setSettings }: VideoSettingsPr
           </SelectContent>
         </Select>
       </div>
+=======
+        <div>
+            <Label className="font-semibold">Visibility</Label>
+            <RadioGroup 
+                defaultValue="public" 
+                className="mt-2"
+                value={settings.visibility}
+                onValueChange={(value: "public" | "unlisted" | "private") => setSettings({ ...settings, visibility: value })}
+            >
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="public" id="public" />
+                    <Label htmlFor="public">Public</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="unlisted" id="unlisted" />
+                    <Label htmlFor="unlisted">Unlisted</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="private" id="private" />
+                    <Label htmlFor="private">Private</Label>
+                </div>
+            </RadioGroup>
+        </div>
+        
+        <Separator />
+        
+        <div>
+            <Label htmlFor="category" className="font-semibold">Category</Label>
+             <Select>
+                <SelectTrigger id="category" className="w-full mt-2">
+                    <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                    {categories.map(cat => (
+                        <SelectItem key={cat} value={cat.toLowerCase()}>{cat}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
       <Accordion type="single" collapsible className="w-full">
         <AccordionItem value="advanced" className="border-none">

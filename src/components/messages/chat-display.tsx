@@ -9,7 +9,11 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import type { Chat, Message, User } from '@/lib/types';
+<<<<<<< HEAD
 import { Send, Info, ArrowLeft, Paperclip, X, Loader2, Play, Smile, Mic } from 'lucide-react';
+=======
+import { Send, Info, ArrowLeft, Paperclip, X, Loader2 } from 'lucide-react';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -31,12 +35,20 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
   const [isSending, setIsSending] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const scrollViewportRef = useRef<HTMLDivElement>(null);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   // Use a state to force re-render when dummy data changes
   const [_, setForceUpdate] = useState(0);
 
   const chatData = useMemo(() => getChat(chatId), [chatId, _]);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const messages = chatData?.messages || [];
 
   const partner = useMemo(() => {
@@ -50,7 +62,11 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
       avatarUrl: `https://picsum.photos/seed/${partnerData.id}/100/100`,
     } as User;
   }, [chatData, currentUser]);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const onSendMessage = async () => {
     if ((!messageText.trim() && !mediaFile) || !currentUser || !chatId) return;
 
@@ -66,7 +82,11 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
       isRead: false,
       mediaUrl: mediaPreview || undefined,
     };
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     const success = addMessageToChat(chatId, newMessage);
     if (success) {
       setForceUpdate(val => val + 1); // Trigger re-render
@@ -77,15 +97,26 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     setMediaFile(null);
     setMediaPreview(null);
     if (fileInputRef.current) {
+<<<<<<< HEAD
       fileInputRef.current.value = '';
+=======
+        fileInputRef.current.value = '';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
 
     setIsSending(false);
   };
+<<<<<<< HEAD
 
   useEffect(() => {
     if (scrollViewportRef.current) {
       scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+=======
+  
+  useEffect(() => {
+    if (scrollViewportRef.current) {
+        scrollViewportRef.current.scrollTop = scrollViewportRef.current.scrollHeight;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
   }, [messages, mediaPreview]);
 
@@ -108,20 +139,35 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
       reader.readAsDataURL(file);
     }
   };
+<<<<<<< HEAD
 
   const clearMedia = () => {
     setMediaFile(null);
     setMediaPreview(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+=======
+  
+  const clearMedia = () => {
+    setMediaFile(null);
+    setMediaPreview(null);
+    if(fileInputRef.current) {
+        fileInputRef.current.value = '';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
   }
 
   if (!chatData || !partner) {
     return (
+<<<<<<< HEAD
       <div className="flex h-full items-center justify-center">
         <p>Chat not found.</p>
       </div>
+=======
+        <div className="flex h-full items-center justify-center">
+            <p>Chat not found.</p>
+        </div>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     )
   }
 
@@ -129,9 +175,15 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-4 p-4 border-b">
         {onBack && (
+<<<<<<< HEAD
           <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
             <ArrowLeft className="h-5 w-5" />
           </Button>
+=======
+            <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         )}
         <Avatar>
           <AvatarImage src={partner.avatarUrl} alt={partner.username} />
@@ -147,6 +199,7 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
         </Button>
       </div>
 
+<<<<<<< HEAD
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
           {messages.map((message) => (
@@ -220,11 +273,54 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
 
             </div>
           ))}
+=======
+      <ScrollArea className="flex-1" viewportRef={scrollViewportRef}>
+        <div className="p-4 space-y-4">
+            {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={cn(
+                      'flex items-end gap-2',
+                      message.senderId === currentUser?.uid ? 'justify-end' : 'justify-start'
+                  )}
+                >
+                {message.senderId !== currentUser?.uid && (
+                    <Avatar className="h-6 w-6 self-end">
+                      <AvatarImage src={partner.avatarUrl} />
+                      <AvatarFallback>{partner.username.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                )}
+                <div
+                    className={cn(
+                    'max-w-xs md:max-w-md lg:max-w-lg rounded-2xl px-4 py-2 flex flex-col gap-1',
+                    message.senderId === currentUser?.uid
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted',
+                    message.mediaUrl && 'p-1'
+                    )}
+                >
+                    {message.mediaUrl && (
+                    <div className="relative rounded-lg overflow-hidden aspect-square w-64">
+                       <Image src={message.mediaUrl} alt="Sent media" fill className="object-cover" />
+                    </div>
+                    )}
+                    {message.text && <p className="text-sm px-2 py-1 break-words">{message.text}</p>}
+                     <time className={cn("text-xs opacity-70 px-2", message.senderId === currentUser?.uid ? "text-right" : "text-left")}>
+                          {formatDistanceToNow(new Date(message.timestamp), { addSuffix: true })}
+                    </time>
+                </div>
+                </div>
+            ))}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         </div>
       </ScrollArea>
 
       <div className="p-4 border-t bg-background">
+<<<<<<< HEAD
         {mediaPreview && (
+=======
+         {mediaPreview && (
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
           <div className="relative mb-2 w-24 h-24">
             <Image src={mediaPreview} alt="Media preview" fill className="object-cover rounded-md" />
             <Button
@@ -239,6 +335,7 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
         )}
         <div className="relative flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()}>
+<<<<<<< HEAD
             <Paperclip className="h-5 w-5" />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => {
@@ -249,6 +346,11 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
             <Mic className="h-5 w-5" />
           </Button>
           <input
+=======
+              <Paperclip className="h-5 w-5" />
+          </Button>
+           <input
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             ref={fileInputRef}
             type="file"
             accept="image/*"

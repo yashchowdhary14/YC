@@ -11,26 +11,43 @@ import Story from '../app/story';
 import { useUser } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
+<<<<<<< HEAD
 import { cn } from '@/lib/utils';
 
 interface ProfileHeaderProps {
     user: User | null;
     postsCount: number;
     onSettingsClick: () => void;
+=======
+
+interface ProfileHeaderProps {
+  user: User | null;
+  postsCount: number;
+  onSettingsClick: () => void;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 const ProfileHeaderSkeleton = () => (
     <header>
         <div className="flex flex-col sm:flex-row gap-8">
             <div className="flex-shrink-0 mx-auto sm:mx-0">
+<<<<<<< HEAD
                 <Skeleton className="w-24 h-24 sm:w-36 sm:h-36 rounded-full" />
+=======
+                 <Skeleton className="w-24 h-24 sm:w-36 sm:h-36 rounded-full" />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             </div>
             <div className="flex-grow space-y-4">
                 <div className="flex flex-wrap items-center gap-4">
                     <Skeleton className="h-8 w-40" />
                     <div className="flex items-center gap-2">
+<<<<<<< HEAD
                         <Skeleton className="h-9 w-24 rounded-md" />
                         <Skeleton className="h-9 w-24 rounded-md" />
+=======
+                       <Skeleton className="h-9 w-24 rounded-md" />
+                       <Skeleton className="h-9 w-24 rounded-md" />
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                     </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-8">
@@ -51,14 +68,21 @@ const ProfileHeaderSkeleton = () => (
 
 export default function ProfileHeader({ user: profileUser, postsCount, onSettingsClick }: ProfileHeaderProps) {
     const { user: currentUser, isUserLoading, followedUsers, toggleFollow } = useUser();
+<<<<<<< HEAD
 
     if (isUserLoading || !profileUser) {
         return <ProfileHeaderSkeleton />;
+=======
+    
+    if (isUserLoading || !profileUser) {
+      return <ProfileHeaderSkeleton />;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
 
     const isMyProfile = currentUser?.uid === profileUser.id;
 
     return (
+<<<<<<< HEAD
         <header className="mb-8">
             <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-center md:items-start">
                 {/* Avatar Section */}
@@ -102,10 +126,41 @@ export default function ProfileHeader({ user: profileUser, postsCount, onSetting
                                     <Button variant="secondary" className="h-8 px-4 font-semibold text-sm">Message</Button>
                                     <Button variant="secondary" size="icon" className="h-8 w-8">
                                         <UserPlus className="h-4 w-4" />
+=======
+        <header>
+            <div className="flex flex-col sm:flex-row gap-8">
+                <div className="flex-shrink-0 mx-auto sm:mx-0">
+                    <Avatar className="w-24 h-24 sm:w-36 sm:h-36 text-6xl border-2">
+                        <AvatarImage src={profileUser.avatarUrl} />
+                        <AvatarFallback>{profileUser.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                </div>
+
+                <div className="flex-grow space-y-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        <h1 className="text-2xl font-light">{profileUser.username}</h1>
+                        <div className="flex items-center gap-2 flex-1">
+                            {isMyProfile ? (
+                                <>
+                                    <Link href="/account/edit" className="flex-1 md:flex-none">
+                                        <Button variant="secondary" size="sm" className="w-full">Edit profile</Button>
+                                    </Link>
+                                    <Button variant="secondary" size="sm" className="flex-1 md:flex-none">View archive</Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button onClick={() => toggleFollow(profileUser)} size="sm" variant={followedUsers.has(profileUser.id) ? 'secondary' : 'default'} className="flex-1">
+                                        {followedUsers.has(profileUser.id) ? 'Following' : 'Follow'}
+                                    </Button>
+                                    <Button variant="secondary" size="sm" className="flex-1">Message</Button>
+                                     <Button variant="secondary" size="icon" className="h-9 w-9 hidden sm:flex">
+                                        <Share2 className="h-4 w-4"/>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                                     </Button>
                                 </>
                             )}
                         </div>
+<<<<<<< HEAD
                     </div>
 
                     {/* Stats Row (Desktop) */}
@@ -152,6 +207,42 @@ export default function ProfileHeader({ user: profileUser, postsCount, onSetting
                     <span className="font-bold text-sm">{formatCompactNumber(profileUser.followingCount)}</span>
                     <span className="text-xs text-muted-foreground">following</span>
                 </div>
+=======
+                         {isMyProfile && (
+                            <Button variant="ghost" size="icon" onClick={onSettingsClick}>
+                                <Menu className="h-6 w-6"/>
+                            </Button>
+                         )}
+                    </div>
+
+                    <div className="hidden sm:flex items-center gap-8">
+                        <div><span className="font-semibold">{postsCount}</span> posts</div>
+                        <div><span className="font-semibold">{formatCompactNumber(profileUser.followersCount)}</span> followers</div>
+                        <div><span className="font-semibold">{formatCompactNumber(profileUser.followingCount)}</span> following</div>
+                    </div>
+                    
+                    <div className="text-sm">
+                        <h2 className="font-semibold">{profileUser.fullName}</h2>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{profileUser.bio}</p>
+                    </div>
+                </div>
+            </div>
+            
+            {/* Mobile Stats */}
+            <div className="sm:hidden border-t mt-4 pt-2 flex justify-around text-center">
+                 <div>
+                    <div className="font-semibold">{postsCount}</div>
+                    <div className="text-sm text-muted-foreground">posts</div>
+                 </div>
+                 <div>
+                    <div className="font-semibold">{formatCompactNumber(profileUser.followersCount)}</div>
+                     <div className="text-sm text-muted-foreground">followers</div>
+                 </div>
+                 <div>
+                    <div className="font-semibold">{formatCompactNumber(profileUser.followingCount)}</div>
+                     <div className="text-sm text-muted-foreground">following</div>
+                 </div>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             </div>
         </header>
     )

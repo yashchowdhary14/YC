@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 {
   "indexes": [
     {
@@ -60,6 +64,7 @@
       "collectionGroup": "savedPosts",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
+<<<<<<< HEAD
         {
           "fieldPath": "userId",
           "order": "ASCENDING"
@@ -82,6 +87,10 @@
           "fieldPath": "createdAt",
           "order": "DESCENDING"
         }
+=======
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       ]
     },
     {
@@ -97,6 +106,7 @@
           "order": "DESCENDING"
         }
       ]
+<<<<<<< HEAD
     },
     {
       "collectionGroup": "posts",
@@ -115,3 +125,15 @@
   ],
   "fieldOverrides": []
 }
+=======
+    }
+  ],
+  "fieldOverrides": []
+}
+
+    
+
+    
+
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

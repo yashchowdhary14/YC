@@ -8,6 +8,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Separator } from '../ui/separator';
 import { ChevronRight, Users, MapPin, Search, Bot, EyeOff, MessageSquareOff, Settings2, Shield, Globe, Users2 } from 'lucide-react';
 import Image from 'next/image';
+<<<<<<< HEAD
 import {
   Carousel,
   CarouselContent,
@@ -15,6 +16,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import CaptionInput from './details/CaptionInput';
 import { useToast } from '@/hooks/use-toast';
 import TagPeopleModal from './details/TagPeopleModal';
@@ -34,18 +37,27 @@ type MediaDetailsFormProps = {
 export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetailsFormProps) {
   const { toast } = useToast();
   const { media } = useCreateStore();
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   // Local state for the form
   const [caption, setCaption] = useState('');
   const [mentions, setMentions] = useState<string[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
+<<<<<<< HEAD
 
+=======
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   // Modals state
   const [isTagging, setIsTagging] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [isAccessibility, setIsAccessibility] = useState(false);
 
   // Data state
+<<<<<<< HEAD
   const [taggedUsers, setTaggedUsers] = useState<Record<string, string[]>>({});
   const [location, setLocation] = useState<string | undefined>(undefined);
   const [altTexts, setAltTexts] = useState<string[]>(() => media.map((_, i) => ''));
@@ -56,11 +68,24 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
     disableComments: false,
     visibility: 'public',
     storyAudience: 'everyone'
+=======
+  const [taggedUsers, setTaggedUsers] = useState<string[]>([]);
+  const [location, setLocation] = useState<string | undefined>(undefined);
+  const [altTexts, setAltTexts] = useState<string[]>(() => media.map((_, i) => ''));
+  
+  // Settings State
+  const [settings, setSettings] = useState<FinalizedCreateData['settings']>({
+      hideLikes: false,
+      disableComments: false,
+      visibility: 'public',
+      storyAudience: 'everyone'
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   });
 
   const previewUrl = useMemo(() => media.length > 0 ? media[0].url : '', [media]);
   const files = useMemo(() => media.map(m => m.file), [media]);
 
+<<<<<<< HEAD
   const totalTaggedCount = useMemo(() => {
     const allTags = new Set<string>();
     Object.values(taggedUsers).forEach(tags => tags.forEach(tag => allTags.add(tag)));
@@ -98,6 +123,26 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
     onSubmit(payload);
   };
 
+=======
+  const handlePublish = () => {
+    const payload: FinalizedCreateData = {
+        mode,
+        files,
+        caption,
+        tags: hashtags,
+        mentions,
+        location,
+        collaborators: taggedUsers,
+        productTags: [], // To be implemented
+        accessibility: {
+            alt: altTexts,
+        },
+        settings,
+    };
+    onSubmit(payload);
+  };
+  
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const renderSettings = () => {
     switch (mode) {
       case 'post':
@@ -116,6 +161,7 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
     <>
       <div className="h-full w-full flex flex-col md:flex-row bg-background text-foreground">
         <header className="absolute top-0 left-0 right-0 p-2 flex md:hidden items-center justify-between z-10 bg-background/50 backdrop-blur-sm">
+<<<<<<< HEAD
           <h2 className="text-lg font-semibold">Details</h2>
           <Button variant="link" onClick={handlePublish}>Publish</Button>
         </header>
@@ -204,6 +250,72 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
             </ScrollArea>
             <div className="p-4 border-t hidden md:block">
               <Button onClick={handlePublish} className="w-full">Publish</Button>
+=======
+            <h2 className="text-lg font-semibold">Details</h2>
+            <Button variant="link" onClick={handlePublish}>Publish</Button>
+        </header>
+        <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          <div className="md:w-1/2 lg:w-3/5 border-b md:border-b-0 md:border-r p-4 flex items-center justify-center bg-black">
+              <div className="relative w-full max-w-sm aspect-square">
+                  {previewUrl && <Image src={previewUrl} alt="Preview" fill className="object-contain rounded-md" />}
+              </div>
+          </div>
+          <div className="md:w-1/2 lg:w-2/5 flex flex-col">
+            <ScrollArea className="flex-1">
+                <div className="p-4 space-y-4">
+                    <CaptionInput
+                        mode={mode}
+                        caption={caption}
+                        setCaption={setCaption}
+                        setMentions={setMentions}
+                        setHashtags={setHashtags}
+                    />
+
+                    <Separator />
+                    
+                    <button onClick={() => setIsTagging(true)} className="flex items-center justify-between w-full text-left p-2 -mx-2 rounded-md hover:bg-accent">
+                        <div className="flex items-center gap-3">
+                           <Users className="h-5 w-5"/>
+                           <span className="font-medium">Tag people</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            {taggedUsers.length > 0 && <span className="text-sm text-muted-foreground">{taggedUsers.length} tagged</span>}
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </button>
+                    
+                    <Separator />
+
+                    <button onClick={() => setIsLocating(true)} className="flex items-center justify-between w-full text-left p-2 -mx-2 rounded-md hover:bg-accent">
+                        <div className="flex items-center gap-3">
+                            <MapPin className="h-5 w-5" />
+                            <span className="font-medium">Add location</span>
+                        </div>
+                         <div className="flex items-center gap-2">
+                            {location && <span className="text-sm text-muted-foreground max-w-xs truncate">{location}</span>}
+                            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                    </button>
+                    
+                     <Separator />
+
+                    <button onClick={() => setIsAccessibility(true)} className="flex items-center justify-between w-full text-left p-2 -mx-2 rounded-md hover:bg-accent">
+                        <div className="flex items-center gap-3">
+                           <Search className="h-5 w-5" />
+                           <span className="font-medium">Accessibility</span>
+                        </div>
+                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </button>
+
+                    <Separator />
+                    
+                    {renderSettings()}
+
+                </div>
+            </ScrollArea>
+            <div className="p-4 border-t hidden md:block">
+                 <Button onClick={handlePublish} className="w-full">Publish</Button>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
             </div>
           </div>
         </main>
@@ -212,7 +324,10 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
       <TagPeopleModal
         isOpen={isTagging}
         onClose={() => setIsTagging(false)}
+<<<<<<< HEAD
         media={media}
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         taggedUsers={taggedUsers}
         setTaggedUsers={setTaggedUsers}
       />
@@ -223,11 +338,19 @@ export default function MediaDetailsForm({ mode, onBack, onSubmit }: MediaDetail
         setLocation={setLocation}
       />
       <AccessibilityModal
+<<<<<<< HEAD
         isOpen={isAccessibility}
         onClose={() => setIsAccessibility(false)}
         files={files}
         altTexts={altTexts}
         setAltTexts={setAltTexts}
+=======
+         isOpen={isAccessibility}
+         onClose={() => setIsAccessibility(false)}
+         files={files}
+         altTexts={altTexts}
+         setAltTexts={setAltTexts}
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       />
     </>
   );

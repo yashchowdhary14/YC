@@ -1,6 +1,7 @@
 
 'use client';
 
+<<<<<<< HEAD
 
 import {
   Carousel,
@@ -13,10 +14,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Send, MoreHorizontal, Bookmark, Users2 } from 'lucide-react';
+=======
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Heart, MessageCircle, Send, MoreHorizontal, Bookmark } from 'lucide-react';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useUser, useFirestore } from '@/firebase';
+<<<<<<< HEAD
 import { Timestamp, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, writeBatch, serverTimestamp, setDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useState, useEffect, useRef } from 'react';
@@ -30,19 +38,34 @@ import { LazyMedia } from '@/components/ui/lazy-media';
 interface PostCardProps {
   post: Post;
   isCard?: boolean;
+=======
+import { Timestamp, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, writeBatch } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
+
+
+interface PostCardProps {
+    post: Post;
+    isCard?: boolean;
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }
 
 export default function PostCard({ post, isCard = true }: PostCardProps) {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
+<<<<<<< HEAD
   const ref = useRef<HTMLDivElement>(null);
   const isIntersecting = useIntersection(ref, { rootMargin: '300px' }); // Load early
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes || 0);
 
+<<<<<<< HEAD
   // Carousel & Tags State
   const [api, setApi] = useState<CarouselApi>();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -63,6 +86,8 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
     };
   }, [api]);
 
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   useEffect(() => {
     if (user && post.likes) {
       // The `likes` field on the post is just a number count.
@@ -74,15 +99,23 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
 
   const handleLike = async () => {
     if (!user || !firestore) return;
+<<<<<<< HEAD
 
     const postRef = doc(firestore, 'posts', post.id);
     const newLikedState = !isLiked;
 
+=======
+    
+    const postRef = doc(firestore, 'posts', post.id);
+    const newLikedState = !isLiked;
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     // Optimistic update
     setIsLiked(newLikedState);
     setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
 
     try {
+<<<<<<< HEAD
       await updateDoc(postRef, {
         likes: newLikedState ? arrayUnion(user.uid) : arrayRemove(user.uid)
       });
@@ -91,10 +124,21 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       setIsLiked(!newLikedState);
       setLikesCount(prev => newLikedState ? prev - 1 : prev + 1);
       toast({ variant: 'destructive', title: 'Failed to update like.' });
+=======
+        await updateDoc(postRef, {
+            likes: newLikedState ? arrayUnion(user.uid) : arrayRemove(user.uid)
+        });
+    } catch (e) {
+        // Revert optimistic update on error
+        setIsLiked(!newLikedState);
+        setLikesCount(prev => newLikedState ? prev - 1 : prev + 1);
+        toast({ variant: 'destructive', title: 'Failed to update like.' });
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     }
   }
 
   const handleSave = async () => {
+<<<<<<< HEAD
     if (!user || !firestore) return;
 
     const newSavedState = !isSaved;
@@ -117,6 +161,30 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
       setIsSaved(!newSavedState);
       toast({ variant: 'destructive', title: 'Failed to save post.' });
     }
+=======
+      if (!user || !firestore) return;
+      
+      const newSavedState = !isSaved;
+      setIsSaved(newSavedState);
+      
+      const savedPostRef = doc(firestore, `users/${user.uid}/savedPosts`, post.id);
+
+      try {
+          if (newSavedState) {
+              await writeBatch(firestore).set(savedPostRef, {
+                  postId: post.id,
+                  savedAt: serverTimestamp()
+              }).commit();
+              toast({ title: "Post Saved!" });
+          } else {
+              await deleteDoc(savedPostRef);
+              toast({ title: "Post Unsaved" });
+          }
+      } catch (e) {
+          setIsSaved(!newSavedState);
+          toast({ variant: 'destructive', title: 'Failed to save post.' });
+      }
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   }
 
 
@@ -125,6 +193,7 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
   }
 
   // Handle both Date and Firestore Timestamp objects
+<<<<<<< HEAD
   const postDate = post.createdAt instanceof Timestamp
     ? post.createdAt.toDate()
     : new Date(post.createdAt);
@@ -289,5 +358,72 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
         </>
       )}
     </motion.div>
+=======
+  const postDate = post.createdAt instanceof Timestamp 
+    ? post.createdAt.toDate() 
+    : new Date(post.createdAt);
+
+  return (
+    <div className={isCard ? "mb-4 border-b pb-2" : ""}>
+      {/* Header */}
+      <div className="flex items-center justify-between p-2 px-4">
+        <div className="flex items-center space-x-3">
+          <Link href={`/${post.user.username}`}>
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
+              <AvatarFallback>{post.user.username?.[0].toUpperCase()}</AvatarFallback>
+            </Avatar>
+          </Link>
+          <div className="grid gap-0.5 text-sm">
+            <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
+            {post.location && <span className="text-xs">{post.location}</span>}
+          </div>
+        </div>
+        <Button variant="ghost" size="icon">
+            <MoreHorizontal />
+        </Button>
+      </div>
+      
+      {/* Media */}
+      <div className="relative aspect-square bg-muted">
+        {post.type === 'photo' ? (
+            <Image src={post.mediaUrl} alt={post.caption || 'Post image'} fill className="object-cover" />
+        ) : (
+            <video src={post.mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover" />
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex justify-between p-2 px-3">
+        <div className="flex space-x-4">
+          <Button variant="ghost" size="icon" onClick={handleLike}>
+            <Heart className={cn(isLiked && "fill-destructive text-destructive")} />
+          </Button>
+          <Link href={`/p/${post.id}`}><Button variant="ghost" size="icon"><MessageCircle /></Button></Link>
+          <Button variant="ghost" size="icon"><Send /></Button>
+        </div>
+        <div>
+            <Button variant="ghost" size="icon" onClick={handleSave}>
+              <Bookmark className={cn(isSaved && "fill-foreground")} />
+            </Button>
+        </div>
+      </div>
+
+      {/* Likes and Caption */}
+      <div className="px-4 pb-2 text-sm">
+        <p className="font-semibold">{likesCount.toLocaleString()} likes</p>
+        <p className="mt-1">
+          <Link href={`/${post.user.username}`} className="font-semibold">{post.user.username}</Link>
+          <span className="ml-2">{post.caption}</span>
+        </p>
+        <Link href={`/p/${post.id}`}>
+            <p className="text-muted-foreground mt-2">View all {post.commentsCount} comments</p>
+        </Link>
+        <p className="text-muted-foreground text-xs mt-2 uppercase">
+            {formatDistanceToNow(postDate, { addSuffix: true })}
+        </p>
+      </div>
+    </div>
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   );
 }

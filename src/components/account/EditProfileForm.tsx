@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+<<<<<<< HEAD
 import { useFirestore } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +23,16 @@ import {
     FormItem,
     FormLabel,
     FormMessage,
+=======
+import { useToast } from '@/hooks/use-toast';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 } from '@/components/ui/form';
 
 interface EditProfileFormProps {
@@ -48,6 +59,7 @@ export default function EditProfileForm({ user, appUser }: EditProfileFormProps)
         },
     });
 
+<<<<<<< HEAD
     const firestore = useFirestore();
 
     const handleSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -67,6 +79,15 @@ export default function EditProfileForm({ user, appUser }: EditProfileFormProps)
         } finally {
             setIsLoading(false);
         }
+=======
+    const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+        setIsLoading(true);
+        // Simulate update
+        await new Promise(res => setTimeout(res, 1000));
+        console.log('Updating profile with:', values);
+        toast({ title: 'Profile Updated!', description: 'Your changes have been saved.' });
+        setIsLoading(false);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     };
 
     return (
@@ -97,7 +118,11 @@ export default function EditProfileForm({ user, appUser }: EditProfileFormProps)
                             </FormItem>
                         )}
                     />
+<<<<<<< HEAD
 
+=======
+                    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
                     <FormField
                         control={form.control}
                         name="username"

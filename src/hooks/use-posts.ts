@@ -1,6 +1,10 @@
 'use client';
 
+<<<<<<< HEAD
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+=======
+import { useState, useCallback, useEffect } from 'react';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import {
   collection,
   query,
@@ -15,7 +19,10 @@ import {
 import { useFirestore } from '@/firebase';
 import type { Post } from '@/lib/types';
 import { getHydratedUser, dummyPosts } from '@/lib/dummy-data';
+<<<<<<< HEAD
 import { throttle } from '@/lib/utils';
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 const POSTS_PER_PAGE = 5;
 
@@ -29,20 +36,36 @@ interface UsePostsResult {
 }
 
 export function usePosts(userId?: string): UsePostsResult {
+<<<<<<< HEAD
   const firestore = useFirestore();
   const [posts, setPosts] = useState<Post[]>([]);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+=======
+  // We'll use dummy data for this step to demonstrate the hook's functionality
+  // without requiring a live Firestore connection with seeded data.
+  const [posts, setPosts] = useState<Post[]>([]);
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+<<<<<<< HEAD
 
   const fetchPosts = useCallback(async (lastVisibleDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
     if (lastVisibleDoc === null) {
+=======
+  const [page, setPage] = useState(0);
+
+  const allPosts = dummyPosts.filter(p => p.type === 'photo');
+
+  const fetchPosts = useCallback(() => {
+    if (page === 0) {
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       setIsLoading(true);
     } else {
       setIsLoadingMore(true);
     }
+<<<<<<< HEAD
     setError(null);
 
     try {
@@ -134,4 +157,39 @@ export function usePosts(userId?: string): UsePostsResult {
   const throttledLoadMore = useMemo(() => throttle(() => loadMoreRef.current(), 1000), []);
 
   return { posts, isLoading, isLoadingMore, hasMore, error, loadMore: throttledLoadMore };
+=======
+
+    setTimeout(() => {
+      const start = page * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const newPosts = allPosts.slice(start, end);
+
+      setPosts(prev => (page === 0 ? newPosts : [...prev, ...newPosts]));
+      setHasMore(end < allPosts.length);
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }, 500 + Math.random() * 500); // Simulate network delay
+
+  }, [page]);
+  
+  useEffect(() => {
+    setPosts([]);
+    setPage(0);
+    setHasMore(true);
+    // The fetch will be triggered by the `page` change in loadMore
+  }, [userId]);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [page, fetchPosts]);
+
+
+  const loadMore = useCallback(() => {
+    if (!isLoading && !isLoadingMore && hasMore) {
+        setPage(p => p + 1);
+    }
+  }, [isLoading, isLoadingMore, hasMore]);
+
+  return { posts, isLoading, isLoadingMore, hasMore, error, loadMore };
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 }

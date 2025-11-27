@@ -4,7 +4,11 @@
 import { HighlightBubble } from './HighlightBubble';
 import { Skeleton } from '../ui/skeleton';
 import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+<<<<<<< HEAD
 import { collection, query, orderBy, limit } from 'firebase/firestore';
+=======
+import { collection, query, orderBy } from 'firebase/firestore';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 import type { User, Highlight } from '@/lib/types';
 import { useFirestore } from '@/firebase';
 
@@ -21,9 +25,14 @@ export default function StoryHighlights({ profileUser }: StoryHighlightsProps) {
     if (!profileUser) return null;
     // Query the subcollection path: users/{userId}/highlights
     return query(
+<<<<<<< HEAD
       collection(firestore, 'users', profileUser.id, 'highlights'),
       orderBy('createdAt', 'desc'),
       limit(20)
+=======
+        collection(firestore, 'users', profileUser.id, 'highlights'),
+        orderBy('createdAt', 'desc')
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
     );
   }, [firestore, profileUser]);
 
@@ -79,3 +88,7 @@ export default function StoryHighlights({ profileUser }: StoryHighlightsProps) {
   );
 }
 
+<<<<<<< HEAD
+=======
+    
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c

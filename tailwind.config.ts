@@ -1,5 +1,9 @@
 
+<<<<<<< HEAD
 import type { Config } from 'tailwindcss';
+=======
+import type {Config} from 'tailwindcss';
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
 
 export default {
   darkMode: ['class'],
@@ -91,13 +95,19 @@ export default {
           },
         },
         'spin-slow': {
+<<<<<<< HEAD
           from: { transform: 'rotate(0deg)' },
           to: { transform: 'rotate(360deg)' },
+=======
+            from: { transform: 'rotate(0deg)' },
+            to: { transform: 'rotate(360deg)' },
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
         },
         'heart-pop': {
           '0%': { transform: 'scale(1)', opacity: '1' },
           '50%': { transform: 'scale(1.4)', opacity: '0.9' },
           '100%': { transform: 'scale(0)', opacity: '0' },
+<<<<<<< HEAD
         },
         'fade-in': {
           '0%': { opacity: '0' },
@@ -123,18 +133,24 @@ export default {
           '0%, 100%': { boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)' },
           '50%': { boxShadow: '0 0 20px 10px hsl(var(--primary) / 0)' },
         },
+=======
+        }
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'spin-slow': 'spin-slow 3s linear infinite',
         'heart-pop': 'heart-pop 0.8s ease-out forwards',
+<<<<<<< HEAD
         'fade-in': 'fade-in 0.3s ease-out',
         'fade-in-up': 'fade-in-up 0.4s ease-out',
         'slide-in-right': 'slide-in-right 0.3s ease-out',
         'slide-in-left': 'slide-in-left 0.3s ease-out',
         'shimmer': 'shimmer 2s linear infinite',
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+=======
+>>>>>>> b0a2dda0c8eebed76a91c0a434503dc6eb3d721c
       },
       gridTemplateRows: {
         'auto': 'auto',
