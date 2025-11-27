@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -14,6 +13,7 @@ import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { getChat, addMessageToChat, dummyUsers } from '@/lib/dummy-data';
+import { Textarea } from '@/components/ui/textarea';
 
 interface ChatDisplayProps {
   chatId: string;
@@ -211,13 +211,15 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
             className="hidden"
             onChange={handleFileChange}
           />
-          <Input
+          <Textarea
             placeholder="Message..."
             className="rounded-full pr-12"
             value={messageText}
             onChange={(e) => setMessageText(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && onSendMessage()}
             disabled={isSending}
+            minRows={1}
+            maxRows={5}
           />
           <Button
             type="submit"

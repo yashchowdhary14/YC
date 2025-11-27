@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, ChangeEvent, useEffect } from 'react';
@@ -10,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const MAX_DURATION_SECONDS = 120; // 2 minutes
 
@@ -131,7 +131,7 @@ export default function CreateReelPage() {
                     <CardContent className="p-6 space-y-4">
                         <div className="space-y-1">
                             <Label htmlFor="caption">Caption</Label>
-                            <Input id="caption" placeholder="Write a caption..." />
+                            <Textarea id="caption" placeholder="Write a caption..." />
                         </div>
                          <Button onClick={handleShare} className="w-full" disabled={isLoading}>
                              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

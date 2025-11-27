@@ -1,4 +1,3 @@
-
 import { create } from "zustand";
 import { SimulatedUploadResult } from "@/components/create/types";
 

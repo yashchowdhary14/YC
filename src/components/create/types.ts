@@ -1,4 +1,3 @@
-
 export type CreateMode = "post" | "reel" | "video" | "story" | "live";
 
 export type FinalizedCreateData = {
