@@ -1,0 +1,210 @@
+
+import type { StorySlide } from '../story-creation-store';
+
+const RENDER_WIDTH = 1080;
+const RENDER_HEIGHT = 1920;
+const THUMBNAIL_SIZE = 640;
+
+export type RenderedStoryOutput = {
+  file: Blob;
+  thumbnail: Blob;
+  width: number;
+  height: number;
+  type: 'image' | 'video';
+};
+
+/**
+ * Renders the final story from the editor state into an image or video file.
+ * @param state The current state of the story slide from the editor.
+ * @returns A promise that resolves with the rendered story output.
+ */
+export async function renderStory(
+  state: StorySlide
+): Promise<RenderedStoryOutput> {
+  if (state.media.type === 'photo') {
+    return renderImageStory(state);
+  } else {
+    return renderVideoStory(state);
+  }
+}
+
+// --- Image Rendering Logic ---
+
+async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput> {
+    const canvas = new OffscreenCanvas(RENDER_WIDTH, RENDER_HEIGHT);
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not create canvas context');
+
+    // 1. Load the base image
+    const image = await loadImage(state.media.url);
+
+    // 2. Draw background and image
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+    
+    // TODO: Respect state.scale and state.offsetY from A8 prompt (not yet in store)
+    // For now, we fit the image to the canvas
+    const { x, y, width, height } = getFitDimensions(image.width, image.height, RENDER_WIDTH, RENDER_HEIGHT);
+    ctx.drawImage(image, x, y, width, height);
+
+    // 3. Draw text layers
+    for (const text of state.texts) {
+        drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
+    }
+    
+    // 4. Export final image
+    const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
+    
+    // 5. Generate thumbnail
+    const thumbnail = await generateThumbnailFromCanvas(canvas);
+
+    return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'image' };
+}
+
+// --- Video Rendering Logic ---
+
+async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput> {
+    const video = await loadVideo(state.media.url);
+    const canvas = document.createElement('canvas'); // MediaRecorder works best with a DOM canvas
+    canvas.width = RENDER_WIDTH;
+    canvas.height = RENDER_HEIGHT;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Could not create canvas context');
+
+    const stream = canvas.captureStream();
+    const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+    const chunks: Blob[] = [];
+    recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);
+    
+    const renderComplete = new Promise<void>((resolve) => {
+        recorder.onstop = () => resolve();
+    });
+
+    recorder.start();
+    video.play();
+
+    let firstFrameCaptured = false;
+    let thumbnail: Blob | null = null;
+    
+    const renderFrame = async () => {
+        if (video.paused || video.ended) {
+            recorder.stop();
+            return;
+        }
+
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
+        
+        const { x, y, width, height } = getFitDimensions(video.videoWidth, video.videoHeight, RENDER_WIDTH, RENDER_HEIGHT);
+        ctx.drawImage(video, x, y, width, height);
+
+        for (const text of state.texts) {
+            drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
+        }
+        
+        if (!firstFrameCaptured) {
+            thumbnail = await generateThumbnailFromCanvas(canvas);
+            firstFrameCaptured = true;
+        }
+
+        requestAnimationFrame(renderFrame);
+    };
+
+    await new Promise(resolve => {
+        video.oncanplay = resolve;
+    });
+
+    renderFrame();
+
+    await renderComplete;
+
+    const file = new Blob(chunks, { type: 'video/webm' });
+
+    if (!thumbnail) {
+        throw new Error('Could not generate video thumbnail.');
+    }
+
+    return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'video' };
+}
+
+
+// --- Helper Functions ---
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.crossOrigin = 'anonymous'; // Important for tainted canvas
+        img.src = src;
+    });
+}
+
+function loadVideo(src: string): Promise<HTMLVideoElement> {
+     return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.onloadeddata = () => resolve(video);
+        video.onerror = reject;
+        video.crossOrigin = 'anonymous';
+        video.muted = true;
+        video.loop = true;
+        video.src = src;
+        video.load();
+    });
+}
+
+function getFitDimensions(mediaWidth: number, mediaHeight: number, canvasWidth: number, canvasHeight: number) {
+    const mediaRatio = mediaWidth / mediaHeight;
+    const canvasRatio = canvasWidth / canvasHeight;
+    let width, height, x, y;
+
+    if (mediaRatio > canvasRatio) { // Media is wider
+        width = canvasWidth;
+        height = width / mediaRatio;
+    } else { // Media is taller
+        height = canvasHeight;
+        width = height * mediaRatio;
+    }
+    x = (canvasWidth - width) / 2;
+    y = (canvasHeight - height) / 2;
+    return { x, y, width, height };
+}
+
+function drawText(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, text: StorySlide['texts'][0], canvasWidth: number, canvasHeight: number) {
+    const fontSize = RENDER_WIDTH * 0.08; // Example: 8% of canvas width
+    ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
+    ctx.fillStyle = text.color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Apply shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 5;
+
+    // Apply transformations
+    const x = (text.position.x / 100) * canvasWidth;
+    const y = (text.position.y / 100) * canvasHeight;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(text.rotation * (Math.PI / 180));
+    ctx.scale(text.scale, text.scale);
+    ctx.fillText(text.text, 0, 0);
+    ctx.restore();
+}
+
+async function generateThumbnailFromCanvas(sourceCanvas: HTMLCanvasElement | OffscreenCanvas): Promise<Blob> {
+    const thumbCanvas = new OffscreenCanvas(THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+    const ctx = thumbCanvas.getContext('2d');
+    if (!ctx) throw new Error('Could not create thumbnail context');
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+
+    const { x, y, width, height } = getFitDimensions(sourceCanvas.width, sourceCanvas.height, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
+    ctx.drawImage(sourceCanvas, x, y, width, height);
+    
+    return thumbCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 });
+}
