@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useStoryCreationStore, DrawingElement } from '@/lib/story-creation-store';
+import { useCreateStore, DrawingElement } from '@/lib/create-store';
 import { useRef, useState, PointerEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -53,8 +53,8 @@ const DrawingToolbar = ({ activeTool, setActiveTool, activeColor, setActiveColor
 }
 
 export default function DrawingCanvas() {
-  const { activeSlideId, media, updateSlide } = useStoryCreationStore();
-  const activeSlide = media.find(s => s.id === activeSlideId);
+  const { activeMediaId, media, updateMedia } = useCreateStore();
+  const activeSlide = media.find(s => s.id === activeMediaId);
   const [isDrawing, setIsDrawing] = useState(false);
   const [activeTool, setActiveTool] = useState<'pen' | 'highlighter' | 'eraser'>('pen');
   const [activeColor, setActiveColor] = useState('#FFFFFF');
@@ -94,7 +94,7 @@ export default function DrawingCanvas() {
       const otherDrawings = activeSlide.drawings.filter(
         (d) => d.id !== currentPathRef.current!.id
       );
-      updateSlide(activeSlide.id, {
+      updateMedia(activeSlide.id, {
         drawings: [...otherDrawings, currentPathRef.current],
       });
     }

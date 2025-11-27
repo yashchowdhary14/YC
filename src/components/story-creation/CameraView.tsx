@@ -4,7 +4,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useStoryCreationStore } from '@/lib/story-creation-store';
+import { useCreateStore } from '@/lib/create-store';
 import { X, Zap, ZapOff } from 'lucide-react';
 import CameraPreview from './CameraPreview';
 import CameraControls from './CameraControls';
@@ -20,7 +20,7 @@ interface CameraViewProps {
 export default function CameraView({ onExit }: CameraViewProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const addSlide = useStoryCreationStore((s) => s.addSlide);
+  const addMedia = useCreateStore((s) => s.addMedia);
   const isMobile = useIsMobile();
 
   const [facingMode, setFacingMode] = useState<FacingMode>('environment');
@@ -51,24 +51,22 @@ export default function CameraView({ onExit }: CameraViewProps) {
       canvas.toBlob((blob) => {
         if(blob) {
             const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
-            addSlide({ url: dataUri, type: 'photo', file });
+            addMedia([file]);
         }
       }, 'image/jpeg');
 
     }
-  }, [addSlide, facingMode, videoRef]);
+  }, [addMedia, facingMode, videoRef]);
 
   const handleFlipCamera = () => {
     setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+    const files = e.target.files;
+    if (files && files.length > 0) {
       try {
-        const dataUri = await fileToDataUri(file);
-        const type = file.type.startsWith('video') ? 'video' : 'photo';
-        addSlide({ url: dataUri, type, file });
+        await addMedia(Array.from(files));
       } catch (error) {
         toast({
           variant: 'destructive',

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType, StoryEffects } from '@/lib/story-creation-store';
+import { useCreateStore, useActiveMediaObject, TextElement as TextElementType, StoryEffects } from '@/lib/create-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles, SlidersHorizontal, Music } from 'lucide-react';
@@ -25,9 +25,9 @@ interface StoryEditorProps {
 
 
 export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) {
-  const activeSlide = useActiveStorySlide();
-  const reset = useStoryCreationStore((s) => s.reset);
-  const updateSlide = useStoryCreationStore((s) => s.updateSlide);
+  const activeSlide = useActiveMediaObject();
+  const reset = useCreateStore((s) => s.reset);
+  const updateMedia = useCreateStore((s) => s.updateMedia);
   const router = useRouter();
   const { toast } = useToast();
   
@@ -52,7 +52,7 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
         scale: 1,
         rotation: 0,
     };
-    updateSlide(activeSlide.id, { texts: [...activeSlide.texts, newText] });
+    updateMedia(activeSlide.id, { texts: [...activeSlide.texts, newText] });
   };
   
   const toggleDrawing = () => {
@@ -137,16 +137,16 @@ export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) 
           style={{ ...effectsStyle, ...overlayStyle }}
         >
             <div className="w-full h-full" style={{ filter: liveFilterStyle }}>
-              {activeSlide.media.type === 'photo' ? (
+              {activeSlide.type === 'photo' ? (
                 <Image
-                    src={activeSlide.media.url}
+                    src={activeSlide.url}
                     alt="Story preview"
                     fill
                     className="object-contain"
                 />
               ) : (
                 <video
-                    src={activeSlide.media.url}
+                    src={activeSlide.url}
                     className="w-full h-full object-contain"
                     autoPlay
                     loop

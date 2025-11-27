@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useStoryCreationStore, TextElement as TextElementType } from '@/lib/story-creation-store';
+import { useCreateStore, TextElement as TextElementType } from '@/lib/create-store';
 import { useState } from 'react';
 import { motion, PanInfo } from 'framer-motion';
 
@@ -11,7 +11,7 @@ interface TextElementProps {
 }
 
 export default function TextElement({ element, slideId }: TextElementProps) {
-    const { updateSlide, media } = useStoryCreationStore();
+    const { updateMedia, media } = useCreateStore();
     const activeSlide = media.find(s => s.id === slideId);
     
     // In future steps, we will use state to handle editing, dragging, etc.
@@ -34,7 +34,7 @@ export default function TextElement({ element, slideId }: TextElementProps) {
             text.id === element.id ? { ...text, position: newPosition } : text
         );
 
-        updateSlide(slideId, { texts: updatedTexts });
+        updateMedia(slideId, { texts: updatedTexts });
     };
 
     const textStyle: React.CSSProperties = {

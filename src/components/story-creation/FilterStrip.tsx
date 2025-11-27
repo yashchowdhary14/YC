@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useStoryCreationStore, useActiveStorySlide } from '@/lib/story-creation-store';
+import { useCreateStore, useActiveMediaObject } from '@/lib/create-store';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import FilterIntensitySlider from './filters/FilterIntensitySlider';
@@ -43,13 +43,13 @@ function FilterPreview({ filter, imageUrl, onSelect, isSelected }: { filter: any
 }
 
 export default function FilterStrip() {
-    const activeSlide = useActiveStorySlide();
-    const updateSlide = useStoryCreationStore(s => s.updateSlide);
+    const activeSlide = useActiveMediaObject();
+    const updateMedia = useCreateStore(s => s.updateMedia);
 
     if (!activeSlide) return null;
 
     const handleSelectFilter = (filterName: string) => {
-        updateSlide(activeSlide.id, { filterName, filterIntensity: 1 });
+        updateMedia(activeSlide.id, { filterName, filterIntensity: 1 });
     }
 
     return (
@@ -62,7 +62,7 @@ export default function FilterStrip() {
             {activeSlide.filterName && (
                 <FilterIntensitySlider 
                     intensity={activeSlide.filterIntensity}
-                    onIntensityChange={(intensity) => updateSlide(activeSlide.id, { filterIntensity: intensity })}
+                    onIntensityChange={(intensity) => updateMedia(activeSlide.id, { filterIntensity: intensity })}
                 />
             )}
             <div className="flex gap-4 overflow-x-auto pb-2 px-4">
@@ -70,7 +70,7 @@ export default function FilterStrip() {
                     <FilterPreview 
                         key={filter.name}
                         filter={filter}
-                        imageUrl={activeSlide.media.url}
+                        imageUrl={activeSlide.url}
                         onSelect={() => handleSelectFilter(filter.name)}
                         isSelected={activeSlide.filterName === filter.name}
                     />

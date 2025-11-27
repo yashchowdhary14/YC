@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useStoryCreationStore, useActiveStorySlide, StoryEffects, defaultEffects } from '@/lib/story-creation-store';
+import { useCreateStore, useActiveMediaObject, StoryEffects, defaultEffects } from '@/lib/create-store';
 import { motion } from 'framer-motion';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import EffectToggle from './EffectToggle';
@@ -11,26 +11,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 
 export default function EffectsPanel() {
-  const activeSlide = useActiveStorySlide();
-  const updateSlide = useStoryCreationStore(s => s.updateSlide);
+  const activeSlide = useActiveMediaObject();
+  const updateMedia = useCreateStore(s => s.updateMedia);
 
   if (!activeSlide) return null;
   const { effects } = activeSlide;
 
   const handleEffectChange = (key: keyof Omit<StoryEffects, 'tiltShift'>, value: number) => {
-    updateSlide(activeSlide.id, { effects: { [key]: value } });
+    updateMedia(activeSlide.id, { effects: { [key]: value } });
   };
   
   const handleTiltShiftModeChange = (mode: 'none' | 'linear' | 'radial') => {
-    updateSlide(activeSlide.id, { effects: { tiltShift: { ...effects.tiltShift, mode } } });
+    updateMedia(activeSlide.id, { effects: { tiltShift: { ...effects.tiltShift, mode } } });
   }
 
   const handleTiltShiftIntensityChange = (intensity: number) => {
-     updateSlide(activeSlide.id, { effects: { tiltShift: { ...effects.tiltShift, intensity } } });
+     updateMedia(activeSlide.id, { effects: { tiltShift: { ...effects.tiltShift, intensity } } });
   }
   
   const resetAllEffects = () => {
-    updateSlide(activeSlide.id, { effects: defaultEffects });
+    updateMedia(activeSlide.id, { effects: defaultEffects });
   };
 
   return (

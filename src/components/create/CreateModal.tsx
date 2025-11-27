@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Sheet,
   SheetContent,
@@ -22,6 +22,7 @@ import UploadManager from "./UploadManager";
 import PublishSuccessScreen from "./PublishSuccessScreen";
 import { useLocalFeedStore } from "@/store/localFeedStore";
 import CreateStoryPage from "@/app/create/story/page";
+import { useCreateStore } from "@/lib/create-store";
 
 
 type CreateModalProps = {
@@ -29,21 +30,42 @@ type CreateModalProps = {
   onClose: () => void;
 };
 
-type Step = "select-type" | "media-picker" | "story-editor" | "media-preview" | "media-details" | "publish" | "success";
-
-
 export function CreateModal({ open, onClose }: CreateModalProps) {
   const isMobile = useIsMobile();
   const router = useRouter();
   
-  const [step, setStep] = useState<Step>("select-type");
-  const [mode, setMode] = useState<CreateMode | null>(null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [finalizedData, setFinalizedData] = useState<FinalizedCreateData | null>(null);
+  const {
+    step,
+    setStep,
+    mode,
+    setMode,
+    media,
+    addMedia,
+    setFinalizedData,
+    finalizedData,
+    reset: resetStore,
+  } = useCreateStore();
+  
   const [uploadResult, setUploadResult] = useState<SimulatedUploadResult | null>(null);
 
   const addItemToFeed = useLocalFeedStore(s => s.addItem);
   
+  useEffect(() => {
+    // If the modal is closed, reset the state
+    if (!open) {
+      // Delay reset to allow animations to finish
+      setTimeout(() => {
+        setStep('select-type');
+        setMode(null);
+        setFinalizedData(null);
+        setUploadResult(null);
+        // Also reset media files in the store
+        resetStore();
+      }, 300);
+    }
+  }, [open, setStep, setMode, setFinalizedData, resetStore]);
+
+
   const handleSelect = (selectedMode: CreateMode) => {
     setMode(selectedMode);
     if (selectedMode === 'live') {
@@ -58,19 +80,19 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     }
   };
 
-  const handleMediaSelected = (selectedFiles: File[]) => {
-    setFiles(selectedFiles);
+  const handleMediaSelected = async (selectedFiles: File[]) => {
+    await addMedia(selectedFiles);
     setStep("media-preview");
   };
   
   const handlePreviewConfirmed = (validatedFiles: File[]) => {
-    setFiles(validatedFiles);
+    // Media is already in the store, just move to next step
     setStep("media-details");
   }
 
   const handleStoryEditingComplete = (renderedFile: File) => {
     setMode('story');
-    setFiles([renderedFile]);
+    addMedia([renderedFile]);
     setStep('media-details');
   };
 
@@ -100,14 +122,6 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
 
   const resetFlow = () => {
     onClose();
-    // Delay reset to allow animations to finish
-    setTimeout(() => {
-        setStep('select-type');
-        setMode(null);
-        setFiles([]);
-        setFinalizedData(null);
-        setUploadResult(null);
-    }, 300);
   }
 
   const renderStep = () => {
@@ -120,11 +134,11 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         case "story-editor":
             return <CreateStoryPage onStoryReady={handleStoryEditingComplete} onExit={handleBack} />;
         case "media-preview":
-            if (!mode || mode === 'live' || files.length === 0) return null;
-            return <MediaPreview mode={mode} files={files} onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
+            if (!mode || mode === 'live' || media.length === 0) return null;
+            return <MediaPreview onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
         case "media-details":
-             if (!mode || mode === 'live' || files.length === 0) return null;
-             return <MediaDetailsForm mode={mode} files={files} onBack={handleBack} onSubmit={handleSubmitDetails} />
+             if (!mode || mode === 'live' || media.length === 0) return null;
+             return <MediaDetailsForm mode={mode} files={media.map(m => m.file)} onBack={handleBack} onSubmit={handleSubmitDetails} />
         case "publish":
             if (!finalizedData) return null;
             return <UploadManager data={finalizedData} onComplete={handleUploadComplete} />;
@@ -136,7 +150,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     }
   }
   
-  const stepTitles: Partial<Record<Step, string>> = {
+  const stepTitles: Partial<Record<typeof step, string>> = {
     'select-type': 'Create',
     'media-picker': mode ? `New ${mode.charAt(0).toUpperCase() + mode.slice(1)}` : 'Select Media',
     'story-editor': 'New Story',

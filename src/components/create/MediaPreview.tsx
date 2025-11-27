@@ -8,10 +8,9 @@ import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import PostPreview from './preview/PostPreview';
 import VideoPreview from './preview/VideoPreview';
+import { useCreateStore } from '@/lib/create-store';
 
 type MediaPreviewProps = {
-  mode: Exclude<CreateMode, 'live'>;
-  files: File[];
   onBack: () => void;
   onConfirm: (validatedFiles: File[]) => void;
 };
@@ -34,8 +33,9 @@ const getVideoMetadata = (file: File): Promise<{duration: number, width: number,
     });
 };
 
-export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPreviewProps) {
-    const [currentFiles, setCurrentFiles] = useState(files);
+export default function MediaPreview({ onBack, onConfirm }: MediaPreviewProps) {
+    const { mode, media, setStep } = useCreateStore();
+    const files = useMemo(() => media.map(m => m.file), [media]);
     const { toast } = useToast();
 
     // Validation logic effect
@@ -43,12 +43,12 @@ export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPr
         let isValid = true;
         const validate = async () => {
             if (mode === 'post') {
-                if (currentFiles.length > 10) {
+                if (files.length > 10) {
                     toast({ variant: 'destructive', title: 'Too many files', description: 'You can select a maximum of 10 files for a post.' });
                     isValid = false;
                 }
             } else if (mode === 'reel' || mode === 'video' || mode === 'story') {
-                const file = currentFiles[0];
+                const file = files[0];
                 if (!file) {
                     isValid = false;
                     onBack(); // go back if no file exists
@@ -78,26 +78,26 @@ export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPr
         };
 
         validate();
-    }, [currentFiles, mode, toast, onBack]);
+    }, [files, mode, toast, onBack]);
 
     const handleConfirm = () => {
-        onConfirm(currentFiles);
+        onConfirm(files);
     };
     
     const renderPreview = () => {
         switch(mode) {
             case 'post':
-                return <PostPreview files={currentFiles} setFiles={setCurrentFiles} />;
+                return <PostPreview />;
             case 'reel':
-                 return <VideoPreview file={currentFiles[0]} aspectRatio="9:16" />;
+                 return <VideoPreview file={files[0]} aspectRatio="9:16" />;
             case 'video':
-                 return <VideoPreview file={currentFiles[0]} aspectRatio="16:9" />;
+                 return <VideoPreview file={files[0]} aspectRatio="16:9" />;
             case 'story':
-                if (currentFiles[0].type.startsWith('video/')) {
-                    return <VideoPreview file={currentFiles[0]} aspectRatio="9:16" isStory={true} />;
+                if (files[0]?.type.startsWith('video/')) {
+                    return <VideoPreview file={files[0]} aspectRatio="9:16" isStory={true} />;
                 }
                 // TODO: Add image story preview
-                return <PostPreview files={currentFiles} setFiles={setCurrentFiles} isStory={true} />;
+                return <PostPreview isStory={true} />;
             default:
                 return <div>Unsupported mode</div>;
         }
