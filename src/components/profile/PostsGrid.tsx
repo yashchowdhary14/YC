@@ -1,19 +1,29 @@
 
 'use client';
 
+import { useRef } from 'react';
 import { motion } from 'framer-motion';
-import type { Post } from '@/lib/types';
-import { Skeleton } from '../ui/skeleton';
+import { Loader2 } from 'lucide-react';
 import PostTile from '../app/post-tile';
+import { Skeleton } from '../ui/skeleton';
+import { usePosts } from '@/hooks/use-posts';
+import { useIntersection } from '@/hooks/use-intersection';
 
 interface PostsGridProps {
-  posts: Post[];
-  isLoading?: boolean;
+  userId: string;
 }
 
-const PostsGrid: React.FC<PostsGridProps> = ({ posts, isLoading = false }) => {
-  const skeletonCount = 12;
+const PostsGrid: React.FC<PostsGridProps> = ({ userId }) => {
+  const { posts, isLoading, isLoadingMore, hasMore, loadMore } = usePosts(userId);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
+  // Auto-load more when the loader element is visible
+  const isLoaderVisible = useIntersection(loaderRef, { threshold: 0.1 });
+  
+  if (isLoaderVisible && hasMore && !isLoadingMore) {
+      loadMore();
+  }
+  
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -36,7 +46,7 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts, isLoading = false }) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-3 auto-rows-fr gap-1 md:gap-4">
-        {Array.from({ length: skeletonCount }).map((_, index) => (
+        {Array.from({ length: 12 }).map((_, index) => (
           <div key={`skeleton-${index}`} className="relative w-full aspect-square overflow-hidden">
             <Skeleton className="w-full h-full" />
           </div>
@@ -55,23 +65,32 @@ const PostsGrid: React.FC<PostsGridProps> = ({ posts, isLoading = false }) => {
   }
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="grid grid-cols-3 auto-rows-fr gap-1 md:gap-4"
-    >
-      {posts.map((post) => (
-        <motion.div
-          key={post.id}
-          className="relative w-full aspect-square overflow-hidden"
-          variants={itemVariants}
-          layout
-        >
-          <PostTile post={post} />
-        </motion.div>
-      ))}
-    </motion.div>
+    <>
+      <motion.div
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+        className="grid grid-cols-3 auto-rows-fr gap-1 md:gap-4"
+      >
+        {posts.map((post) => (
+          <motion.div
+            key={post.id}
+            className="relative w-full aspect-square overflow-hidden"
+            variants={itemVariants}
+            layout
+          >
+            <PostTile post={post} />
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Intersection loader */}
+      <div ref={loaderRef} className="col-span-3 mt-8 flex justify-center">
+        {isLoadingMore && (
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        )}
+      </div>
+    </>
   );
 };
 

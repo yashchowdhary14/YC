@@ -17,7 +17,7 @@ interface PostTileProps {
 const getLinkHref = (post: Post) => {
     switch(post.type) {
         case 'photo': return `/p/${post.id}`;
-        case 'reel': return `/reels`; // Reels page handles full-screen viewing
+        case 'reel': return `/reels?postId=${post.id}`;
         case 'video': return `/watch/${post.id}`;
         default: return '#';
     }

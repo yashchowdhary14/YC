@@ -115,17 +115,17 @@ export default function ProfilePage() {
             )}
           </TabsList>
           <TabsContent value="grid" className="mt-6">
-            <PostsGrid posts={userPosts} />
+            <PostsGrid userId={profileUser.id} />
           </TabsContent>
           <TabsContent value="reels" className="mt-6">
-            <PostsGrid posts={userReels} />
+            <PostsGrid userId={profileUser.id} />
           </TabsContent>
           <TabsContent value="tagged" className="mt-6">
-             <PostsGrid posts={taggedPosts} />
+             <PostsGrid userId={profileUser.id} />
           </TabsContent>
           {isMyProfile && (
             <TabsContent value="saved" className="mt-6">
-                <PostsGrid posts={savedPosts} />
+                <PostsGrid userId={profileUser.id} />
             </TabsContent>
           )}
         </Tabs>
