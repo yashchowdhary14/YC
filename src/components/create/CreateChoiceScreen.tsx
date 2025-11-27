@@ -4,10 +4,10 @@
 import { Camera, Clapperboard, PlusSquare, Video, Wifi } from "lucide-react";
 
 const creationOptions = [
-  { type: 'post', label: 'Create Post', icon: PlusSquare, href: '#' },
-  { type: 'reel', label: 'Create Reel', icon: Clapperboard, href: '#' },
-  { type: 'video', label: 'Upload Video', icon: Video, href: '#' },
-  { type: 'story', label: 'Create Story', icon: Camera, href: '#' },
+  { type: 'post', label: 'Create Post', icon: PlusSquare },
+  { type: 'reel', label: 'Create Reel', icon: Clapperboard },
+  { type: 'video', label: 'Upload Video', icon: Video },
+  { type: 'story', label: 'Create Story', icon: Camera },
   { type: 'live', label: 'Go Live', icon: Wifi, href: '/studio/broadcast' },
 ];
 
@@ -19,11 +19,7 @@ interface CreateChoiceScreenProps {
 
 export default function CreateChoiceScreen({ onSelect }: CreateChoiceScreenProps) {
 
-  const handleItemClick = (type: CreateMode, href: string) => {
-    if (href !== '#') {
-      // For external links like 'Go Live', we can handle navigation separately if needed
-      // For now, it will also be handled by onSelect which will close the modal.
-    }
+  const handleItemClick = (type: CreateMode) => {
     onSelect(type);
   };
   
@@ -33,7 +29,7 @@ export default function CreateChoiceScreen({ onSelect }: CreateChoiceScreenProps
          {creationOptions.map(option => (
             <button
                 key={option.type}
-                onClick={() => handleItemClick(option.type as CreateMode, option.href)}
+                onClick={() => handleItemClick(option.type as CreateMode)}
                 className="w-full flex items-center justify-between p-4 rounded-lg text-left transition-colors hover:bg-accent"
             >
                 <div className="flex items-center gap-4">

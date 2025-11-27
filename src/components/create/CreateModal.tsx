@@ -45,12 +45,12 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   const addItemToFeed = useLocalFeedStore(s => s.addItem);
   
   const handleSelect = (selectedMode: CreateMode) => {
+    setMode(selectedMode);
     if (selectedMode === 'live') {
         router.push('/studio/broadcast');
         onClose();
         return;
     }
-    setMode(selectedMode);
     if (selectedMode === 'story') {
         setStep('story-editor');
     } else {
