@@ -9,6 +9,7 @@ import {
   Clapperboard,
   Video,
   Search,
+  UserCircle,
 } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -51,6 +52,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
 
   const allLinks = [
     ...mainLinks,
+    { href: '/profile2', label: 'PROFILE2.0', icon: UserCircle },
   ];
 
   if(profileLink){
