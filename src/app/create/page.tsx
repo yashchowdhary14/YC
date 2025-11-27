@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { PlusSquare, Clapperboard, Video, Wifi, Camera } from 'lucide-react';
 
 const creationOptions = [
   {
@@ -10,37 +11,43 @@ const creationOptions = [
     title: 'Story',
     description: 'Share a fleeting moment that disappears.',
     icon: (
-       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12s4.48 10 10 10" />
-        <path d="m15.5 6-4 4-4-4" />
-      </svg>
+        <Camera width="32" height="32" />
     ),
     color: 'from-purple-500 to-indigo-500',
+  },
+  {
+    href: '/create/post',
+    title: 'Post',
+    description: 'Share a photo or text with your followers.',
+    icon: (
+        <PlusSquare width="32" height="32" />
+    ),
+    color: 'from-pink-500 to-rose-500',
   },
   {
     href: '/create/video',
     title: 'Reel',
     description: 'Create and share short, fun videos.',
     icon: (
-       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11" />
-        <rect x="2" y="6" width="14" height="12" rx="2" />
-      </svg>
+       <Clapperboard width="32" height="32" />
     ),
     color: 'from-cyan-500 to-blue-500',
+  },
+  {
+    href: '/create/video', // This will now open the generic video creator
+    title: 'Video',
+    description: 'Upload and share a long-form video.',
+    icon: (
+        <Video width="32" height="32" />
+    ),
+    color: 'from-emerald-500 to-green-500',
   },
   {
     href: '/studio/broadcast',
     title: 'Go Live',
     description: 'Stream directly to your audience now.',
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 3.81a4 4 0 0 1 5.19 5.19" />
-        <path d="M12 2a10 10 0 0 1 10 10" />
-        <path d="M8 3.81a4 4 0 0 0-5.19 5.19" />
-        <path d="M12 22a10 10 0 0 1-10-10" />
-        <circle cx="12" cy="12" r="2" fill="currentColor" />
-      </svg>
+      <Wifi width="32" height="32" />
     ),
     color: 'from-red-500 to-orange-500',
   },
