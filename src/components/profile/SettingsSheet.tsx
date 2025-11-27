@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,6 +28,7 @@ const menuSections = [
         title: "How you use YCP",
         items: [
             { label: "Saved", icon: Bookmark, href: "/account/edit?tab=saved" },
+            { label: "Likes", icon: Heart, href: "/account/edit?tab=liked" },
             { label: "Archive", icon: Clock },
             { label: "Your activity", icon: Heart },
             { label: "Notifications", icon: Heart },
@@ -42,7 +44,7 @@ const menuSections = [
      {
         title: "Who can see your content",
         items: [
-            { label: "Account privacy", icon: Shield },
+            { label: "Account privacy", icon: Shield, href: "/account/edit?tab=privacy" },
             { label: "Close Friends", icon: UserCircle },
             { label: "Blocked", icon: Shield },
             { label: "Hide story and live", icon: Shield },

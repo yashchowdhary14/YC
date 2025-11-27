@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useUser } from '@/firebase';
 import { Loader2 } from 'lucide-react';
-import { notFound, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import DashboardNav from '@/components/account/DashboardNav';
 import EditProfileForm from '@/components/account/EditProfileForm';
@@ -17,7 +17,16 @@ export type ActiveTab = 'edit' | 'saved' | 'privacy' | 'liked';
 export default function AccountEditPage() {
     const { user, appUser, isUserLoading } = useUser();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    
     const [activeTab, setActiveTab] = useState<ActiveTab>('edit');
+
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab') as ActiveTab;
+        if (tabFromUrl && ['edit', 'saved', 'privacy', 'liked'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams]);
 
     if (isUserLoading) {
         return (
