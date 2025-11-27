@@ -12,13 +12,14 @@ import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import CreateChoiceScreen, { CreateMode } from "./CreateChoiceScreen";
 import MediaPicker from "./MediaPicker";
+import MediaPreview from "./MediaPreview";
 
 type CreateModalProps = {
   open: boolean;
   onClose: () => void;
 };
 
-type Step = "select-type" | "media-picker" | "editor" | "publish";
+type Step = "select-type" | "media-picker" | "media-preview" | "editor" | "publish";
 
 
 export function CreateModal({ open, onClose }: CreateModalProps) {
@@ -27,6 +28,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   
   const [step, setStep] = useState<Step>("select-type");
   const [mode, setMode] = useState<CreateMode | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   
   const handleSelect = (selectedMode: CreateMode) => {
     if (selectedMode === 'live') {
@@ -38,14 +40,21 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     setStep("media-picker");
   };
 
-  const handleMediaSelected = (files: File[]) => {
-    console.log("Media selected:", files);
-    // TODO: Navigate to the editor step
-    onClose(); // For now, just close
+  const handleMediaSelected = (selectedFiles: File[]) => {
+    setFiles(selectedFiles);
+    setStep("media-preview");
   };
+  
+  const handlePreviewConfirmed = (validatedFiles: File[]) => {
+    console.log("Preview validated, proceeding to next step with:", validatedFiles);
+    // For now, just close the modal. In A5, this will go to the caption/publish step.
+    onClose();
+  }
 
   const handleBack = () => {
-    if (step === 'media-picker') {
+    if (step === 'media-preview') {
+      setStep('media-picker');
+    } else if (step === 'media-picker') {
         setStep('select-type');
     }
   }
@@ -57,6 +66,9 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         case "media-picker":
             if (!mode || mode === 'live') return null;
             return <MediaPicker mode={mode} onMediaSelected={handleMediaSelected} onBack={handleBack} />;
+        case "media-preview":
+            if (!mode || mode === 'live' || files.length === 0) return null;
+            return <MediaPreview mode={mode} files={files} onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
         default:
             return <CreateChoiceScreen onSelect={handleSelect} />;
     }
@@ -67,7 +79,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         <AnimatePresence mode="wait">
             <motion.div
                 key={step}
-                initial={{ opacity: 0, x: 300 }}
+                initial={{ opacity: 0, x: step === 'select-type' ? 0 : 300 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -300 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -82,6 +94,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   const title = {
     'select-type': 'Create',
     'media-picker': mode === 'post' ? 'New Post' : mode === 'reel' ? 'New Reel' : mode === 'video' ? 'Upload Video' : 'Create Story',
+    'media-preview': 'Preview',
   }[step] || 'Create';
 
   const resetFlow = () => {
@@ -90,6 +103,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     setTimeout(() => {
         setStep('select-type');
         setMode(null);
+        setFiles([]);
     }, 300);
   }
 
@@ -100,10 +114,10 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
           <div className="w-full pt-3 pb-2 flex justify-center">
             <div className="w-8 h-1 bg-muted rounded-full" />
           </div>
-          <SheetHeader className="text-center pb-2 border-b">
-            <SheetTitle>{title}</SheetTitle>
-          </SheetHeader>
-          <div className="p-4 flex-1 overflow-hidden">
+          <DialogHeader className="text-center pb-2 border-b">
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          <div className="p-0 flex-1 overflow-hidden">
             {renderContent()}
           </div>
         </SheetContent>
