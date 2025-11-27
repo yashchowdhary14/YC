@@ -37,11 +37,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-        <div className="w-full max-w-lg mx-auto text-center py-8">
-            <h1 className="text-4xl font-bold">Profile 3.0</h1>
-            <p className="text-muted-foreground mt-2">This is the new Profile 3.0 page.</p>
-        </div>
+    <div className="min-h-screen bg-background pt-14">
       <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
         <ProfileHeader user={profileUser} postsCount={userPosts.length} />
 
