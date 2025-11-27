@@ -15,7 +15,7 @@ export const dummyUsers: (Omit<User, 'avatarUrl'> & { avatarUrl?: string })[] = 
   { id: 'user_urban_eats', username: 'urban_eats', fullName: 'Javier Rodriguez', bio: 'Food blogger on a quest to find the best tacos in every city. 🌮', followersCount: 9800, followingCount: 650, verified: false },
 ];
 
-const getHydratedUser = (userId: string): User => {
+export const getHydratedUser = (userId: string): User => {
     const user = dummyUsers.find(u => u.id === userId)!;
     return {
         ...user,
@@ -31,9 +31,9 @@ const generateReelComments = (count: number): ReelComment[] => {
             user: user.username,
             profilePic: `https://picsum.photos/seed/${user.id}/100`,
             text: `This is a fantastic reel! Great job! #${i+1}`,
-            likes: (i * 13 + 5) % 100, // Deterministic likes
-            timeAgo: `${(i * 3 + 1) % 59 + 1}m`,
-            isLiked: (i % 5) === 0 // Deterministic isLiked
+            likes: (i * 13 + 5),
+            timeAgo: `${(i * 3 + 1)}m`,
+            isLiked: (i % 5) === 0
         }
     })
 }
@@ -156,7 +156,7 @@ const generateMessages = (chatId: string, user1Id: string, user2Id: string): Mes
       senderId: msg.sender,
       text: msg.text,
       mediaUrl: msg.mediaUrl,
-      timestamp: new Date(Date.now() - (10 - index) * 60000), // Mins ago
+      timestamp: new Date(Date.now() - (10 - index) * 60000 * (index + 1)), // Use index to vary time
       isRead: true,
     });
   });
