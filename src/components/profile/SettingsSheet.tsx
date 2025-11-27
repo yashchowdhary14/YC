@@ -5,6 +5,9 @@ import { useState } from 'react';
 import {
   Sheet,
   SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from '@/components/ui/sheet';
 import { AnimatePresence, motion } from 'framer-motion';
 import SettingsRouter from './settings/SettingsRouter';
@@ -33,6 +36,13 @@ export default function SettingsSheet({ isOpen, onOpenChange }: SettingsSheetPro
         className="w-full max-w-full sm:max-w-md p-0 flex flex-col"
         onOpenAutoFocus={(e) => e.preventDefault()} // Prevents auto-focus on first element
       >
+        {/* The title is visually hidden but accessible to screen readers */}
+        <SheetHeader className="sr-only">
+          <SheetTitle>Settings and Activity</SheetTitle>
+          <SheetDescription>
+            Manage your account settings, privacy, and activity.
+          </SheetDescription>
+        </SheetHeader>
         <div className="relative h-full overflow-hidden">
           <AnimatePresence initial={false}>
             <SettingsRouter 
@@ -47,5 +57,3 @@ export default function SettingsSheet({ isOpen, onOpenChange }: SettingsSheetPro
     </Sheet>
   );
 }
-
-    
