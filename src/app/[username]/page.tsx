@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -90,7 +91,7 @@ export default function ProfilePage() {
         <StoryHighlights profileUser={profileUser} />
 
         <Tabs defaultValue="grid" className="w-full mt-8">
-          <TabsList className="grid w-full grid-cols-4 mx-auto bg-transparent border-t pt-4">
+          <TabsList className="grid w-full grid-cols-3 mx-auto bg-transparent border-t pt-4">
             <TabsTrigger value="grid" className="rounded-none data-[state=active]:border-t-2 border-foreground">
               <Grid3x3 className="h-5 w-5 md:mr-2" />
               <span className="hidden md:inline">POSTS</span>
@@ -99,12 +100,6 @@ export default function ProfilePage() {
               <Clapperboard className="h-5 w-5 md:mr-2" />
                <span className="hidden md:inline">REELS</span>
             </TabsTrigger>
-             {isMyProfile && (
-              <TabsTrigger value="saved" className="rounded-none data-[state=active]:border-t-2 border-foreground">
-                <Bookmark className="h-5 w-5 md:mr-2" />
-                <span className="hidden md:inline">SAVED</span>
-              </TabsTrigger>
-            )}
             <TabsTrigger value="tagged" className="rounded-none data-[state=active]:border-t-2 border-foreground">
               <UserSquare2 className="h-5 w-5 md:mr-2" />
                <span className="hidden md:inline">TAGGED</span>
@@ -116,11 +111,6 @@ export default function ProfilePage() {
           <TabsContent value="reels" className="mt-6">
             <ReelsGrid userId={profileUser.id} />
           </TabsContent>
-          {isMyProfile && (
-            <TabsContent value="saved" className="mt-6">
-              <SavedPostsGrid userId={profileUser.id} />
-            </TabsContent>
-          )}
           <TabsContent value="tagged" className="mt-6">
              <TaggedPostsGrid userId={profileUser.id} />
           </TabsContent>

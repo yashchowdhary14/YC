@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -90,7 +91,7 @@ export default function ProfileHeader({ user: profileUser, postsCount, onSetting
                             )}
                         </div>
                          {isMyProfile && (
-                            <Button variant="ghost" size="icon" onClick={onSettingsClick} className="order-first sm:order-last">
+                            <Button variant="ghost" size="icon" onClick={onSettingsClick}>
                                 <Menu className="h-6 w-6"/>
                             </Button>
                          )}
