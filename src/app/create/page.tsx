@@ -7,6 +7,7 @@ import { PlusSquare, Clapperboard, Video, Wifi, Camera } from 'lucide-react';
 
 const creationOptions = [
   {
+    key: 'story',
     href: '/create/story',
     title: 'Story',
     description: 'Share a fleeting moment that disappears.',
@@ -16,6 +17,7 @@ const creationOptions = [
     color: 'from-purple-500 to-indigo-500',
   },
   {
+    key: 'post',
     href: '/create/post',
     title: 'Post',
     description: 'Share a photo or text with your followers.',
@@ -25,6 +27,7 @@ const creationOptions = [
     color: 'from-pink-500 to-rose-500',
   },
   {
+    key: 'reel',
     href: '/create/video',
     title: 'Reel',
     description: 'Create and share short, fun videos.',
@@ -34,6 +37,7 @@ const creationOptions = [
     color: 'from-cyan-500 to-blue-500',
   },
   {
+    key: 'video',
     href: '/create/video', // This will now open the generic video creator
     title: 'Video',
     description: 'Upload and share a long-form video.',
@@ -43,6 +47,7 @@ const creationOptions = [
     color: 'from-emerald-500 to-green-500',
   },
   {
+    key: 'live',
     href: '/studio/broadcast',
     title: 'Go Live',
     description: 'Stream directly to your audience now.',
@@ -99,7 +104,7 @@ export default function CreatePage() {
             animate="visible"
         >
             {creationOptions.map((option) => (
-                <Link href={option.href} key={option.href} passHref>
+                <Link href={option.href} key={option.key} passHref>
                     <motion.div
                         className="flex items-center gap-6 p-4 rounded-xl border border-border/50 bg-secondary/30 hover:bg-secondary/60 transition-colors duration-200 cursor-pointer overflow-hidden relative"
                         variants={itemVariants}
