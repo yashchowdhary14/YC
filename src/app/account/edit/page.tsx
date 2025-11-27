@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,7 +12,7 @@ import PrivacySettings from '@/components/account/PrivacySettings';
 import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
 import { Card, CardContent } from '@/components/ui/card';
 
-export type ActiveTab = 'edit' | 'saved' | 'privacy';
+export type ActiveTab = 'edit' | 'saved' | 'privacy' | 'liked';
 
 export default function AccountEditPage() {
     const { user, appUser, isUserLoading } = useUser();
@@ -36,6 +37,10 @@ export default function AccountEditPage() {
             case 'edit':
                 return <EditProfileForm user={user} appUser={appUser} />;
             case 'saved':
+                return <SavedPostsGrid userId={user.uid} />;
+            case 'liked':
+                // For now, we can re-use the saved posts grid.
+                // In a future step, this would be a dedicated LikedPostsGrid component.
                 return <SavedPostsGrid userId={user.uid} />;
             case 'privacy':
                 return <PrivacySettings />;
