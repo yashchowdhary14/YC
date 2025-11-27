@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -10,23 +9,12 @@ import { formatCompactNumber } from '@/lib/utils';
 import Story from '../app/story';
 import { useUser } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
+import Link from 'next/link';
 
 interface ProfileHeaderProps {
   user: User;
   postsCount: number;
 }
-
-const StoryHighlight = ({ id, label }: { id: string; label: string }) => (
-  <div className="flex flex-col items-center space-y-1 flex-shrink-0">
-    <div className="relative">
-      <Avatar className="w-16 h-16 border-2 border-muted p-0.5">
-        <AvatarImage src={`https://picsum.photos/seed/${id}/150/150`} alt={label} />
-        <AvatarFallback>{label?.[0]}</AvatarFallback>
-      </Avatar>
-    </div>
-    <p className="text-xs text-center">{label}</p>
-  </div>
-);
 
 const ProfileHeaderSkeleton = () => (
     <header>
@@ -68,13 +56,6 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
     const isMyProfile = currentUser?.uid === profileUser.id;
     const isFollowing = followedUsers.has(profileUser.id);
 
-    const storyHighlights = [
-        { id: 'trip1', label: 'LA Trip' },
-        { id: 'foodie', label: 'Eats' },
-        { id: 'devcon', label: 'DevCon' },
-        { id: 'pets', label: 'My Pet' },
-    ];
-
     return (
         <header>
             <div className="flex flex-col sm:flex-row gap-8">
@@ -91,9 +72,13 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
                         <div className="flex items-center gap-2">
                             {isMyProfile ? (
                                 <>
-                                    <Button variant="secondary" size="sm">Edit profile</Button>
+                                    <Link href="/account/edit">
+                                        <Button variant="secondary" size="sm">Edit profile</Button>
+                                    </Link>
                                     <Button variant="secondary" size="sm">View archive</Button>
-                                    <Button variant="ghost" size="icon"><Settings className="h-5 w-5"/></Button>
+                                    <Link href="/account/edit">
+                                        <Button variant="ghost" size="icon"><Settings className="h-5 w-5"/></Button>
+                                    </Link>
                                 </>
                             ) : (
                                 <>
@@ -136,15 +121,6 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
                     <div className="font-semibold">{formatCompactNumber(profileUser.followingCount)}</div>
                      <div className="text-sm text-muted-foreground">following</div>
                  </div>
-            </div>
-
-            {/* Story Highlights */}
-            <div className="mt-8">
-                <div className="flex space-x-4 overflow-x-auto pb-2 -mx-4 px-4">
-                    {storyHighlights.map(highlight => (
-                        <StoryHighlight key={highlight.id} id={highlight.id} label={highlight.label} />
-                    ))}
-                </div>
             </div>
         </header>
     )

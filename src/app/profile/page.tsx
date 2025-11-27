@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -56,8 +55,6 @@ function ProfilePageSkeleton() {
 export default function ProfilePage() {
   const { user: currentUser, isUserLoading } = useUser();
 
-  // In a real app, you'd fetch based on a `username` param from the URL.
-  // For now, we'll use the logged-in user or the first dummy user as the profile to view.
   const profileUser = currentUser ? {
       id: currentUser.uid,
       username: currentUser.email?.split('@')[0] || 'user',
@@ -73,15 +70,6 @@ export default function ProfilePage() {
     if (!profileUser) return [];
     return dummyPosts.filter(p => p.uploaderId === profileUser.id && (p.type === 'photo' || p.type === 'video'));
   }, [profileUser]);
-
-  const userReels: Post[] = useMemo(() => {
-    return userPosts.filter(p => p.type === 'reel');
-  }, [userPosts]);
-  
-  const taggedPosts: Post[] = useMemo(() => {
-    // Simulate finding posts the user is tagged in
-    return dummyPosts.slice(5, 10);
-  }, []);
   
   const isMyProfile = currentUser?.uid === profileUser.id;
 
@@ -101,7 +89,7 @@ export default function ProfilePage() {
         <StoryHighlights profileUser={profileUser} />
 
         <Tabs defaultValue="grid" className="w-full mt-8">
-          <TabsList className="grid w-full grid-cols-3 md:grid-cols-4 mx-auto bg-transparent border-t pt-4">
+          <TabsList className="grid w-full grid-cols-3 mx-auto bg-transparent border-t pt-4">
             <TabsTrigger value="grid" className="rounded-none data-[state=active]:border-t-2 border-foreground">
               <Grid3x3 className="h-5 w-5 md:mr-2" />
               <span className="hidden md:inline">POSTS</span>
@@ -114,12 +102,6 @@ export default function ProfilePage() {
               <UserSquare2 className="h-5 w-5 md:mr-2" />
                <span className="hidden md:inline">TAGGED</span>
             </TabsTrigger>
-             {isMyProfile && (
-                <TabsTrigger value="saved" className="rounded-none data-[state=active]:border-t-2 border-foreground">
-                  <Bookmark className="h-5 w-5 md:mr-2" />
-                  <span className="hidden md:inline">SAVED</span>
-                </TabsTrigger>
-            )}
           </TabsList>
           <TabsContent value="grid" className="mt-6">
             <PostsGrid userId={profileUser.id} />
@@ -130,17 +112,8 @@ export default function ProfilePage() {
           <TabsContent value="tagged" className="mt-6">
              <TaggedPostsGrid userId={profileUser.id} />
           </TabsContent>
-          {isMyProfile && (
-            <TabsContent value="saved" className="mt-6">
-                <SavedPostsGrid userId={profileUser.id} />
-            </TabsContent>
-          )}
         </Tabs>
       </div>
     </div>
   );
 }
-
-    
-
-    
