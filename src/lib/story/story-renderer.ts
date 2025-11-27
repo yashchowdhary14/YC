@@ -62,9 +62,15 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
         drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
     }
     
-    // 5. Render Stickers (New)
-    // await renderStickers(ctx, state.stickers);
-
+    // 5. Render Stickers
+    for (const sticker of state.stickers) {
+      // In a real implementation, you would load the sticker image here.
+      // For now, we'll just draw a placeholder rectangle.
+      ctx.fillStyle = 'purple';
+      const stickerX = (sticker.position.x / 100) * RENDER_WIDTH;
+      const stickerY = (sticker.position.y / 100) * RENDER_HEIGHT;
+      ctx.fillRect(stickerX - 50, stickerY - 50, 100, 100);
+    }
 
     // 6. Export final image
     const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
@@ -128,8 +134,13 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
             drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
         }
 
-        // Render Stickers (New)
-        // await renderStickers(ctx, state.stickers);
+        // Render Stickers
+        for (const sticker of state.stickers) {
+          ctx.fillStyle = 'purple';
+          const stickerX = (sticker.position.x / 100) * RENDER_WIDTH;
+          const stickerY = (sticker.position.y / 100) * RENDER_HEIGHT;
+          ctx.fillRect(stickerX - 50, stickerY - 50, 100, 100);
+        }
         
         if (!firstFrameCaptured) {
             thumbnail = await generateThumbnailFromCanvas(canvas);
