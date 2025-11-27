@@ -57,15 +57,15 @@ const ProfileHeaderSkeleton = () => (
 );
 
 
-export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) {
+export default function ProfileHeader({ user: profileUser, postsCount }: ProfileHeaderProps) {
     const { user: currentUser, isUserLoading, followedUsers, toggleFollow } = useUser();
     
-    if (isUserLoading) {
+    if (isUserLoading || !profileUser) {
       return <ProfileHeaderSkeleton />;
     }
 
-    const isMyProfile = currentUser?.uid === user.id;
-    const isFollowing = followedUsers.has(user.username);
+    const isMyProfile = currentUser?.uid === profileUser.id;
+    const isFollowing = followedUsers.has(profileUser.username);
 
     const storyHighlights = [
         { id: 'trip1', label: 'LA Trip' },
@@ -79,14 +79,14 @@ export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) 
             <div className="flex flex-col sm:flex-row gap-8">
                 <div className="flex-shrink-0 mx-auto sm:mx-0">
                     <Avatar className="w-24 h-24 sm:w-36 sm:h-36 text-6xl border-2">
-                        <AvatarImage src={user.avatarUrl} />
-                        <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+                        <AvatarImage src={profileUser.avatarUrl} />
+                        <AvatarFallback>{profileUser.username.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
                 </div>
 
                 <div className="flex-grow space-y-4">
                     <div className="flex flex-wrap items-center gap-4">
-                        <h1 className="text-2xl font-light">{user.username}</h1>
+                        <h1 className="text-2xl font-light">{profileUser.username}</h1>
                         <div className="flex items-center gap-2">
                             {isMyProfile ? (
                                 <>
@@ -96,7 +96,7 @@ export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) 
                                 </>
                             ) : (
                                 <>
-                                    <Button onClick={() => toggleFollow(user.username)} size="sm" variant={isFollowing ? 'secondary' : 'default'}>
+                                    <Button onClick={() => toggleFollow(profileUser.username)} size="sm" variant={isFollowing ? 'secondary' : 'default'}>
                                         {isFollowing ? 'Following' : 'Follow'}
                                     </Button>
                                     <Button variant="secondary" size="sm">Message</Button>
@@ -110,13 +110,13 @@ export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) 
 
                     <div className="hidden sm:flex items-center gap-8">
                         <div><span className="font-semibold">{postsCount}</span> posts</div>
-                        <div><span className="font-semibold">{formatCompactNumber(user.followersCount)}</span> followers</div>
-                        <div><span className="font-semibold">{formatCompactNumber(user.followingCount)}</span> following</div>
+                        <div><span className="font-semibold">{formatCompactNumber(profileUser.followersCount)}</span> followers</div>
+                        <div><span className="font-semibold">{formatCompactNumber(profileUser.followingCount)}</span> following</div>
                     </div>
                     
                     <div className="text-sm">
-                        <h2 className="font-semibold">{user.fullName}</h2>
-                        <p className="text-muted-foreground whitespace-pre-wrap">{user.bio}</p>
+                        <h2 className="font-semibold">{profileUser.fullName}</h2>
+                        <p className="text-muted-foreground whitespace-pre-wrap">{profileUser.bio}</p>
                     </div>
                 </div>
             </div>
@@ -128,11 +128,11 @@ export default function ProfileHeader({ user, postsCount }: ProfileHeaderProps) 
                     <div className="text-sm text-muted-foreground">posts</div>
                  </div>
                  <div>
-                    <div className="font-semibold">{formatCompactNumber(user.followersCount)}</div>
+                    <div className="font-semibold">{formatCompactNumber(profileUser.followersCount)}</div>
                      <div className="text-sm text-muted-foreground">followers</div>
                  </div>
                  <div>
-                    <div className="font-semibold">{formatCompactNumber(user.followingCount)}</div>
+                    <div className="font-semibold">{formatCompactNumber(profileUser.followingCount)}</div>
                      <div className="text-sm text-muted-foreground">following</div>
                  </div>
             </div>
