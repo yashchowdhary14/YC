@@ -81,8 +81,8 @@ export default function CameraPreview({
       {permissionState === 'denied' && (
            <div className="flex flex-col items-center gap-2 text-center p-4">
               <CameraOff className="h-12 w-12 text-muted-foreground" />
-              <p className="font-semibold text-foreground">{isMobile ? 'Camera access denied' : 'Camera is disabled on web'}</p>
-              <p className="text-muted-foreground text-sm">{isMobile ? 'Please enable camera permissions in your browser settings.' : 'You can still upload media from your device.'}</p>
+              <p className="font-semibold text-foreground">{isMobile ? 'Camera access denied' : 'Camera is unavailable on web'}</p>
+              <p className="text-muted-foreground text-sm">{isMobile ? 'Please enable permissions in your browser settings.' : 'You can upload media from your device.'}</p>
           </div>
       )}
       <video

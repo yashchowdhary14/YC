@@ -9,6 +9,7 @@ import { X, Zap, ZapOff } from 'lucide-react';
 import CameraPreview from './CameraPreview';
 import CameraControls from './CameraControls';
 import { fileToDataUri } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type FacingMode = 'user' | 'environment';
 
@@ -20,6 +21,7 @@ export default function CameraView({ onExit }: CameraViewProps) {
   const router = useRouter();
   const { toast } = useToast();
   const addSlide = useStoryCreationStore((s) => s.addSlide);
+  const isMobile = useIsMobile();
 
   const [facingMode, setFacingMode] = useState<FacingMode>('environment');
   const [flashEnabled, setFlashEnabled] = useState(false);
@@ -91,16 +93,18 @@ export default function CameraView({ onExit }: CameraViewProps) {
           <button onClick={handleExit} className="p-2 text-white">
             <X className="h-7 w-7" />
           </button>
-          <button
-            onClick={() => setFlashEnabled(!flashEnabled)}
-            className="p-2"
-          >
-            {flashEnabled ? (
-              <Zap className="h-7 w-7 text-yellow-300" />
-            ) : (
-              <ZapOff className="h-7 w-7 text-white" />
-            )}
-          </button>
+          {isMobile && (
+            <button
+                onClick={() => setFlashEnabled(!flashEnabled)}
+                className="p-2"
+            >
+                {flashEnabled ? (
+                <Zap className="h-7 w-7 text-yellow-300" />
+                ) : (
+                <ZapOff className="h-7 w-7 text-white" />
+                )}
+            </button>
+          )}
         </div>
       </div>
 
