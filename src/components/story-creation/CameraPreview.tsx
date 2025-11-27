@@ -3,7 +3,7 @@
 
 import { useEffect, RefObject } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, CameraOff } from 'lucide-react';
+import { Loader2, CameraOff, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -23,7 +23,6 @@ export default function CameraPreview({
 
   useEffect(() => {
     let stream: MediaStream | null = null;
-    let currentTrack: MediaStreamTrack | null = null;
     
     // Only run if on a mobile device
     if (!isMobile) {
@@ -45,7 +44,6 @@ export default function CameraPreview({
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          currentTrack = stream.getVideoTracks()[0];
           setPermissionState('granted');
         }
       } catch (err) {
@@ -79,10 +77,10 @@ export default function CameraPreview({
           </div>
       )}
       {permissionState === 'denied' && (
-           <div className="flex flex-col items-center gap-2 text-center p-4">
-              <CameraOff className="h-12 w-12 text-muted-foreground" />
-              <p className="font-semibold text-foreground">{isMobile ? 'Camera access denied' : 'Camera is unavailable on web'}</p>
-              <p className="text-muted-foreground text-sm">{isMobile ? 'Please enable permissions in your browser settings.' : 'You can upload media from your device.'}</p>
+           <div className="flex flex-col items-center gap-4 text-center p-4">
+              {isMobile ? <CameraOff className="h-12 w-12 text-muted-foreground" /> : <Upload className="h-12 w-12 text-muted-foreground" />}
+              <p className="font-semibold text-foreground text-lg">{isMobile ? 'Camera access denied' : 'Camera is unavailable on web'}</p>
+              <p className="text-muted-foreground text-sm">{isMobile ? 'Please enable permissions in your browser settings.' : 'Please upload media from your device using the button below.'}</p>
           </div>
       )}
       <video

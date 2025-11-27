@@ -4,6 +4,7 @@
 import { Camera, Image as ImageIcon, RotateCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
 
 interface CameraControlsProps {
   onCapture: () => void;
@@ -21,13 +22,13 @@ export default function CameraControls({
   return (
     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
       <div className={cn("flex items-center", isMobile ? "justify-between" : "justify-center")}>
-        {/* Gallery Picker */}
-        <button onClick={onOpenGallery} className={cn("p-2", !isMobile && "w-20 h-20 border-4 border-white rounded-full flex items-center justify-center")}>
-          <ImageIcon className="h-8 w-8 text-white" />
-        </button>
-
-        {isMobile && (
+        
+        {isMobile ? (
           <>
+            {/* Gallery Picker on Mobile */}
+            <button onClick={onOpenGallery} className="p-2">
+              <ImageIcon className="h-8 w-8 text-white" />
+            </button>
             {/* Shutter Button */}
             <button
               onClick={onCapture}
@@ -41,6 +42,12 @@ export default function CameraControls({
               <RotateCw className="h-8 w-8 text-white" />
             </button>
           </>
+        ) : (
+          // Centered Gallery button for Web
+          <Button onClick={onOpenGallery} className="h-16 rounded-full px-8 gap-2">
+             <ImageIcon className="h-6 w-6" />
+             <span className="text-lg font-semibold">Upload from Device</span>
+          </Button>
         )}
       </div>
     </div>
