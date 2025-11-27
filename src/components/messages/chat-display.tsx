@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -212,6 +213,7 @@ export default function ChatDisplay({ chatId, onBack }: ChatDisplayProps) {
             onChange={handleFileChange}
           />
           <Textarea
+            autosize
             placeholder="Message..."
             className="rounded-full pr-12"
             value={messageText}

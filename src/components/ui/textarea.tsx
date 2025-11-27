@@ -20,7 +20,7 @@ const Textarea = React.forwardRef<
   const isAutosize = 'minRows' in props || 'maxRows' in props || autosize;
 
   if (isAutosize) {
-    return <TextareaAutosize className={sharedClasses} ref={ref} {...props} />;
+    return <TextareaAutosize className={sharedClasses} ref={ref as any} {...props} />;
   }
 
   return (

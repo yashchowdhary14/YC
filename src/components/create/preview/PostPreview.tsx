@@ -16,14 +16,14 @@ import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useCreateStore } from '@/lib/create-store';
-import FilterStrip from '@/components/story-creation/FilterStrip'; // Re-using for consistency
+import FilterStrip from '@/components/story-creation/FilterStrip';
 
 type PostPreviewProps = {
     isStory?: boolean;
 };
 
 export default function PostPreview({ isStory = false }: PostPreviewProps) {
-    const { media, removeMedia, setActiveMediaId, activeMediaId } = useCreateStore();
+    const { media, removeMedia, setActiveMediaId } = useCreateStore();
     const [api, setApi] = useState<CarouselApi>();
 
     useEffect(() => {
@@ -39,7 +39,9 @@ export default function PostPreview({ isStory = false }: PostPreviewProps) {
 
         api.on("select", handleSelect);
         // Set initial active media
-        handleSelect(); 
+        if (media.length > 0) {
+            handleSelect();
+        }
 
         return () => {
             api.off("select", handleSelect);
@@ -50,12 +52,12 @@ export default function PostPreview({ isStory = false }: PostPreviewProps) {
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center p-0 sm:p-4">
-            <div className="w-full flex-1 flex items-center justify-center">
-                <Carousel setApi={setApi} className="w-full h-full flex items-center">
-                    <CarouselContent>
+            <div className="w-full flex-1 flex items-center justify-center relative">
+                <Carousel setApi={setApi} className="w-full h-full flex items-center justify-center">
+                    <CarouselContent className="h-full">
                         {media.map((item, index) => (
-                            <CarouselItem key={item.id}>
-                                <div className={cn("relative mx-auto", aspectClass)}>
+                            <CarouselItem key={item.id} className="flex items-center justify-center">
+                                <div className={cn("relative mx-auto h-full w-full", aspectClass)}>
                                     {item.type === 'photo' ? (
                                         <Image
                                             src={item.url}
@@ -122,4 +124,3 @@ export default function PostPreview({ isStory = false }: PostPreviewProps) {
         </div>
     );
 }
-
