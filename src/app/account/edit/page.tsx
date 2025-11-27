@@ -11,7 +11,7 @@ import PrivacySettings from '@/components/account/PrivacySettings';
 import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
 import { Card, CardContent } from '@/components/ui/card';
 
-type ActiveTab = 'edit' | 'saved' | 'privacy';
+export type ActiveTab = 'edit' | 'saved' | 'privacy';
 
 export default function AccountEditPage() {
     const { user, appUser, isUserLoading } = useUser();
