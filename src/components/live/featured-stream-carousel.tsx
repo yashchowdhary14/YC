@@ -1,0 +1,90 @@
+
+'use client';
+
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { Badge } from '@/components/ui/badge';
+import type { LiveBroadcast } from '@/lib/types';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { formatCompactNumber } from '@/lib/utils';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+
+
+interface FeaturedStreamCarouselProps {
+    streams: LiveBroadcast[];
+}
+
+function FeaturedStreamCard({ stream }: { stream: LiveBroadcast }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-3 gap-0 md:gap-0.5">
+        <div className="md:col-span-3 lg:col-span-2 relative aspect-video bg-muted rounded-t-lg md:rounded-lg overflow-hidden group transition-all duration-300 hover:shadow-xl hover:shadow-primary/20">
+             <Image 
+                src={stream.liveThumbnail} 
+                alt={stream.title} 
+                fill 
+                className={cn(
+                  "object-cover transition-all duration-500 ease-in-out group-hover:scale-105",
+                  isLoaded ? "opacity-100 blur-0" : "opacity-0 blur-sm"
+                )}
+                onLoad={() => setIsLoaded(true)}
+                loading="lazy"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 50vw"
+             />
+             <div className="absolute top-2 left-2 md:top-4 md:left-4">
+                <Badge variant="destructive" className="bg-red-600 font-bold uppercase text-sm h-6 px-3">Live</Badge>
+             </div>
+        </div>
+        <div className="md:col-span-2 lg:col-span-1 bg-muted/50 p-4 rounded-b-lg md:rounded-lg flex flex-col justify-between">
+            <div>
+                 <div className="flex items-center gap-3">
+                    <Avatar className="h-12 w-12">
+                        <AvatarImage src={stream.user.avatarUrl} />
+                        <AvatarFallback>{stream.user.username.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-bold text-foreground text-lg">{stream.user.username}</p>
+                        <p className="text-base text-muted-foreground">{stream.category}</p>
+                        <p className="text-sm text-muted-foreground">{formatCompactNumber(stream.viewerCount)} viewers</p>
+                    </div>
+                </div>
+            </div>
+            <p className="text-foreground text-base mt-4 line-clamp-2">{stream.title}</p>
+        </div>
+    </div>
+  )
+}
+
+
+export default function FeaturedStreamCarousel({ streams }: FeaturedStreamCarouselProps) {
+  return (
+    <Carousel
+        opts={{
+          align: 'start',
+          loop: true,
+        }}
+        className="w-full"
+      >
+        <CarouselContent className="-ml-4">
+          {streams.map((stream) => (
+            <CarouselItem key={stream.id} className="pl-4">
+              <Link href={`/live/${stream.streamerName}`} className="block">
+                <FeaturedStreamCard stream={stream} />
+              </Link>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="left-2 bg-secondary border-none hover:bg-accent text-foreground hidden md:flex" />
+        <CarouselNext className="right-2 bg-secondary border-none hover:bg-accent text-foreground hidden md:flex" />
+      </Carousel>
+  );
+}
