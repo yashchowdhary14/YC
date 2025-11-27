@@ -2,26 +2,29 @@
 'use client';
 
 import { Camera, Clapperboard, PlusSquare, Video, Wifi } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 const creationOptions = [
-  { type: 'post', label: 'Create Post', icon: PlusSquare, href: '/create/post' },
-  { type: 'reel', label: 'Create Reel', icon: Clapperboard, href: '/create/video' },
-  { type: 'video', label: 'Upload Video', icon: Video, href: '/create/video' },
-  { type: 'story', label: 'Create Story', icon: Camera, href: '/create/story' },
+  { type: 'post', label: 'Create Post', icon: PlusSquare, href: '#' },
+  { type: 'reel', label: 'Create Reel', icon: Clapperboard, href: '#' },
+  { type: 'video', label: 'Upload Video', icon: Video, href: '#' },
+  { type: 'story', label: 'Create Story', icon: Camera, href: '#' },
   { type: 'live', label: 'Go Live', icon: Wifi, href: '/studio/broadcast' },
 ];
 
+export type CreateMode = "post" | "reel" | "video" | "story" | "live";
+
 interface CreateChoiceScreenProps {
-  onSelect: (type: string, href: string) => void;
+  onSelect: (type: CreateMode) => void;
 }
 
 export default function CreateChoiceScreen({ onSelect }: CreateChoiceScreenProps) {
-  const router = useRouter();
 
-  const handleItemClick = (type: string, href: string) => {
-    onSelect(type, href);
-    router.push(href);
+  const handleItemClick = (type: CreateMode, href: string) => {
+    if (href !== '#') {
+      // For external links like 'Go Live', we can handle navigation separately if needed
+      // For now, it will also be handled by onSelect which will close the modal.
+    }
+    onSelect(type);
   };
   
   return (
@@ -30,7 +33,7 @@ export default function CreateChoiceScreen({ onSelect }: CreateChoiceScreenProps
          {creationOptions.map(option => (
             <button
                 key={option.type}
-                onClick={() => handleItemClick(option.type, option.href)}
+                onClick={() => handleItemClick(option.type as CreateMode, option.href)}
                 className="w-full flex items-center justify-between p-4 rounded-lg text-left transition-colors hover:bg-accent"
             >
                 <div className="flex items-center gap-4">
