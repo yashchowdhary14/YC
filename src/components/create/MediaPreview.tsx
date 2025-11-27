@@ -49,6 +49,11 @@ export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPr
                 }
             } else if (mode === 'reel' || mode === 'video' || mode === 'story') {
                 const file = currentFiles[0];
+                if (!file) {
+                    isValid = false;
+                    onBack(); // go back if no file exists
+                    return;
+                }
                 if (!file.type.startsWith('video/')) {
                     if(mode === 'story' && file.type.startsWith('image/')) {
                         // image is ok for story
@@ -73,7 +78,7 @@ export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPr
         };
 
         validate();
-    }, [currentFiles, mode, toast]);
+    }, [currentFiles, mode, toast, onBack]);
 
     const handleConfirm = () => {
         onConfirm(currentFiles);
@@ -92,7 +97,7 @@ export default function MediaPreview({ mode, files, onBack, onConfirm }: MediaPr
                     return <VideoPreview file={currentFiles[0]} aspectRatio="9:16" isStory={true} />;
                 }
                 // TODO: Add image story preview
-                return <div>Image Story Preview</div>
+                return <PostPreview files={currentFiles} setFiles={setCurrentFiles} isStory={true} />;
             default:
                 return <div>Unsupported mode</div>;
         }

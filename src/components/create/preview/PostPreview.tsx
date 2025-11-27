@@ -14,13 +14,15 @@ import {
 } from "@/components/ui/carousel"
 import { X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 type PostPreviewProps = {
     files: File[];
     setFiles: (files: File[]) => void;
+    isStory?: boolean;
 };
 
-export default function PostPreview({ files, setFiles }: PostPreviewProps) {
+export default function PostPreview({ files, setFiles, isStory = false }: PostPreviewProps) {
     const [api, setApi] = useState<CarouselApi>();
 
     const removeFile = (index: number) => {
@@ -28,14 +30,16 @@ export default function PostPreview({ files, setFiles }: PostPreviewProps) {
         newFiles.splice(index, 1);
         setFiles(newFiles);
     };
+    
+    const aspectClass = isStory ? 'aspect-[9/16] h-full' : 'aspect-square w-full';
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center p-4">
-            <Carousel setApi={setApi} className="w-full max-w-lg">
+            <Carousel setApi={setApi} className="w-full h-full flex items-center">
                 <CarouselContent>
                     {files.map((file, index) => (
                         <CarouselItem key={`${file.name}-${index}`}>
-                            <div className="relative aspect-square w-full">
+                            <div className={cn("relative mx-auto", aspectClass)}>
                                 {file.type.startsWith('image/') ? (
                                     <Image
                                         src={URL.createObjectURL(file)}
@@ -50,42 +54,50 @@ export default function PostPreview({ files, setFiles }: PostPreviewProps) {
                                         className="w-full h-full object-contain"
                                     />
                                 )}
-                                <Button
-                                    variant="destructive"
-                                    size="icon"
-                                    className="absolute top-2 right-2 h-7 w-7 rounded-full z-10"
-                                    onClick={() => removeFile(index)}
-                                >
-                                    <X className="h-4 w-4" />
-                                </Button>
+                                {files.length > 1 && !isStory && (
+                                     <Button
+                                        variant="destructive"
+                                        size="icon"
+                                        className="absolute top-2 right-2 h-7 w-7 rounded-full z-10"
+                                        onClick={() => removeFile(index)}
+                                    >
+                                        <X className="h-4 w-4" />
+                                    </Button>
+                                )}
                             </div>
                         </CarouselItem>
                     ))}
                 </CarouselContent>
-                <CarouselPrevious className="left-2" />
-                <CarouselNext className="right-2" />
+                {files.length > 1 && !isStory && (
+                    <>
+                     <CarouselPrevious className="left-2" />
+                     <CarouselNext className="right-2" />
+                    </>
+                )}
             </Carousel>
             
-            <div className="flex gap-2 mt-4">
-                <AnimatePresence>
-                {files.map((_, index) => (
-                     <motion.div 
-                        key={`${files[index].name}-${index}-dot`}
-                        layout
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                     >
-                        <button
-                            onClick={() => api?.scrollTo(index)}
-                            className={`h-2 w-2 rounded-full transition-colors ${
-                                api?.selectedScrollSnap() === index ? 'bg-primary' : 'bg-muted'
-                            }`}
-                        />
-                     </motion.div>
-                ))}
-                </AnimatePresence>
-            </div>
+            {files.length > 1 && !isStory && (
+                <div className="flex gap-2 mt-4">
+                    <AnimatePresence>
+                    {files.map((_, index) => (
+                         <motion.div 
+                            key={`${files[index].name}-${index}-dot`}
+                            layout
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                         >
+                            <button
+                                onClick={() => api?.scrollTo(index)}
+                                className={`h-2 w-2 rounded-full transition-colors ${
+                                    api?.selectedScrollSnap() === index ? 'bg-primary' : 'bg-muted'
+                                }`}
+                            />
+                         </motion.div>
+                    ))}
+                    </AnimatePresence>
+                </div>
+            )}
             
             {/* TODO: Add 'Add More' button */}
         </div>

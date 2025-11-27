@@ -58,41 +58,16 @@ export default function MediaPicker({ mode, onMediaSelected, onBack }: MediaPick
         previewUrl: URL.createObjectURL(file)
     }));
     
-    if (config.multiple) {
-        // Multi-select logic for posts
-        setSelectedFiles(prev => {
-            const combined = [...prev, ...newFiles];
-            if (config.limit && combined.length > config.limit) {
-                // TODO: Add toast notification
-                console.warn(`Cannot select more than ${config.limit} files.`);
-                return prev;
-            }
-            return combined;
-        });
-    } else {
-        // Single-select logic
-        setSelectedFiles(newFiles.slice(0, 1));
+    // For single-file modes, just pass the file through immediately.
+    if (!config.multiple) {
+      onMediaSelected([newFiles[0].file]);
+      return;
     }
-  };
 
-  const toggleFileSelection = (file: SelectedFile) => {
-    setSelectedFiles(prev => {
-        const isSelected = prev.some(sf => sf.previewUrl === file.previewUrl);
-        if (isSelected) {
-            return prev.filter(sf => sf.previewUrl !== file.previewUrl);
-        } else {
-            if (config.multiple) {
-                if (config.limit && prev.length >= config.limit) {
-                    console.warn(`Cannot select more than ${config.limit} files.`);
-                    return prev;
-                }
-                return [...prev, file];
-            } else {
-                return [file];
-            }
-        }
-    });
-  }
+    // For multi-select mode (posts)
+    onMediaSelected(newFiles.map(f => f.file));
+
+  };
 
   const handleContinue = () => {
     if (selectedFiles.length > 0) {
