@@ -1,4 +1,6 @@
 
+'use client';
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -12,17 +14,16 @@ import { cn } from '@/lib/utils';
 import NextLink from 'next/link';
 import BottomNav from '@/components/app/bottom-nav';
 import { ThemeProvider } from '@/components/ui/theme-provider';
-
-export const metadata: Metadata = {
-  title: 'YCP',
-  description: 'A modern social media experience.',
-};
+import { useState } from 'react';
+import { CreateModal } from '@/components/create';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
@@ -43,6 +44,7 @@ export default function RootLayout({
         >
           <FirebaseClientProvider>
             <SidebarProvider>
+              <CreateModal open={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} />
               <div className="relative min-h-svh">
                 {/* Desktop Sidebars */}
                 <div className="fixed left-0 top-0 h-full z-10 hidden lg:flex flex-col border-r border-border bg-background w-72 text-foreground">
@@ -73,12 +75,12 @@ export default function RootLayout({
                 </Sidebar>
 
                 <div className="md:ml-20 lg:ml-72 md:pb-0 pb-16">
-                  <AppHeader />
+                  <AppHeader onNewPostClick={() => setCreateModalOpen(true)} />
                   <main>{children}</main>
                 </div>
 
                 {/* Mobile Bottom Navigation */}
-                <BottomNav />
+                <BottomNav onNewPostClick={() => setCreateModalOpen(true)} />
               </div>
             </SidebarProvider>
           </FirebaseClientProvider>

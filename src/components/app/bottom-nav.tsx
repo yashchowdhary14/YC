@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Home, Search, Clapperboard, UserCircle, Video } from 'lucide-react';
+import { Home, Search, Clapperboard, UserCircle, Video, PlusSquare } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/firebase';
@@ -18,15 +18,10 @@ const navLinks = [
   { href: '/videos', icon: Video, activeIcon: (props: any) => <svg {...props} aria-label="Videos" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><polygon fill="none" points="20 21 12 16 4 21 4 3 20 3 20 21" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></polygon></svg> },
 ];
 
-export default function BottomNav() {
+export default function BottomNav({ onNewPostClick }: { onNewPostClick: () => void; }) {
   const pathname = usePathname();
   const { user } = useUser();
   const profileHref = user ? `/profile` : '/login';
-
-  const handleCreateClick = () => {
-    // TODO: In the next step, this will open the CreateModal.
-    console.log('Create button clicked from bottom nav');
-  };
 
   const navItems = [
     ...navLinks.slice(0, 2),
@@ -42,8 +37,8 @@ export default function BottomNav() {
             return (
               <CreateButton
                 key="create-button"
-                onClick={handleCreateClick}
-                size="lg"
+                onClick={onNewPostClick}
+                size="md"
               />
             );
           }
