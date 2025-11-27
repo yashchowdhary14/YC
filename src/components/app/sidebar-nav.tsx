@@ -50,12 +50,18 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
       </Avatar>
   )} : null;
 
+  const profile3Link = user ? { href: `/profile3`, label: 'Profile3.0', icon: UserCircle } : null;
+
   const allLinks = [
     ...mainLinks,
   ];
 
   if(profileLink){
     allLinks.push(profileLink);
+  }
+
+  if(profile3Link){
+    allLinks.push(profile3Link);
   }
 
   if (isCollapsed) {
