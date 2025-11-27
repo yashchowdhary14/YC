@@ -3,7 +3,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronRight, UserCircle, Settings, Globe, Star, Shield, HelpCircle, Info, Heart, Clock, Bookmark } from 'lucide-react';
+import { Search, ChevronRight, UserCircle, Settings, Globe, Star, Shield, HelpCircle, Info, Heart, Clock, Bookmark, Bell, MessageCircle, GitBranch, Share } from 'lucide-react';
 import Link from 'next/link';
 import type { SettingsViewProps } from './types';
 
@@ -22,20 +22,14 @@ const menuSections = [
             { label: "Likes", icon: Heart, href: "/account/edit?tab=liked" },
             { label: "Archive", icon: Clock, view: 'archive' },
             { label: "Your activity", icon: Heart, view: 'activity' },
-            { label: "Notifications", icon: Heart },
-            { label: "Time spent", icon: Clock, view: 'activity', subView: 'time' },
+            { label: "Notifications", icon: Bell, view: 'notifications' },
+            { label: "Time spent", icon: Clock, view: 'activity' },
         ]
     },
     {
-        title: "For professionals",
-        items: [
-            { label: "Creator tools and controls", icon: Star },
-        ]
-    },
-     {
         title: "Who can see your content",
         items: [
-            { label: "Account privacy", icon: Shield, href: "/account/edit?tab=privacy" },
+            { label: "Account privacy", icon: Shield, view: 'privacy' },
             { label: "Close Friends", icon: UserCircle },
             { label: "Blocked", icon: Shield },
             { label: "Hide story and live", icon: Shield },
@@ -44,10 +38,10 @@ const menuSections = [
      {
         title: "How others can interact with you",
         items: [
-            { label: "Messages and story replies", icon: Shield },
-            { label: "Tags and mentions", icon: Shield },
-            { label: "Comments", icon: Shield },
-            { label: "Sharing and remixes", icon: Shield },
+            { label: "Messages and story replies", icon: MessageCircle, view: 'interactions' },
+            { label: "Tags and mentions", icon: UserCircle, view: 'interactions' },
+            { label: "Comments", icon: MessageCircle, view: 'interactions' },
+            { label: "Sharing and remixes", icon: Share, view: 'interactions' },
             { label: "Restricted accounts", icon: Shield },
             { label: "Limit interactions", icon: Shield },
             { label: "Hidden Words", icon: Shield },
@@ -59,18 +53,24 @@ const menuSections = [
             { label: "Favorites", icon: Star },
             { label: "Muted accounts", icon: Shield },
             { label: "Suggested content", icon: Globe },
-            { label: "Like and share counts", icon: Heart },
+            { label: "Like and share counts", icon: Heart, view: 'interactions' },
         ]
     },
      {
         title: "Your app and media",
         items: [
-            { label: "Device permissions", icon: Settings },
-            { label: "Archiving and downloading", icon: Settings },
+            { label: "Device permissions", icon: Settings, view: 'appAndMedia' },
+            { label: "Archiving and downloading", icon: Settings, view: 'archive' },
             { label: "Accessibility", icon: Settings },
-            { label: "Language", icon: Globe },
-            { label: "Data usage and media quality", icon: Settings },
+            { label: "Language", icon: Globe, view: 'appAndMedia' },
+            { label: "Data usage and media quality", icon: GitBranch, view: 'appAndMedia' },
             { label: "Website permissions", icon: Globe },
+        ]
+    },
+    {
+        title: "For professionals",
+        items: [
+            { label: "Creator tools and controls", icon: Star },
         ]
     },
      {
@@ -135,5 +135,3 @@ export default function MainSettings({ setView, onClose }: SettingsViewProps) {
     </div>
   );
 }
-
-    

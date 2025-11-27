@@ -6,11 +6,19 @@ import type { SettingsView, SettingsViewProps } from './types';
 import MainSettings from './MainSettings';
 import YourActivity from './YourActivity';
 import Archive from './Archive';
+import Notifications from './Notifications';
+import Privacy from './Privacy';
+import Interactions from './Interactions';
+import AppAndMedia from './AppAndMedia';
 
 const viewMap: { [key in SettingsView]: React.ComponentType<SettingsViewProps> } = {
   main: MainSettings,
   activity: YourActivity,
   archive: Archive,
+  notifications: Notifications,
+  privacy: Privacy,
+  interactions: Interactions,
+  appAndMedia: AppAndMedia,
 };
 
 const variants = {
@@ -59,5 +67,3 @@ export default function SettingsRouter({ currentView, setView, onClose }: Settin
     </motion.div>
   );
 }
-
-    
