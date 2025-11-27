@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import type { User } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Settings, UserPlus, Share2 } from 'lucide-react';
+import { Settings, UserPlus, Share2, Menu } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCompactNumber } from '@/lib/utils';
 import Story from '../app/story';
@@ -12,8 +12,9 @@ import { Skeleton } from '../ui/skeleton';
 import Link from 'next/link';
 
 interface ProfileHeaderProps {
-  user: User;
+  user: User | null;
   postsCount: number;
+  onSettingsClick: () => void;
 }
 
 const ProfileHeaderSkeleton = () => (
@@ -46,15 +47,14 @@ const ProfileHeaderSkeleton = () => (
 );
 
 
-export default function ProfileHeader({ user: profileUser, postsCount }: ProfileHeaderProps) {
+export default function ProfileHeader({ user: profileUser, postsCount, onSettingsClick }: ProfileHeaderProps) {
     const { user: currentUser, isUserLoading, followedUsers, toggleFollow } = useUser();
     
     if (isUserLoading || !profileUser) {
       return <ProfileHeaderSkeleton />;
     }
 
-    const isMyProfile = currentUser?.uid === profileUser.id;
-    const isFollowing = followedUsers.has(profileUser.id);
+    const isMyProfile = currentUser?.uid === profileUser.id || currentUser?.email?.split('@')[0] === profileUser.username;
 
     return (
         <header>
@@ -69,29 +69,31 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
                 <div className="flex-grow space-y-4">
                     <div className="flex flex-wrap items-center gap-4">
                         <h1 className="text-2xl font-light">{profileUser.username}</h1>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-1">
                             {isMyProfile ? (
                                 <>
-                                    <Link href="/account/edit">
-                                        <Button variant="secondary" size="sm">Edit profile</Button>
+                                    <Link href="/account/edit" className="flex-1 md:flex-none">
+                                        <Button variant="secondary" size="sm" className="w-full">Edit profile</Button>
                                     </Link>
-                                    <Button variant="secondary" size="sm">View archive</Button>
-                                    <Link href="/account/edit">
-                                        <Button variant="ghost" size="icon"><Settings className="h-5 w-5"/></Button>
-                                    </Link>
+                                    <Button variant="secondary" size="sm" className="flex-1 md:flex-none">View archive</Button>
                                 </>
                             ) : (
                                 <>
-                                    <Button onClick={() => toggleFollow(profileUser)} size="sm" variant={isFollowing ? 'secondary' : 'default'}>
-                                        {isFollowing ? 'Following' : 'Follow'}
+                                    <Button onClick={() => toggleFollow(profileUser)} size="sm" variant={followedUsers.has(profileUser.id) ? 'secondary' : 'default'} className="flex-1">
+                                        {followedUsers.has(profileUser.id) ? 'Following' : 'Follow'}
                                     </Button>
-                                    <Button variant="secondary" size="sm">Message</Button>
-                                     <Button variant="secondary" size="icon" className="h-9 w-9">
+                                    <Button variant="secondary" size="sm" className="flex-1">Message</Button>
+                                     <Button variant="secondary" size="icon" className="h-9 w-9 hidden sm:flex">
                                         <Share2 className="h-4 w-4"/>
                                     </Button>
                                 </>
                             )}
                         </div>
+                         {isMyProfile && (
+                            <Button variant="ghost" size="icon" onClick={onSettingsClick} className="order-first sm:order-last">
+                                <Menu className="h-6 w-6"/>
+                            </Button>
+                         )}
                     </div>
 
                     <div className="hidden sm:flex items-center gap-8">
