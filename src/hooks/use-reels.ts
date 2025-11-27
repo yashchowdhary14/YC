@@ -62,7 +62,7 @@ export function useReels(userId: string): UseReelsResult {
 
         const querySnapshot = await getDocs(q);
         const newReels = querySnapshot.docs.map(doc => {
-            const data = doc.data() as Omit<Post, 'user' | 'type'> & { userId: string };
+            const data = doc.data() as Omit<Post, 'user' | 'type' | 'uploaderId'> & { userId: string };
             return {
                 ...data,
                 id: doc.id,
