@@ -55,7 +55,7 @@ export default function ProfileHeader({ user: profileUser, postsCount, onSetting
       return <ProfileHeaderSkeleton />;
     }
 
-    const isMyProfile = currentUser?.uid === profileUser.id || currentUser?.email?.split('@')[0] === profileUser.username;
+    const isMyProfile = currentUser?.uid === profileUser.id;
 
     return (
         <header>

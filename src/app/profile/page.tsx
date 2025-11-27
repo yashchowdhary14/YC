@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { notFound } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
@@ -14,12 +15,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ReelsGrid from '@/components/profile/ReelsGrid';
 import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
 import TaggedPostsGrid from '@/components/profile/TaggedPostsGrid';
+import SettingsSheet from '@/components/profile/SettingsSheet';
 
 function ProfilePageSkeleton() {
   return (
     <div className="min-h-screen bg-background pt-14">
         <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-            <ProfileHeader user={null} postsCount={0} />
+            <ProfileHeader user={null} postsCount={0} onSettingsClick={() => {}} />
             <div className="mt-8 pb-2">
                 <div className="flex space-x-4 overflow-x-hidden -mx-4 px-4">
                     {Array.from({ length: 5 }).map((_, index) => (
@@ -54,37 +56,41 @@ function ProfilePageSkeleton() {
 
 export default function ProfilePage() {
   const { user: currentUser, isUserLoading } = useUser();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const profileUser = currentUser ? {
-      id: currentUser.uid,
-      username: currentUser.email?.split('@')[0] || 'user',
-      fullName: currentUser.displayName || 'User',
-      avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/150/150`,
-      bio: 'This is a sample bio.',
-      followersCount: 0,
-      followingCount: 0,
-      verified: false
-  } : dummyUsers[0];
+  const profileUser = useMemo(() => {
+    if (!currentUser) return null;
+    // For now, we find the corresponding mock user.
+    // In a real app, `appUser` from useUser would be used directly.
+    return dummyUsers.find(u => u.id === currentUser.uid);
+  }, [currentUser]);
+
 
   const userPosts: Post[] = useMemo(() => {
     if (!profileUser) return [];
     return dummyPosts.filter(p => p.uploaderId === profileUser.id && (p.type === 'photo' || p.type === 'video'));
   }, [profileUser]);
   
-  const isMyProfile = currentUser?.uid === profileUser.id;
-
   if (isUserLoading) {
     return <ProfilePageSkeleton />;
   }
 
   if (!profileUser) {
-      return notFound();
+      // This could redirect to login or show a "Please Login" message
+      return <ProfilePageSkeleton />;
   }
+  
+  const isMyProfile = currentUser?.uid === profileUser.id;
 
   return (
     <div className="min-h-screen bg-background pt-14">
+      <SettingsSheet isOpen={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
       <div className="container mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
-        <ProfileHeader user={profileUser} postsCount={userPosts.length} />
+        <ProfileHeader 
+            user={{...profileUser, avatarUrl: `https://picsum.photos/seed/${profileUser.id}/150/150`}}
+            postsCount={userPosts.length} 
+            onSettingsClick={() => setIsSettingsOpen(true)}
+        />
 
         <StoryHighlights profileUser={profileUser} />
 

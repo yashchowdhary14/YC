@@ -102,7 +102,7 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
               variant="ghost"
               className={cn(
                 "w-full justify-start gap-4 px-3 py-6 text-base h-auto text-foreground",
-                (pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href ? 'font-bold' : ''
+                ((pathname.startsWith(link.href) && link.href !== '/') || pathname === link.href) && link.href !== '/create' ? 'font-bold' : ''
               )}
             >
               <NextLink href={link.href} className="flex items-center text-foreground">
