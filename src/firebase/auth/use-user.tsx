@@ -1,10 +1,9 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useContext } from 'react';
-import { FirebaseContext, FirebaseContextState } from '@/firebase/provider';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { useContext } from 'react';
+import { FirebaseContext } from '@/firebase/provider';
+import { User } from 'firebase/auth';
 import type { User as AppUser } from '@/lib/types';
 
 
@@ -14,7 +13,7 @@ export interface UseUserHookResult {
   isUserLoading: boolean;
   userError: Error | null;
   followedUsers: Set<string>;
-  toggleFollow: (username: string) => void;
+  toggleFollow: (profileUser: AppUser) => Promise<void>;
 }
 
 export const useUser = (): UseUserHookResult => {

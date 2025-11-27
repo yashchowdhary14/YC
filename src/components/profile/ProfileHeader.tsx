@@ -17,7 +17,7 @@ interface ProfileHeaderProps {
 }
 
 const StoryHighlight = ({ id, label }: { id: string; label: string }) => (
-  <div className="flex flex-col items-center space-y-1">
+  <div className="flex flex-col items-center space-y-1 flex-shrink-0">
     <div className="relative">
       <Avatar className="w-16 h-16 border-2 border-muted p-0.5">
         <AvatarImage src={`https://picsum.photos/seed/${id}/150/150`} alt={label} />
@@ -66,7 +66,7 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
     }
 
     const isMyProfile = currentUser?.uid === profileUser.id;
-    const isFollowing = followedUsers.has(profileUser.username);
+    const isFollowing = followedUsers.has(profileUser.id);
 
     const storyHighlights = [
         { id: 'trip1', label: 'LA Trip' },
@@ -97,12 +97,12 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
                                 </>
                             ) : (
                                 <>
-                                    <Button onClick={() => toggleFollow(profileUser.username)} size="sm" variant={isFollowing ? 'secondary' : 'default'}>
+                                    <Button onClick={() => toggleFollow(profileUser)} size="sm" variant={isFollowing ? 'secondary' : 'default'}>
                                         {isFollowing ? 'Following' : 'Follow'}
                                     </Button>
                                     <Button variant="secondary" size="sm">Message</Button>
                                      <Button variant="secondary" size="icon" className="h-9 w-9">
-                                        <UserPlus className="h-4 w-4"/>
+                                        <Share2 className="h-4 w-4"/>
                                     </Button>
                                 </>
                             )}
@@ -140,7 +140,7 @@ export default function ProfileHeader({ user: profileUser, postsCount }: Profile
 
             {/* Story Highlights */}
             <div className="mt-8">
-                <div className="flex space-x-4 overflow-x-auto">
+                <div className="flex space-x-4 overflow-x-auto pb-2 -mx-4 px-4">
                     {storyHighlights.map(highlight => (
                         <StoryHighlight key={highlight.id} id={highlight.id} label={highlight.label} />
                     ))}

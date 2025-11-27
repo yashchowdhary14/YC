@@ -3,7 +3,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, collection, onSnapshot, deleteDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
+import { Firestore, doc, getDoc, collection, onSnapshot, writeBatch, increment } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useToast } from '@/hooks/use-toast';
@@ -14,20 +14,15 @@ interface UserAuthState {
   appUser: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
-  followedUsers: Set<string>; // Set of usernames
+  followedUsers: Set<string>; // Set of user IDs
 }
 
-export interface FirebaseContextState {
+export interface FirebaseContextState extends UserAuthState {
   areServicesAvailable: boolean;
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
   auth: Auth | null;
-  user: User | null;
-  appUser: AppUser | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-  followedUsers: Set<string>;
-  toggleFollow: (username: string) => void;
+  toggleFollow: (profileUser: AppUser) => Promise<void>;
 }
 
 export interface FirebaseServicesAndUser extends Omit<FirebaseContextState, 'areServicesAvailable'> {
@@ -107,44 +102,54 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
     const followingCollectionRef = collection(firestore, `users/${userAuthState.user.uid}/following`);
     const unsubscribe = onSnapshot(followingCollectionRef, (snapshot) => {
-      const newFollowedUsernames = new Set<string>();
-      snapshot.docs.forEach(doc => newFollowedUsernames.add(doc.id));
-      setUserAuthState(prevState => ({ ...prevState, followedUsers: newFollowedUsernames }));
+      const newFollowedUserIds = new Set<string>();
+      snapshot.docs.forEach(doc => newFollowedUserIds.add(doc.id));
+      setUserAuthState(prevState => ({ ...prevState, followedUsers: newFollowedUserIds }));
     });
     return () => unsubscribe();
   }, [userAuthState.user, firestore]);
 
-  const toggleFollow = useCallback(async (username: string) => {
-    const { user, followedUsers } = userAuthState;
-    if (!user) {
-      toast({ variant: "destructive", title: "You must be logged in." });
+  const toggleFollow = useCallback(async (profileUser: AppUser) => {
+    const { user: currentUser, followedUsers } = userAuthState;
+    if (!currentUser || !profileUser || currentUser.uid === profileUser.id) {
+      toast({ variant: "destructive", title: "You must be logged in to follow users." });
       return;
     }
 
-    const isFollowing = followedUsers.has(username);
-    const followDocRef = doc(firestore, `users/${user.uid}/following`, username);
+    const isCurrentlyFollowing = followedUsers.has(profileUser.id);
+    const batch = writeBatch(firestore);
+
+    // References
+    const currentUserFollowingRef = doc(firestore, `users/${currentUser.uid}/following`, profileUser.id);
+    const profileUserFollowersRef = doc(firestore, `users/${profileUser.id}/followers`, currentUser.uid);
+    const currentUserDocRef = doc(firestore, 'users', currentUser.uid);
+    const profileUserDocRef = doc(firestore, 'users', profileUser.id);
 
     try {
-      if (isFollowing) {
-        await deleteDoc(followDocRef);
-        toast({ title: `Unfollowed ${username}` });
-      } else {
-        const usersRef = collection(firestore, 'users');
-        const q = query(usersRef, where('username', '==', username));
-        const querySnapshot = await getDocs(q);
+      if (isCurrentlyFollowing) {
+        // --- Unfollow Logic ---
+        batch.delete(currentUserFollowingRef);
+        batch.delete(profileUserFollowersRef);
+        batch.update(currentUserDocRef, { followingCount: increment(-1) });
+        batch.update(profileUserDocRef, { followersCount: increment(-1) });
 
-        if (querySnapshot.empty) {
-            toast({ variant: "destructive", title: `User ${username} not found.` });
-            return;
-        }
+        await batch.commit();
+        toast({ title: `Unfollowed ${profileUser.username}` });
+
+      } else {
+        // --- Follow Logic ---
+        batch.set(currentUserFollowingRef, { userId: profileUser.id, timestamp: new Date() });
+        batch.set(profileUserFollowersRef, { userId: currentUser.uid, timestamp: new Date() });
+        batch.update(currentUserDocRef, { followingCount: increment(1) });
+        batch.update(profileUserDocRef, { followersCount: increment(1) });
         
-        const targetUserDoc = querySnapshot.docs[0];
-        await setDoc(followDocRef, { userId: targetUserDoc.id });
-        toast({ title: `Followed ${username}` });
+        await batch.commit();
+        toast({ title: `Followed ${profileUser.username}` });
       }
+
     } catch (error) {
       console.error("Error toggling follow:", error);
-      toast({ variant: "destructive", title: "An error occurred." });
+      toast({ variant: "destructive", title: "An error occurred.", description: "Please try again." });
     }
   }, [userAuthState, firestore, toast]);
 
@@ -209,31 +214,3 @@ export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | 
   
   return memoized;
 }
-
-// The main `useUser` hook is now in its own file: `firebase/auth/use-user.tsx`
-// This file will export a version that includes the `toggleFollow` and `followedUsers` for convenience
-// in components that don't want to import from two places.
-
-export interface UserHookResult {
-  user: User | null;
-  appUser: AppUser | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-  followedUsers: Set<string>;
-  toggleFollow: (username: string) => void;
-}
-
-export const useUser = (): UserHookResult => {
-  const context = useContext(FirebaseContext);
-  if (context === undefined) {
-    throw new Error('useUser must be used within a FirebaseProvider.');
-  }
-  return {
-    user: context.user,
-    appUser: context.appUser,
-    isUserLoading: context.isUserLoading,
-    userError: context.userError,
-    followedUsers: context.followedUsers,
-    toggleFollow: context.toggleFollow,
-  };
-};
