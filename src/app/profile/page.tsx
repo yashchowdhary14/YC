@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Grid3x3, Clapperboard, UserSquare2, Bookmark } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import ReelsGrid from '@/components/profile/ReelsGrid';
 
 function ProfilePageSkeleton() {
   return (
@@ -53,13 +54,22 @@ function ProfilePageSkeleton() {
 export default function ProfilePage() {
   const { user: currentUser, isUserLoading } = useUser();
 
-  // For this example, we'll just grab the first dummy user as the profile to view.
   // In a real app, you'd fetch based on a `username` param from the URL.
-  const profileUser = dummyUsers[0];
+  // For now, we'll use the logged-in user or the first dummy user as the profile to view.
+  const profileUser = currentUser ? {
+      id: currentUser.uid,
+      username: currentUser.email?.split('@')[0] || 'user',
+      fullName: currentUser.displayName || 'User',
+      avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/150/150`,
+      bio: 'This is a sample bio.',
+      followersCount: 0,
+      followingCount: 0,
+      verified: false
+  } : dummyUsers[0];
 
   const userPosts: Post[] = useMemo(() => {
     if (!profileUser) return [];
-    return dummyPosts.filter(p => p.uploaderId === profileUser.id && (p.type === 'photo' || p.type === 'reel'));
+    return dummyPosts.filter(p => p.uploaderId === profileUser.id && (p.type === 'photo' || p.type === 'video'));
   }, [profileUser]);
 
   const userReels: Post[] = useMemo(() => {
@@ -118,7 +128,7 @@ export default function ProfilePage() {
             <PostsGrid userId={profileUser.id} />
           </TabsContent>
           <TabsContent value="reels" className="mt-6">
-            <PostsGrid userId={profileUser.id} />
+            <ReelsGrid userId={profileUser.id} />
           </TabsContent>
           <TabsContent value="tagged" className="mt-6">
              <PostsGrid userId={profileUser.id} />
