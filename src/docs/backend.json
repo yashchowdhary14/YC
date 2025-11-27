@@ -486,7 +486,7 @@
     },
     "LiveChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Live Chat Message",
+      "title": "LiveChatMessage",
       "type": "object",
       "description": "Represents a message within a live stream chat.",
       "properties": {
