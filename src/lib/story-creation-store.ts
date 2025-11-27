@@ -16,8 +16,8 @@ export interface TextElement {
 
 export interface DrawingElement {
   id:string;
-  brush: 'pen' | 'highlighter' | 'neon';
-  color: string;
+  brush: 'pen' | 'highlighter' | 'eraser';
+  color: string; // Hex color or 'erase'
   points: { x: number; y: number }[];
   strokeWidth: number;
 }

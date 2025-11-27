@@ -1,9 +1,9 @@
 
 import type { StorySlide } from '../story-creation-store';
+import { getSvgPathFromPoints, drawText, getFitDimensions, loadImage, loadVideo, generateThumbnailFromCanvas } from './render-utils';
 
 const RENDER_WIDTH = 1080;
 const RENDER_HEIGHT = 1920;
-const THUMBNAIL_SIZE = 640;
 
 export type RenderedStoryOutput = {
   file: Blob;
@@ -42,20 +42,21 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
     
-    // TODO: Respect state.scale and state.offsetY from A8 prompt (not yet in store)
-    // For now, we fit the image to the canvas
     const { x, y, width, height } = getFitDimensions(image.width, image.height, RENDER_WIDTH, RENDER_HEIGHT);
     ctx.drawImage(image, x, y, width, height);
+    
+    // 3. Render drawings
+    renderDrawing(ctx, state.drawings);
 
-    // 3. Draw text layers
+    // 4. Draw text layers
     for (const text of state.texts) {
         drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
     }
     
-    // 4. Export final image
+    // 5. Export final image
     const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
     
-    // 5. Generate thumbnail
+    // 6. Generate thumbnail
     const thumbnail = await generateThumbnailFromCanvas(canvas);
 
     return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'image' };
@@ -88,7 +89,9 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
     
     const renderFrame = async () => {
         if (video.paused || video.ended) {
-            recorder.stop();
+            if (recorder.state !== 'inactive') {
+              recorder.stop();
+            }
             return;
         }
 
@@ -97,6 +100,8 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
         
         const { x, y, width, height } = getFitDimensions(video.videoWidth, video.videoHeight, RENDER_WIDTH, RENDER_HEIGHT);
         ctx.drawImage(video, x, y, width, height);
+
+        renderDrawing(ctx, state.drawings);
 
         for (const text of state.texts) {
             drawText(ctx, text, RENDER_WIDTH, RENDER_HEIGHT);
@@ -128,83 +133,32 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
 }
 
 
-// --- Helper Functions ---
+// --- Drawing Rendering ---
 
-function loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.crossOrigin = 'anonymous'; // Important for tainted canvas
-        img.src = src;
-    });
-}
+function renderDrawing(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, drawings: StorySlide['drawings']) {
+    for (const stroke of drawings) {
+        if (stroke.points.length < 2) continue;
 
-function loadVideo(src: string): Promise<HTMLVideoElement> {
-     return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        video.onloadeddata = () => resolve(video);
-        video.onerror = reject;
-        video.crossOrigin = 'anonymous';
-        video.muted = true;
-        video.loop = true;
-        video.src = src;
-        video.load();
-    });
-}
+        if (stroke.brush === 'eraser') {
+            ctx.globalCompositeOperation = 'destination-out';
+        } else {
+            ctx.globalCompositeOperation = 'source-over';
+        }
 
-function getFitDimensions(mediaWidth: number, mediaHeight: number, canvasWidth: number, canvasHeight: number) {
-    const mediaRatio = mediaWidth / mediaHeight;
-    const canvasRatio = canvasWidth / canvasHeight;
-    let width, height, x, y;
-
-    if (mediaRatio > canvasRatio) { // Media is wider
-        width = canvasWidth;
-        height = width / mediaRatio;
-    } else { // Media is taller
-        height = canvasHeight;
-        width = height * mediaRatio;
+        ctx.beginPath();
+        ctx.strokeStyle = stroke.color;
+        ctx.lineWidth = stroke.strokeWidth;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.globalAlpha = stroke.brush === 'highlighter' ? 0.7 : 1.0;
+        
+        ctx.moveTo(stroke.points[0].x, stroke.points[0].y);
+        for (let i = 1; i < stroke.points.length; i++) {
+            ctx.lineTo(stroke.points[i].x, stroke.points[i].y);
+        }
+        ctx.stroke();
     }
-    x = (canvasWidth - width) / 2;
-    y = (canvasHeight - height) / 2;
-    return { x, y, width, height };
-}
-
-function drawText(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, text: StorySlide['texts'][0], canvasWidth: number, canvasHeight: number) {
-    const fontSize = RENDER_WIDTH * 0.08; // Example: 8% of canvas width
-    ctx.font = `bold ${fontSize}px "Inter", sans-serif`;
-    ctx.fillStyle = text.color;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    // Apply shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 10;
-    ctx.shadowOffsetX = 5;
-    ctx.shadowOffsetY = 5;
-
-    // Apply transformations
-    const x = (text.position.x / 100) * canvasWidth;
-    const y = (text.position.y / 100) * canvasHeight;
-
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(text.rotation * (Math.PI / 180));
-    ctx.scale(text.scale, text.scale);
-    ctx.fillText(text.text, 0, 0);
-    ctx.restore();
-}
-
-async function generateThumbnailFromCanvas(sourceCanvas: HTMLCanvasElement | OffscreenCanvas): Promise<Blob> {
-    const thumbCanvas = new OffscreenCanvas(THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-    const ctx = thumbCanvas.getContext('2d');
-    if (!ctx) throw new Error('Could not create thumbnail context');
-
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0, 0, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-
-    const { x, y, width, height } = getFitDimensions(sourceCanvas.width, sourceCanvas.height, THUMBNAIL_SIZE, THUMBNAIL_SIZE);
-    ctx.drawImage(sourceCanvas, x, y, width, height);
-    
-    return thumbCanvas.convertToBlob({ type: 'image/jpeg', quality: 0.8 });
+    // Reset composite operation and alpha
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1.0;
 }
