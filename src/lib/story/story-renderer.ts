@@ -76,11 +76,15 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
       const stickerY = (sticker.position.y / 100) * RENDER_HEIGHT;
       ctx.fillRect(stickerX - 50, stickerY - 50, 100, 100);
     }
+    
+    // 7. TODO: Render Audio Layers
+    // This is where you would use Web Audio API to mix audio layers
+    // and create a final audio track.
 
-    // 7. Export final image
+    // 8. Export final image
     const file = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.92 });
     
-    // 8. Generate thumbnail
+    // 9. Generate thumbnail
     const thumbnail = await generateThumbnailFromCanvas(canvas);
 
     return { file, thumbnail, width: RENDER_WIDTH, height: RENDER_HEIGHT, type: 'image' };
@@ -97,6 +101,12 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
     if (!ctx) throw new Error('Could not create canvas context');
 
     const stream = canvas.captureStream();
+    
+    // TODO: Add audio stream from Web Audio API mixing here
+    // const audioContext = new AudioContext();
+    // const audioDestination = audioContext.createMediaStreamDestination();
+    // stream.addTrack(audioDestination.stream.getAudioTracks()[0]);
+
     const recorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
     const chunks: Blob[] = [];
     recorder.ondataavailable = (e) => e.data.size > 0 && chunks.push(e.data);

@@ -31,6 +31,19 @@ export interface StickerElement {
   data: any;
 }
 
+export interface AudioLayer {
+  id: string;
+  type: "music" | "voiceover" | "effect";
+  src: string;
+  startTime: number;
+  duration: number;
+  volume: number;
+  trimStart?: number;
+  trimEnd?: number;
+  fadeIn?: number;
+  fadeOut?: number;
+};
+
 export interface StoryEffects {
   grain: number;      // 0–1
   vignette: number;   // 0–1
@@ -53,6 +66,7 @@ export type StorySlide = {
   texts: TextElement[];
   drawings: DrawingElement[];
   stickers: StickerElement[];
+  audioLayers: AudioLayer[];
   filterName: string;
   filterIntensity: number;
   effects: StoryEffects;
@@ -105,6 +119,7 @@ export const useStoryCreationStore = create<StoryCreationState & StoryCreationAc
       texts: [],
       drawings: [],
       stickers: [],
+      audioLayers: [],
       filterName: 'Original',
       filterIntensity: 1,
       effects: defaultEffects,

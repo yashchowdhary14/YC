@@ -4,7 +4,7 @@
 import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType, StoryEffects } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles, SlidersHorizontal, Music } from 'lucide-react';
 import TextElement from './TextElement';
 import DrawingCanvas from './DrawingCanvas';
 import { useState, useMemo } from 'react';
@@ -15,6 +15,7 @@ import FilterStrip, { filters as filterPresets } from './FilterStrip';
 import { interpolateFilter } from '@/lib/story/filterUtils';
 import { cn } from '@/lib/utils';
 import EffectsPanel from './effects/EffectsPanel';
+import AudioPanel from './AudioPanel';
 
 
 export default function StoryEditor() {
@@ -26,7 +27,7 @@ export default function StoryEditor() {
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
-  const [activePanel, setActivePanel] = useState<'none' | 'filters' | 'effects'>('none');
+  const [activePanel, setActivePanel] = useState<'none' | 'filters' | 'effects' | 'audio'>('none');
 
   const handleBack = () => {
     reset();
@@ -56,7 +57,7 @@ export default function StoryEditor() {
     setActivePanel('none');
   }
 
-  const togglePanel = (panel: 'filters' | 'effects') => {
+  const togglePanel = (panel: 'filters' | 'effects' | 'audio') => {
     setActivePanel(prev => (prev === panel ? 'none' : panel));
     setIsDrawing(false);
   }
@@ -165,6 +166,14 @@ export default function StoryEditor() {
         {activeSlide.texts.map(text => (
             <TextElement key={text.id} element={text} slideId={activeSlide.id} />
         ))}
+        {activeSlide.stickers.map(sticker => (
+            <div key={sticker.id} style={{ position: 'absolute', top: `${sticker.position.y}%`, left: `${sticker.position.x}%`}}>
+                {/* Basic Sticker Rendering Placeholder */}
+                <div className="w-24 h-24 bg-purple-500/50 flex items-center justify-center text-white rounded-md">
+                    Sticker
+                </div>
+            </div>
+        ))}
       </div>
       
       {isDrawing && <DrawingCanvas />}
@@ -180,6 +189,9 @@ export default function StoryEditor() {
                    <Button onClick={toggleDrawing} variant="secondary" size="sm" disabled={isRendering}>Done</Button>
                 ) : (
                    <>
+                    <button onClick={() => togglePanel('audio')} className="p-2 text-white" disabled={isRendering}>
+                        <Music className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
                     <button className="p-2 text-white" disabled={isRendering}>
                         <Sticker className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
@@ -205,6 +217,7 @@ export default function StoryEditor() {
        <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
           {activePanel === 'filters' && <FilterStrip />}
           {activePanel === 'effects' && <EffectsPanel />}
+          {activePanel === 'audio' && <AudioPanel />}
           {activePanel === 'none' && !isDrawing && (
             <div className="bg-gradient-to-t from-black/50 to-transparent -m-4 p-4 pt-16 flex items-center justify-end">
               <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
