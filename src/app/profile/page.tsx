@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { notFound } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { dummyUsers, dummyPosts } from '@/lib/dummy-data';
@@ -13,6 +13,7 @@ import { Grid3x3, Clapperboard, UserSquare2, Bookmark } from 'lucide-react';
 import { Post } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReelsGrid from '@/components/profile/ReelsGrid';
+import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
 
 function ProfilePageSkeleton() {
   return (
@@ -80,11 +81,6 @@ export default function ProfilePage() {
     // Simulate finding posts the user is tagged in
     return dummyPosts.slice(5, 10);
   }, []);
-
-  const savedPosts: Post[] = useMemo(() => {
-    // Simulate finding posts the user has saved. This would be a private query.
-    return dummyPosts.slice(2, 7);
-  }, []);
   
   const isMyProfile = currentUser?.uid === profileUser.id;
 
@@ -135,7 +131,7 @@ export default function ProfilePage() {
           </TabsContent>
           {isMyProfile && (
             <TabsContent value="saved" className="mt-6">
-                <PostsGrid userId={profileUser.id} />
+                <SavedPostsGrid userId={profileUser.id} />
             </TabsContent>
           )}
         </Tabs>
@@ -143,3 +139,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

@@ -56,7 +56,17 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "savedPosts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "savedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
 }
+
+    

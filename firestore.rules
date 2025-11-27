@@ -66,6 +66,10 @@ service cloud.firestore {
         allow read: if true;
         allow write: if isOwner(userId);
       }
+
+      match /savedPosts/{savedPostId} {
+        allow read, write: if isOwner(userId);
+      }
     }
     
     // posts
@@ -179,3 +183,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
