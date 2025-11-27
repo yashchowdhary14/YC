@@ -8,6 +8,7 @@ import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AppUser } from '@/lib/types';
+import { dummyUsers } from '@/lib/dummy-data';
 
 interface UserAuthState {
   user: User | null;
@@ -56,6 +57,30 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     followedUsers: new Set(),
   });
 
+  // --- MOCK AUTHENTICATION ---
+  // This useEffect bypasses real Firebase auth and sets a mock user.
+  useEffect(() => {
+    const mockAppUser = dummyUsers.find(u => u.username === 'wanderlust_lila')!;
+    const mockUser = {
+        uid: mockAppUser.id,
+        displayName: mockAppUser.fullName,
+        email: 'lila.kim@example.com',
+        photoURL: `https://picsum.photos/seed/${mockAppUser.id}/150/150`,
+        // Add other required User properties if needed
+    } as User;
+
+    setUserAuthState({
+        user: mockUser,
+        appUser: { ...mockAppUser, avatarUrl: mockUser.photoURL },
+        isUserLoading: false,
+        userError: null,
+        followedUsers: new Set(['user_ethan_bytes', 'user_maya_creates']), // Pre-populate some follows
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // --- REAL AUTHENTICATION (Commented out) ---
+  /*
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
@@ -108,6 +133,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     });
     return () => unsubscribe();
   }, [userAuthState.user, firestore]);
+  */
 
   const toggleFollow = useCallback(async (profileUser: AppUser) => {
     const { user: currentUser, followedUsers } = userAuthState;
@@ -117,41 +143,23 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     }
 
     const isCurrentlyFollowing = followedUsers.has(profileUser.id);
-    const batch = writeBatch(firestore);
+    const updatedFollowedUsers = new Set(followedUsers);
 
-    // References
-    const currentUserFollowingRef = doc(firestore, `users/${currentUser.uid}/following`, profileUser.id);
-    const profileUserFollowersRef = doc(firestore, `users/${profileUser.id}/followers`, currentUser.uid);
-    const currentUserDocRef = doc(firestore, 'users', currentUser.uid);
-    const profileUserDocRef = doc(firestore, 'users', profileUser.id);
-
-    try {
-      if (isCurrentlyFollowing) {
-        // --- Unfollow Logic ---
-        batch.delete(currentUserFollowingRef);
-        batch.delete(profileUserFollowersRef);
-        batch.update(currentUserDocRef, { followingCount: increment(-1) });
-        batch.update(profileUserDocRef, { followersCount: increment(-1) });
-
-        await batch.commit();
-        toast({ title: `Unfollowed ${profileUser.username}` });
-
-      } else {
-        // --- Follow Logic ---
-        batch.set(currentUserFollowingRef, { userId: profileUser.id, timestamp: new Date() });
-        batch.set(profileUserFollowersRef, { userId: currentUser.uid, timestamp: new Date() });
-        batch.update(currentUserDocRef, { followingCount: increment(1) });
-        batch.update(profileUserDocRef, { followersCount: increment(1) });
-        
-        await batch.commit();
-        toast({ title: `Followed ${profileUser.username}` });
-      }
-
-    } catch (error) {
-      console.error("Error toggling follow:", error);
-      toast({ variant: "destructive", title: "An error occurred.", description: "Please try again." });
+    // Optimistic UI update
+    if (isCurrentlyFollowing) {
+        updatedFollowedUsers.delete(profileUser.id);
+    } else {
+        updatedFollowedUsers.add(profileUser.id);
     }
-  }, [userAuthState, firestore, toast]);
+    setUserAuthState(prev => ({...prev, followedUsers: updatedFollowedUsers}));
+
+    // Simulate batch write
+    console.log(`Simulating ${isCurrentlyFollowing ? 'unfollow' : 'follow'} for user: ${profileUser.username}`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    toast({ title: isCurrentlyFollowing ? `Unfollowed ${profileUser.username}` : `Followed ${profileUser.username}` });
+    
+  }, [userAuthState, toast]);
 
   const contextValue = useMemo((): FirebaseContextState => {
     const servicesAvailable = !!(firebaseApp && firestore && auth);
