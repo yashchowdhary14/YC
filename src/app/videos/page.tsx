@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import type { Post } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 import { dummyPosts } from '@/lib/dummy-data';
+import { useLocalFeedStore } from '@/store/localFeedStore';
+import { useUser } from '@/firebase';
 
 type SortOption = 'Trending' | 'Latest';
 
@@ -17,6 +19,35 @@ export default function VideosPage() {
   const [sortOption, setSortOption] = useState<SortOption>('Trending');
   const [videos, setVideos] = useState<Post[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
+  const localItems = useLocalFeedStore(s => s.items);
+
+  const newVideos = useMemo(() => {
+    if (!user) return [];
+    return localItems.filter(item => item.mode === 'video').map(item => ({
+        id: item.id,
+        type: 'video',
+        mediaUrl: item.mediaUrls[0],
+        thumbnailUrl: item.thumbnailUrl,
+        uploaderId: user.uid,
+        user: { 
+            id: user.uid, 
+            username: user.displayName?.split(' ')[0].toLowerCase() || 'user', 
+            avatarUrl: user.photoURL || '',
+            fullName: user.displayName || 'User',
+            bio: '',
+            followersCount: 0,
+            followingCount: 0,
+            verified: false,
+        },
+        caption: item.metadata.caption,
+        tags: item.metadata.tags,
+        views: 0,
+        likes: 0,
+        commentsCount: 0,
+        createdAt: new Date(item.createdAt),
+    } as Post));
+  }, [localItems, user]);
 
   useEffect(() => {
     // Simulate fetching data
@@ -26,16 +57,21 @@ export default function VideosPage() {
     }, 500);
   }, []);
 
+  const allVideos = useMemo(() => {
+    if (!videos) return newVideos;
+    return [...newVideos, ...videos];
+  }, [videos, newVideos]);
+
   const categories = useMemo(() => {
-    if (!videos) return ['All'];
-    const allCategories = videos.flatMap(video => video.tags.filter(t => t !== 'longform'));
+    if (!allVideos) return ['All'];
+    const allCategories = allVideos.flatMap(video => video.tags.filter(t => t !== 'longform'));
     return ['All', ...Array.from(new Set(allCategories))];
-  }, [videos]);
+  }, [allVideos]);
 
   const filteredAndSortedVideos = useMemo(() => {
-    if (!videos) return [];
+    if (!allVideos) return [];
     
-    let processedVideos = videos.map(v => ({
+    let processedVideos = allVideos.map(v => ({
       ...v,
       createdAt: v.createdAt instanceof Date ? v.createdAt : new Date(v.createdAt)
     }));
@@ -51,7 +87,7 @@ export default function VideosPage() {
     }
 
     return processedVideos;
-  }, [videos, selectedCategory, sortOption]);
+  }, [allVideos, selectedCategory, sortOption]);
 
   return (
     <main className="min-h-screen bg-background">

@@ -1,13 +1,14 @@
 
 'use client';
 
-import { useState, useMemo, useCallback }from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useUser } from '@/firebase';
 import { dummyPosts } from '@/lib/dummy-data';
 import type { Post, ReelComment } from '@/lib/types';
 import ReelCard from '@/components/app/reel-card';
 import CommentsSheet from '@/components/app/comments-sheet';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { useLocalFeedStore } from '@/store/localFeedStore';
 
 export default function ReelsPage() {
     const { user, followedUsers, toggleFollow } = useUser();
@@ -18,6 +19,37 @@ export default function ReelsPage() {
     const [activeReel, setActiveReel] = useState<Post | null>(null);
 
     const initialReelId = searchParams.get('reelId');
+
+    const localItems = useLocalFeedStore(s => s.items);
+
+    const newReels = useMemo(() => {
+      if (!user) return [];
+      return localItems.filter(item => item.mode === 'reel').map(item => ({
+          id: item.id,
+          type: 'reel',
+          mediaUrl: item.mediaUrls[0],
+          thumbnailUrl: item.thumbnailUrl,
+          uploaderId: user.uid,
+          user: { 
+              id: user.uid, 
+              username: user.displayName?.split(' ')[0].toLowerCase() || 'user', 
+              avatarUrl: user.photoURL || '',
+              fullName: user.displayName || 'User',
+              bio: '',
+              followersCount: 0,
+              followingCount: 0,
+              verified: false,
+          },
+          caption: item.metadata.caption,
+          tags: item.metadata.tags,
+          views: 0,
+          likes: 0,
+          commentsCount: 0,
+          createdAt: new Date(item.createdAt),
+          comments: [],
+      } as Post));
+    }, [localItems, user]);
+
 
     const handleUpdateReel = useCallback((updatedReel: Post) => {
         setReels(prevReels => prevReels.map(r => r.id === updatedReel.id ? updatedReel : r));
@@ -34,14 +66,20 @@ export default function ReelsPage() {
     
     // Sort reels to show the initial one first, if provided
     const sortedReels = useMemo(() => {
-        if (!initialReelId) return reels;
-        const initialReel = reels.find(r => r.id === initialReelId);
-        if (!initialReel) return reels;
-        return [
-            initialReel,
-            ...reels.filter(r => r.id !== initialReelId)
+        const allReels = [...newReels, ...reels];
+        if (!initialReelId) return allReels;
+
+        const initialReelIndex = allReels.findIndex(r => r.id === initialReelId);
+        if (initialReelIndex === -1) return allReels;
+
+        const initialReel = allReels[initialReelIndex];
+        const remainingReels = [
+            ...allReels.slice(0, initialReelIndex),
+            ...allReels.slice(initialReelIndex + 1)
         ];
-    }, [reels, initialReelId]);
+        return [initialReel, ...remainingReels];
+
+    }, [reels, newReels, initialReelId]);
 
 
   return (

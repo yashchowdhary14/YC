@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from "react";
@@ -19,6 +18,8 @@ import { Button } from "../ui/button";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UploadManager from "./UploadManager";
+import PublishSuccessScreen from "./PublishSuccessScreen";
+import { useLocalFeedStore } from "@/store/localFeedStore";
 
 
 type CreateModalProps = {
@@ -26,7 +27,7 @@ type CreateModalProps = {
   onClose: () => void;
 };
 
-type Step = "select-type" | "media-picker" | "media-preview" | "media-details" | "publish";
+type Step = "select-type" | "media-picker" | "media-preview" | "media-details" | "publish" | "success";
 
 
 export function CreateModal({ open, onClose }: CreateModalProps) {
@@ -37,6 +38,9 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   const [mode, setMode] = useState<CreateMode | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [finalizedData, setFinalizedData] = useState<FinalizedCreateData | null>(null);
+  const [uploadResult, setUploadResult] = useState<SimulatedUploadResult | null>(null);
+
+  const addItemToFeed = useLocalFeedStore(s => s.addItem);
   
   const handleSelect = (selectedMode: CreateMode) => {
     if (selectedMode === 'live') {
@@ -64,10 +68,12 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   }
   
   const handleUploadComplete = (result: SimulatedUploadResult) => {
-      console.log("Upload complete, result:", result);
-      // In a future step, this will transition to a confirmation screen.
-      // For now, we will just close the modal.
-      resetFlow();
+      setUploadResult(result);
+      addItemToFeed({
+        ...result,
+        createdAt: Date.now(),
+      });
+      setStep("success");
   }
 
   const handleBack = () => {
@@ -78,6 +84,18 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     } else if (step === 'media-picker') {
         setStep('select-type');
     }
+  }
+
+  const resetFlow = () => {
+    onClose();
+    // Delay reset to allow animations to finish
+    setTimeout(() => {
+        setStep('select-type');
+        setMode(null);
+        setFiles([]);
+        setFinalizedData(null);
+        setUploadResult(null);
+    }, 300);
   }
 
   const renderStep = () => {
@@ -96,6 +114,9 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         case "publish":
             if (!finalizedData) return null;
             return <UploadManager data={finalizedData} onComplete={handleUploadComplete} />;
+        case "success":
+            if (!uploadResult) return null;
+            return <PublishSuccessScreen result={uploadResult} onClose={resetFlow} />;
         default:
             return <CreateChoiceScreen onSelect={handleSelect} />;
     }
@@ -106,23 +127,13 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     'media-picker': mode ? `New ${mode.charAt(0).toUpperCase() + mode.slice(1)}` : 'Select Media',
     'media-preview': 'Preview',
     'media-details': 'Add Details',
-    'publish': 'Publishing...'
+    'publish': 'Publishing...',
+    'success': 'Published!'
   };
 
   const title = stepTitles[step] || 'Create';
-
-  const resetFlow = () => {
-    onClose();
-    // Delay reset to allow animations to finish
-    setTimeout(() => {
-        setStep('select-type');
-        setMode(null);
-        setFiles([]);
-        setFinalizedData(null);
-    }, 300);
-  }
   
-  const showHeader = step !== 'publish';
+  const showHeader = step !== 'publish' && step !== 'success';
 
   const renderHeader = () => (
     <DialogHeader className="p-0 sm:p-4 text-center border-b sm:border-none relative">
@@ -175,7 +186,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={resetFlow}>
-      <DialogContent className={cn("sm:max-w-xl md:max-w-2xl lg:max-w-4xl h-[80vh] flex flex-col p-0 gap-0", step === 'publish' && "md:max-w-xl")}>
+      <DialogContent className={cn("sm:max-w-xl md:max-w-2xl lg:max-w-4xl h-[80vh] flex flex-col p-0 gap-0", (step === 'publish' || step === 'success') && "md:max-w-xl")}>
         {showHeader && renderHeader()}
         <div className="flex-1 overflow-hidden">
           {renderContent()}

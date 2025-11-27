@@ -9,6 +9,8 @@ import MobileNav from '@/components/app/mobile-nav';
 import { dummyPosts } from '@/lib/dummy-data';
 import type { Post } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLocalFeedStore } from '@/store/localFeedStore';
+import { useUser } from '@/firebase';
 
 function PostCardSkeleton() {
     return (
@@ -34,6 +36,36 @@ function PostCardSkeleton() {
 export default function Home() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
+  
+  const localItems = useLocalFeedStore(s => s.items);
+
+  const newPosts = useMemo(() => {
+    if (!user) return [];
+    return localItems.filter(item => item.mode === 'post').map(item => ({
+        id: item.id,
+        type: 'post',
+        mediaUrl: item.mediaUrls[0],
+        thumbnailUrl: item.thumbnailUrl,
+        uploaderId: user.uid,
+        user: { 
+            id: user.uid, 
+            username: user.displayName?.split(' ')[0].toLowerCase() || 'user', 
+            avatarUrl: user.photoURL || '',
+            fullName: user.displayName || 'User',
+            bio: '',
+            followersCount: 0,
+            followingCount: 0,
+            verified: false,
+        },
+        caption: item.metadata.caption,
+        tags: item.metadata.tags,
+        views: 0,
+        likes: 0,
+        commentsCount: 0,
+        createdAt: new Date(item.createdAt),
+    } as Post));
+  }, [localItems, user]);
 
   useEffect(() => {
     // Simulate fetching posts
@@ -45,8 +77,8 @@ export default function Home() {
   }, []);
 
   const suggestedPosts = useMemo(() => {
-    return posts.slice(0, 10);
-  }, [posts]);
+    return [...newPosts, ...posts].slice(0, 10 + newPosts.length);
+  }, [posts, newPosts]);
 
   return (
     <div className="flex flex-col h-screen bg-background">
