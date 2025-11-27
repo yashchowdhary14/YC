@@ -43,22 +43,16 @@ export default function SidebarNav({ isCollapsed = false }: SidebarNavProps) {
   const pathname = usePathname();
   const { user } = useUser();
 
-  const profileLink = user ? { href: `/profile2`, label: 'PROFILE2.0', icon: (props: any) => (
+  const profile3Link = user ? { href: `/profile3`, label: 'Profile3.0', icon: (props: any) => (
       <Avatar {...props}>
           <AvatarImage src={user.photoURL || ''} />
           <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
       </Avatar>
-  )} : null;
-
-  const profile3Link = user ? { href: `/profile3`, label: 'Profile3.0', icon: UserCircle } : null;
+  ) } : null;
 
   const allLinks = [
     ...mainLinks,
   ];
-
-  if(profileLink){
-    allLinks.push(profileLink);
-  }
 
   if(profile3Link){
     allLinks.push(profile3Link);
