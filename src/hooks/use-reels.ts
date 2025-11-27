@@ -62,12 +62,13 @@ export function useReels(userId: string): UseReelsResult {
 
         const querySnapshot = await getDocs(q);
         const newReels = querySnapshot.docs.map(doc => {
-            const data = doc.data() as Omit<Post, 'user' | 'type'>;
+            const data = doc.data() as Omit<Post, 'user' | 'type'> & { userId: string };
             return {
                 ...data,
                 id: doc.id,
                 type: 'reel',
-                user: getHydratedUser(data.uploaderId) // uploaderId is an alias for userId in reels
+                uploaderId: data.userId, // Maintain uploaderId for consistency
+                user: getHydratedUser(data.userId)
             } as Post;
         });
 
@@ -89,7 +90,7 @@ export function useReels(userId: string): UseReelsResult {
     setLastDoc(null);
     setHasMore(true);
     fetchReels();
-  }, [fetchReels, userId]);
+  }, [fetchReels]);
 
 
   const loadMore = useCallback(() => {
