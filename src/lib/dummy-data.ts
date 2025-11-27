@@ -31,9 +31,9 @@ const generateReelComments = (count: number): ReelComment[] => {
             user: user.username,
             profilePic: `https://picsum.photos/seed/${user.id}/100`,
             text: `This is a fantastic reel! Great job! #${i+1}`,
-            likes: Math.floor(Math.random() * 100),
-            timeAgo: `${Math.floor(Math.random() * 59) + 1}m`,
-            isLiked: Math.random() > 0.8
+            likes: (i * 13 + 5) % 100, // Deterministic likes
+            timeAgo: `${(i * 3 + 1) % 59 + 1}m`,
+            isLiked: (i % 5) === 0 // Deterministic isLiked
         }
     })
 }
@@ -53,9 +53,9 @@ const createDummyPosts = (): Post[] => {
             user: getHydratedUser(user.id),
             caption: img.description,
             tags: ['photography', img.imageHint.split(' ')[0]],
-            views: Math.floor(Math.random() * 10000),
-            likes: Math.floor(Math.random() * 2000),
-            commentsCount: Math.floor(Math.random() * 500),
+            views: (index + 1) * 1234,
+            likes: (index + 1) * 243,
+            commentsCount: (index + 1) * 37,
             createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
         });
     });
@@ -70,7 +70,7 @@ const createDummyPosts = (): Post[] => {
     ];
     reelVideos.forEach((videoUrl, index) => {
         const user = dummyUsers[(index + 3) % dummyUsers.length];
-        const comments = generateReelComments(Math.floor(Math.random() * 15));
+        const comments = generateReelComments((index + 1) * 3);
         posts.push({
             id: `reel_${index + 1}`,
             type: 'reel',
@@ -80,8 +80,8 @@ const createDummyPosts = (): Post[] => {
             user: getHydratedUser(user.id),
             caption: `This is a cool reel #reel #${user.username}`,
             tags: ['reel', 'trending'],
-            views: Math.floor(Math.random() * 50000),
-            likes: Math.floor(Math.random() * 5000),
+            views: (index + 1) * 5432,
+            likes: (index + 1) * 487,
             commentsCount: comments.length,
             createdAt: new Date(Date.now() - index * 12 * 60 * 60 * 1000),
             comments: comments
@@ -110,9 +110,9 @@ const createDummyPosts = (): Post[] => {
             user: getHydratedUser(user.id),
             caption: vid.title,
             tags: [vid.category.toLowerCase(), 'longform'],
-            views: Math.floor(Math.random() * 1000000),
-            likes: Math.floor(Math.random() * 50000),
-            commentsCount: Math.floor(Math.random() * 2000),
+            views: (index + 1) * 123456,
+            likes: (index + 1) * 5432,
+            commentsCount: (index + 1) * 210,
             createdAt: new Date(Date.now() - index * 3 * 24 * 60 * 60 * 1000),
         });
     });
