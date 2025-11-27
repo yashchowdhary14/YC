@@ -14,6 +14,7 @@ import { Post } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import ReelsGrid from '@/components/profile/ReelsGrid';
 import SavedPostsGrid from '@/components/profile/SavedPostsGrid';
+import TaggedPostsGrid from '@/components/profile/TaggedPostsGrid';
 
 function ProfilePageSkeleton() {
   return (
@@ -127,7 +128,7 @@ export default function ProfilePage() {
             <ReelsGrid userId={profileUser.id} />
           </TabsContent>
           <TabsContent value="tagged" className="mt-6">
-             <PostsGrid userId={profileUser.id} />
+             <TaggedPostsGrid userId={profileUser.id} />
           </TabsContent>
           {isMyProfile && (
             <TabsContent value="saved" className="mt-6">
@@ -139,5 +140,7 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
 
     
