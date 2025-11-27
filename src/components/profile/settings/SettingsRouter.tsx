@@ -10,6 +10,8 @@ import Notifications from './Notifications';
 import Privacy from './Privacy';
 import Interactions from './Interactions';
 import AppAndMedia from './AppAndMedia';
+import ForProfessionals from './ForProfessionals';
+import WhatYouSee from './WhatYouSee';
 
 const viewMap: { [key in SettingsView]: React.ComponentType<SettingsViewProps> } = {
   main: MainSettings,
@@ -19,6 +21,8 @@ const viewMap: { [key in SettingsView]: React.ComponentType<SettingsViewProps> }
   privacy: Privacy,
   interactions: Interactions,
   appAndMedia: AppAndMedia,
+  forProfessionals: ForProfessionals,
+  whatYouSee: WhatYouSee,
 };
 
 const variants = {

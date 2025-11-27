@@ -3,7 +3,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
-import { Search, ChevronRight, UserCircle, Settings, Globe, Star, Shield, HelpCircle, Info, Heart, Clock, Bookmark, Bell, MessageCircle, GitBranch, Share } from 'lucide-react';
+import { Search, ChevronRight, UserCircle, Settings, Globe, Star, Shield, HelpCircle, Info, Heart, Clock, Bookmark, Bell, MessageCircle, GitBranch, Share, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import type { SettingsViewProps } from './types';
 
@@ -27,6 +27,15 @@ const menuSections = [
         ]
     },
     {
+        title: "What you see",
+        items: [
+            { label: "Favorites", icon: Star, view: 'whatYouSee' },
+            { label: "Muted accounts", icon: Shield, view: 'whatYouSee' },
+            { label: "Suggested content", icon: Globe, view: 'whatYouSee' },
+            { label: "Like and share counts", icon: Heart, view: 'interactions' },
+        ]
+    },
+    {
         title: "Who can see your content",
         items: [
             { label: "Account privacy", icon: Shield, view: 'privacy' },
@@ -47,13 +56,10 @@ const menuSections = [
             { label: "Hidden Words", icon: Shield },
         ]
     },
-     {
-        title: "What you see",
+    {
+        title: "For professionals",
         items: [
-            { label: "Favorites", icon: Star },
-            { label: "Muted accounts", icon: Shield },
-            { label: "Suggested content", icon: Globe },
-            { label: "Like and share counts", icon: Heart, view: 'interactions' },
+            { label: "Creator tools and controls", icon: Briefcase, view: 'forProfessionals' },
         ]
     },
      {
@@ -68,12 +74,6 @@ const menuSections = [
         ]
     },
     {
-        title: "For professionals",
-        items: [
-            { label: "Creator tools and controls", icon: Star },
-        ]
-    },
-     {
         title: "More info and support",
         items: [
             { label: "Help", icon: HelpCircle },

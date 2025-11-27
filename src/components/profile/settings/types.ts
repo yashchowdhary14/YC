@@ -6,7 +6,9 @@ export type SettingsView =
   | 'notifications'
   | 'privacy'
   | 'interactions'
-  | 'appAndMedia';
+  | 'appAndMedia'
+  | 'forProfessionals'
+  | 'whatYouSee';
 
 export interface SettingsViewProps {
   setView: (view: SettingsView) => void;
