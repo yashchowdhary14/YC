@@ -78,6 +78,7 @@ export default function ReelCard({ reel, onUpdateReel, onCommentClick, isFollowi
                 ref={videoRef}
                 src={reel.mediaUrl}
                 loop
+                autoPlay
                 muted={isMuted}
                 className="h-full w-full object-contain"
                 playsInline
