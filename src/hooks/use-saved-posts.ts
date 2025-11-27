@@ -119,5 +119,3 @@ export function useSavedPosts(userId: string): UseSavedPostsResult {
 
   return { posts, isLoading, isLoadingMore, hasMore, error, loadMore };
 }
-
-    

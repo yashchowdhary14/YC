@@ -3,7 +3,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect, useCallback } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore, doc, getDoc, collection, onSnapshot, writeBatch, increment } from 'firebase/firestore';
+import { Firestore, doc, getDoc, collection, onSnapshot, writeBatch, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 import { useToast } from '@/hooks/use-toast';
@@ -100,26 +100,15 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     try {
         const batch = writeBatch(firestore);
         
-        // References for the current user's document and the profile user's document
         const currentUserRef = doc(firestore, 'users', currentUser.uid);
         const profileUserRef = doc(firestore, 'users', profileUser.id);
 
-        // References for the following/follower subcollections
-        const followingRef = doc(firestore, `users/${currentUser.uid}/following`, profileUser.id);
-        const followerRef = doc(firestore, `users/${profileUser.id}/followers`, currentUser.uid);
-
         if (isCurrentlyFollowing) {
-            // Unfollow logic
-            batch.delete(followingRef);
-            batch.delete(followerRef);
-            batch.update(currentUserRef, { followingCount: increment(-1) });
-            batch.update(profileUserRef, { followersCount: increment(-1) });
+            batch.update(currentUserRef, { following: arrayRemove(profileUser.id) });
+            batch.update(profileUserRef, { followers: arrayRemove(currentUser.uid) });
         } else {
-            // Follow logic
-            batch.set(followingRef, { userId: profileUser.id, followedAt: new Date() });
-            batch.set(followerRef, { userId: currentUser.uid, followedAt: new Date() });
-            batch.update(currentUserRef, { followingCount: increment(1) });
-            batch.update(profileUserRef, { followersCount: increment(1) });
+            batch.update(currentUserRef, { following: arrayUnion(profileUser.id) });
+            batch.update(profileUserRef, { followers: arrayUnion(currentUser.uid) });
         }
 
         await batch.commit();

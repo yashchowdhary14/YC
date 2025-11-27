@@ -4,7 +4,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import PostCard from '@/components/app/post-card';
 import type { Post } from '@/lib/types';
@@ -13,18 +13,18 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { dummyPosts, dummyUsers } from '@/lib/dummy-data';
 import { notFound } from 'next/navigation';
 import TextareaAutosize from 'react-textarea-autosize';
+import { doc, collection, addDoc, serverTimestamp, query, where, orderBy, onSnapshot } from 'firebase/firestore';
+import { getHydratedUser } from '@/lib/dummy-data';
 
 interface Comment {
   id: string;
   userId: string;
   text: string;
-  createdAt: Date;
+  createdAt: any;
   user?: {
     username: string;
     avatarUrl: string;
@@ -34,33 +34,66 @@ interface Comment {
 export default function PostPage() {
   const { postId } = useParams();
   const { user: currentUser } = useUser();
+  const firestore = useFirestore();
   const { toast } = useToast();
+  
+  const [post, setPost] = useState<Post | null>(null);
+  const [isLoadingPost, setIsLoadingPost] = useState(true);
+
   const [commentText, setCommentText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hydratedComments, setHydratedComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
 
-  const post = useMemo((): Post | null => {
-    return dummyPosts.find(p => p.id === postId) || null;
-  }, [postId]);
 
-  // Simulate comment fetching and hydration
+  // Fetch the post
   useEffect(() => {
-    // In a real app, this would be a fetch. Here we just generate some dummy comments.
-    const comments: Comment[] = Array.from({ length: 3 }).map((_, i) => {
-      const user = dummyUsers[i % dummyUsers.length];
-      return {
-        id: `comment-${i}`,
-        userId: user.id,
-        text: `This is a great comment, thanks for sharing! #${i + 1}`,
-        createdAt: new Date(Date.now() - (i + 1) * 60000 * 5),
-        user: {
-          username: user.username,
-          avatarUrl: `https://picsum.photos/seed/${user.id}/100/100`,
-        },
-      };
+    if (!firestore || !postId) return;
+    const postRef = doc(firestore, 'posts', postId as string);
+    const unsubscribe = onSnapshot(postRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const hydratedPost = {
+            ...data,
+            id: docSnap.id,
+            user: getHydratedUser(data.uploaderId)
+        } as Post;
+        setPost(hydratedPost);
+      } else {
+        setPost(null);
+      }
+      setIsLoadingPost(false);
     });
-    setHydratedComments(comments);
-  }, [postId]);
+    return () => unsubscribe();
+  }, [firestore, postId]);
+  
+  // Fetch comments for the post
+  useEffect(() => {
+    if (!firestore || !postId) return;
+    setIsLoadingComments(true);
+    const commentsRef = collection(firestore, 'comments');
+    const q = query(
+      commentsRef, 
+      where('parentId', '==', postId), 
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const newComments: Comment[] = [];
+      querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          newComments.push({
+            ...data,
+            id: doc.id,
+            user: getHydratedUser(data.userId)
+          } as Comment);
+      });
+      setComments(newComments);
+      setIsLoadingComments(false);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, postId]);
 
 
   const handleAddComment = async (e: React.FormEvent) => {
@@ -68,25 +101,31 @@ export default function PostPage() {
     if (!currentUser || !commentText.trim() || !postId) return;
 
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const newComment: Comment = {
-      id: `new-comment-${Date.now()}`,
-      userId: currentUser.uid,
-      text: commentText,
-      createdAt: new Date(),
-      user: {
-        username: currentUser.email?.split('@')[0] || 'User',
-        avatarUrl: currentUser.photoURL || `https://picsum.photos/seed/${currentUser.uid}/100/100`,
-      }
-    };
-    setHydratedComments(prev => [...prev, newComment]);
-    setCommentText('');
-
-    toast({ title: 'Comment Posted!' });
-    setIsSubmitting(false);
+    try {
+        const commentsRef = collection(firestore, 'comments');
+        await addDoc(commentsRef, {
+            parentId: postId,
+            userId: currentUser.uid,
+            text: commentText,
+            createdAt: serverTimestamp(),
+        });
+        setCommentText('');
+        toast({ title: 'Comment Posted!' });
+    } catch (error) {
+        console.error("Error adding comment: ", error);
+        toast({ variant: 'destructive', title: "Failed to post comment" });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
+
+  if (isLoadingPost) {
+      return (
+          <div className="flex h-screen items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+      )
+  }
 
   if (!post) {
     return notFound();
@@ -103,9 +142,9 @@ export default function PostPage() {
               <div className="mt-4">
                 <h2 className="text-sm font-semibold mb-2 px-4">Comments</h2>
                 <ScrollArea className="h-64 px-4">
-                   {hydratedComments.length > 0 ? (
+                   {isLoadingComments ? <Loader2 className="h-6 w-6 animate-spin mx-auto"/> : comments.length > 0 ? (
                        <div className="space-y-4">
-                       {hydratedComments.map(comment => (
+                       {comments.map(comment => (
                            <div key={comment.id} className="flex gap-3 items-start text-sm">
                                <Link href={`/${comment.user?.username}`}>
                                    <Avatar className="h-8 w-8">
@@ -119,7 +158,7 @@ export default function PostPage() {
                                        {' '}{comment.text}
                                    </p>
                                    <time className="text-xs text-muted-foreground mt-1">
-                                       {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
+                                       {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : 'just now'}
                                    </time>
                                </div>
                            </div>
@@ -196,7 +235,7 @@ export default function PostPage() {
                                       {' '}{post.caption}
                                   </p>
                                   <time className="text-xs text-muted-foreground mt-1">
-                                      {formatDistanceToNow(post.createdAt, { addSuffix: true })}
+                                      {post.createdAt ? formatDistanceToNow(post.createdAt.toDate(), { addSuffix: true }) : ''}
                                   </time>
                               </div>
                           </div>
@@ -205,8 +244,8 @@ export default function PostPage() {
                           <hr className="border-border" />
 
                           {/* Comments */}
-                          {hydratedComments.length > 0 ? (
-                              hydratedComments.map(comment => (
+                          {isLoadingComments ? <Loader2 className="h-6 w-6 animate-spin mx-auto"/> : comments.length > 0 ? (
+                              comments.map(comment => (
                                   <div key={comment.id} className="flex gap-3 items-start text-sm">
                                       <Link href={`/${comment.user?.username}`}>
                                           <Avatar className="h-8 w-8">
@@ -220,7 +259,7 @@ export default function PostPage() {
                                               {' '}{comment.text}
                                           </p>
                                           <time className="text-xs text-muted-foreground mt-1">
-                                              {formatDistanceToNow(comment.createdAt, { addSuffix: true })}
+                                             {comment.createdAt ? formatDistanceToNow(comment.createdAt.toDate(), { addSuffix: true }) : 'just now'}
                                           </time>
                                       </div>
                                   </div>
