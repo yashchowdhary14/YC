@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Home, Search, Clapperboard, UserCircle, PlusSquare } from 'lucide-react';
+import { Home, Search, Clapperboard, UserCircle, PlusSquare, Video } from 'lucide-react';
 import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/firebase';
@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/explore', icon: Search, activeIcon: (props: any) => <svg {...props} aria-label="Search" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="16.511" x2="22" y1="16.511" y2="22"></line></svg> },
   { href: '/create', icon: PlusSquare, activeIcon: (props: any) => <svg {...props} aria-label="New post" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M22 10.5A8.5 8.5 0 1 1 13.5 2a8.5 8.5 0 0 1 8.5 8.5Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="13.511" x2="20" y1="13.511" y2="20"></line></svg> },
   { href: '/reels', icon: Clapperboard, activeIcon: (props: any) => <svg {...props} aria-label="Reels" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M12.003 2.001a10 10 0 1 0 10 10 10.012 10.012 0 0 0-10-10Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Z" fill="none" stroke="currentColor" strokeMiterlimit="10" strokeWidth="2"></path><path d="m12.003 16.001-4-4 4-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><path d="M15.003 12.001h-7" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg> },
+  { href: '/videos', icon: Video, activeIcon: (props: any) => <svg {...props} aria-label="Videos" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><polygon fill="none" points="20 21 12 16 4 21 4 3 20 3 20 21" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></polygon></svg> },
 ];
 
 export default function BottomNav() {

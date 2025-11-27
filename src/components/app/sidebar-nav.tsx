@@ -30,6 +30,7 @@ const mainLinks = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/explore', label: 'Explore', icon: Search },
   { href: '/reels', label: 'Reels', icon: Clapperboard },
+  { href: '/videos', label: 'Videos', icon: Video },
   { href: '/live', label: 'Live', icon: LiveIcon },
   { href: '/messages', label: 'Messages', icon: MessageCircle, notificationCount: 5 },
   { href: '/create', label: 'Create', icon: PlusSquare },
