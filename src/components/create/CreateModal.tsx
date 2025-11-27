@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from "react";
@@ -15,11 +16,12 @@ import MediaPreview from "./MediaPreview";
 import MediaDetailsForm from "./MediaDetailsForm";
 import type { FinalizedCreateData, SimulatedUploadResult } from "./types";
 import { Button } from "../ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import UploadManager from "./UploadManager";
 import PublishSuccessScreen from "./PublishSuccessScreen";
 import { useLocalFeedStore } from "@/store/localFeedStore";
+import CreateStoryPage from "@/app/create/story/page";
 
 
 type CreateModalProps = {
@@ -27,7 +29,7 @@ type CreateModalProps = {
   onClose: () => void;
 };
 
-type Step = "select-type" | "media-picker" | "media-preview" | "media-details" | "publish" | "success";
+type Step = "select-type" | "media-picker" | "story-editor" | "media-preview" | "media-details" | "publish" | "success";
 
 
 export function CreateModal({ open, onClose }: CreateModalProps) {
@@ -49,7 +51,11 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         return;
     }
     setMode(selectedMode);
-    setStep("media-picker");
+    if (selectedMode === 'story') {
+        setStep('story-editor');
+    } else {
+        setStep("media-picker");
+    }
   };
 
   const handleMediaSelected = (selectedFiles: File[]) => {
@@ -61,6 +67,12 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
     setFiles(validatedFiles);
     setStep("media-details");
   }
+
+  const handleStoryEditingComplete = (renderedFile: File) => {
+    setMode('story');
+    setFiles([renderedFile]);
+    setStep('media-details');
+  };
 
   const handleSubmitDetails = (payload: FinalizedCreateData) => {
     setFinalizedData(payload);
@@ -81,7 +93,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
       setStep('media-preview');
     } else if (step === 'media-preview') {
       setStep('media-picker');
-    } else if (step === 'media-picker') {
+    } else if (step === 'media-picker' || step === 'story-editor') {
         setStep('select-type');
     }
   }
@@ -105,6 +117,8 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
         case "media-picker":
             if (!mode || mode === 'live') return null;
             return <MediaPicker mode={mode} onMediaSelected={handleMediaSelected} onBack={handleBack} />;
+        case "story-editor":
+            return <CreateStoryPage onStoryReady={handleStoryEditingComplete} onExit={handleBack} />;
         case "media-preview":
             if (!mode || mode === 'live' || files.length === 0) return null;
             return <MediaPreview mode={mode} files={files} onBack={handleBack} onConfirm={handlePreviewConfirmed} />;
@@ -125,6 +139,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
   const stepTitles: Partial<Record<Step, string>> = {
     'select-type': 'Create',
     'media-picker': mode ? `New ${mode.charAt(0).toUpperCase() + mode.slice(1)}` : 'Select Media',
+    'story-editor': 'New Story',
     'media-preview': 'Preview',
     'media-details': 'Add Details',
     'publish': 'Publishing...',
@@ -133,7 +148,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
 
   const title = stepTitles[step] || 'Create';
   
-  const showHeader = step !== 'publish' && step !== 'success';
+  const showHeader = step !== 'publish' && step !== 'success' && step !== 'story-editor';
 
   const renderHeader = () => (
     <DialogHeader className="p-0 sm:p-4 text-center border-b sm:border-none relative">
@@ -168,13 +183,27 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
      </div>
   );
 
+  const dialogContentClasses = cn(
+    "sm:max-w-xl md:max-w-2xl lg:max-w-4xl h-[80vh] flex flex-col p-0 gap-0",
+    (step === 'publish' || step === 'success') && "md:max-w-xl",
+    step === 'story-editor' && 'h-[95vh] w-screen max-w-full sm:max-w-md sm:h-[90vh]'
+  );
+
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={resetFlow}>
-        <SheetContent side="bottom" className="h-[90vh] flex flex-col rounded-t-2xl p-0 gap-0">
-          <div className="w-full pt-3 pb-2 flex justify-center sticky top-0 bg-background z-10">
-            <div className="w-8 h-1 bg-muted rounded-full" />
-          </div>
+        <SheetContent 
+            side="bottom" 
+            className={cn(
+                "h-[90vh] flex flex-col rounded-t-2xl p-0 gap-0",
+                step === 'story-editor' && 'h-screen w-screen max-h-screen rounded-none'
+            )}
+        >
+          {step !== 'story-editor' && (
+            <div className="w-full pt-3 pb-2 flex justify-center sticky top-0 bg-background z-10">
+              <div className="w-8 h-1 bg-muted rounded-full" />
+            </div>
+          )}
           {showHeader && renderHeader()}
           <div className="p-0 flex-1 overflow-hidden">
             {renderContent()}
@@ -186,7 +215,7 @@ export function CreateModal({ open, onClose }: CreateModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={resetFlow}>
-      <DialogContent className={cn("sm:max-w-xl md:max-w-2xl lg:max-w-4xl h-[80vh] flex flex-col p-0 gap-0", (step === 'publish' || step === 'success') && "md:max-w-xl")}>
+      <DialogContent className={dialogContentClasses}>
         {showHeader && renderHeader()}
         <div className="flex-1 overflow-hidden">
           {renderContent()}

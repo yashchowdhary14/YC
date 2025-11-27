@@ -18,7 +18,13 @@ import EffectsPanel from './effects/EffectsPanel';
 import AudioPanel from './AudioPanel';
 
 
-export default function StoryEditor() {
+interface StoryEditorProps {
+    onStoryReady?: (file: File) => void;
+    onExit?: () => void;
+}
+
+
+export default function StoryEditor({ onStoryReady, onExit }: StoryEditorProps) {
   const activeSlide = useActiveStorySlide();
   const reset = useStoryCreationStore((s) => s.reset);
   const updateSlide = useStoryCreationStore((s) => s.updateSlide);
@@ -29,10 +35,10 @@ export default function StoryEditor() {
   const [isRendering, setIsRendering] = useState(false);
   const [activePanel, setActivePanel] = useState<'none' | 'filters' | 'effects' | 'audio'>('none');
 
-  const handleBack = () => {
+  const handleBack = onExit || (() => {
     reset();
     router.push('/create');
-  }
+  });
   
   const addTextElement = () => {
     if (!activeSlide) return;
@@ -63,19 +69,14 @@ export default function StoryEditor() {
   }
 
   const handlePublish = async () => {
-    if (!activeSlide) return;
+    if (!activeSlide || !onStoryReady) return;
     setIsRendering(true);
     try {
         const renderedOutput = await renderStory(activeSlide);
-        console.log("Story rendered successfully:", renderedOutput);
-        
-        // TODO: In the next step, pass this to the upload flow
-        // For now, we'll just go back to the create page
-        toast({
-            title: "Story Rendered! (Simulation)",
-            description: "Your story is ready for the next step.",
-        });
-        handleBack();
+        const fileName = renderedOutput.type === 'image' ? 'story.jpg' : 'story.webm';
+        const finalFile = new File([renderedOutput.file], fileName, { type: renderedOutput.file.type });
+
+        onStoryReady(finalFile);
 
     } catch (error) {
         console.error("Failed to render story:", error);
@@ -113,12 +114,10 @@ export default function StoryEditor() {
 
 
   if (!activeSlide) {
-    if (typeof window !== 'undefined') {
-       router.replace('/create');
-    }
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 bg-black text-white">
-        <p>Loading story editor...</p>
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p>Loading editor...</p>
       </div>
     );
   }
@@ -221,7 +220,7 @@ export default function StoryEditor() {
           {activePanel === 'none' && !isDrawing && (
             <div className="bg-gradient-to-t from-black/50 to-transparent -m-4 p-4 pt-16 flex items-center justify-end">
               <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
-                  Post Story
+                  Next
               </button>
             </div>
           )}

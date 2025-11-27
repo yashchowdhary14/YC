@@ -12,7 +12,11 @@ import { fileToDataUri } from '@/lib/utils';
 
 type FacingMode = 'user' | 'environment';
 
-export default function CameraView() {
+interface CameraViewProps {
+  onExit?: () => void;
+}
+
+export default function CameraView({ onExit }: CameraViewProps) {
   const router = useRouter();
   const { toast } = useToast();
   const addSlide = useStoryCreationStore((s) => s.addSlide);
@@ -22,6 +26,8 @@ export default function CameraView() {
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExit = onExit || (() => router.back());
 
   const handleCapture = useCallback(() => {
     const video = videoRef.current;
@@ -39,7 +45,14 @@ export default function CameraView() {
       }
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUri = canvas.toDataURL('image/jpeg');
-      addSlide({ url: dataUri, type: 'photo' });
+      
+      canvas.toBlob((blob) => {
+        if(blob) {
+            const file = new File([blob], 'capture.jpg', { type: 'image/jpeg' });
+            addSlide({ url: dataUri, type: 'photo', file });
+        }
+      }, 'image/jpeg');
+
     }
   }, [addSlide, facingMode, videoRef]);
 
@@ -73,10 +86,10 @@ export default function CameraView() {
       />
 
       {/* Header Controls */}
-      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent">
+      <div className="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/50 to-transparent z-10">
         <div className="flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2">
-            <X className="h-7 w-7 text-white" />
+          <button onClick={handleExit} className="p-2 text-white">
+            <X className="h-7 w-7" />
           </button>
           <button
             onClick={() => setFlashEnabled(!flashEnabled)}
