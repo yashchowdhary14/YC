@@ -104,3 +104,16 @@ body {
     --radius: 0.25rem; /* Less rounded */
   }
 }
+
+@layer utilities {
+    .filter-clarendon { filter: contrast(1.2) saturate(1.35); }
+    .filter-gingham { filter: brightness(1.05) hue-rotate(-10deg); }
+    .filter-moon { filter: grayscale(1) contrast(1.1) brightness(1.1); }
+    .filter-lark { filter: contrast(0.9) brightness(1.2); }
+    .filter-reyes { filter: sepia(0.22) brightness(1.1) contrast(0.85) saturate(0.75); }
+    .filter-slumber { filter: saturate(0.66) brightness(1.05); }
+    .filter-crema { filter: sepia(0.5) contrast(1.25) brightness(1.15); }
+    .filter-ludwig { filter: contrast(1.05) saturate(1.5) brightness(0.95); }
+    .filter-aden { filter: hue-rotate(-20deg) contrast(0.9) saturate(0.85) brightness(1.2); }
+    .filter-perpetua { filter: contrast(1.1) brightness(1.25) saturate(1.1); }
+}

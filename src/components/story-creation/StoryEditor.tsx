@@ -4,13 +4,14 @@
 import { useStoryCreationStore, useActiveStorySlide, TextElement as TextElementType } from '@/lib/story-creation-store';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Type, Pen, Loader2, Sticker } from 'lucide-react';
+import { ArrowLeft, Type, Pen, Loader2, Sticker, Sparkles } from 'lucide-react';
 import TextElement from './TextElement';
 import DrawingCanvas from './DrawingCanvas';
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { renderStory } from '@/lib/story/story-renderer';
 import { useToast } from '@/hooks/use-toast';
+import FilterStrip from './FilterStrip';
 
 export default function StoryEditor() {
   const activeSlide = useActiveStorySlide();
@@ -21,6 +22,7 @@ export default function StoryEditor() {
   
   const [isDrawing, setIsDrawing] = useState(false);
   const [isRendering, setIsRendering] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   const handleBack = () => {
     reset();
@@ -47,6 +49,12 @@ export default function StoryEditor() {
         // Here you might want to confirm changes or just exit drawing mode
     }
     setIsDrawing(!isDrawing);
+    setShowFilters(false);
+  }
+
+  const toggleFilters = () => {
+    setShowFilters(!showFilters);
+    setIsDrawing(false);
   }
 
   const handlePublish = async () => {
@@ -88,7 +96,7 @@ export default function StoryEditor() {
   }
 
   return (
-    <div className="relative w-full h-full bg-black">
+    <div className="relative w-full h-full bg-black overflow-hidden">
        {isRendering && (
             <div className="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center gap-4 text-white">
                 <Loader2 className="h-12 w-12 animate-spin" />
@@ -102,12 +110,12 @@ export default function StoryEditor() {
             src={activeSlide.media.url}
             alt="Story preview"
             fill
-            className="object-contain"
+            className={`object-contain ${activeSlide.filterClassName}`}
           />
         ) : (
           <video
             src={activeSlide.media.url}
-            className="w-full h-full object-contain"
+            className={`w-full h-full object-contain ${activeSlide.filterClassName}`}
             autoPlay
             loop
             muted
@@ -138,6 +146,9 @@ export default function StoryEditor() {
                     <button className="p-2 text-white" disabled={isRendering}>
                         <Sticker className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
+                     <button onClick={toggleFilters} className="p-2 text-white" disabled={isRendering}>
+                        <Sparkles className="h-6 w-6 sm:h-7 sm:w-7" />
+                    </button>
                     <button onClick={toggleDrawing} className="p-2 text-white" disabled={isRendering}>
                         <Pen className="h-6 w-6 sm:h-7 sm:w-7" />
                     </button>
@@ -151,12 +162,15 @@ export default function StoryEditor() {
       </div>
       
       {/* Footer / Sharing Tools */}
-       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent z-30">
-          <div className="flex items-center justify-end">
-            <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
-                Post Story
-            </button>
-          </div>
+       <div className="absolute bottom-0 left-0 right-0 p-4 z-30">
+          {showFilters && <FilterStrip />}
+          {!showFilters && (
+            <div className="bg-gradient-to-t from-black/50 to-transparent -m-4 p-4 pt-16 flex items-center justify-end">
+              <button onClick={handlePublish} className="bg-white text-black font-bold py-2 px-6 rounded-full" disabled={isRendering}>
+                  Post Story
+              </button>
+            </div>
+          )}
       </div>
     </div>
   );

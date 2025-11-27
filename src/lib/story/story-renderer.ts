@@ -1,6 +1,7 @@
 
 import type { StorySlide } from '../story-creation-store';
 import { getSvgPathFromPoints, drawText, getFitDimensions, loadImage, loadVideo, generateThumbnailFromCanvas } from './render-utils';
+import { filters } from '@/components/story-creation/FilterStrip';
 
 const RENDER_WIDTH = 1080;
 const RENDER_HEIGHT = 1920;
@@ -38,12 +39,20 @@ async function renderImageStory(state: StorySlide): Promise<RenderedStoryOutput>
     // 1. Load the base image
     const image = await loadImage(state.media.url);
 
+    // Apply CSS Filter
+    const filter = filters.find(f => f.className === state.filterClassName);
+    if(filter) {
+        ctx.filter = filter.style;
+    }
+
     // 2. Draw background and image
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
     
     const { x, y, width, height } = getFitDimensions(image.width, image.height, RENDER_WIDTH, RENDER_HEIGHT);
     ctx.drawImage(image, x, y, width, height);
+
+    ctx.filter = 'none'; // Reset filter before drawing overlays
     
     // 3. Render drawings
     renderDrawing(ctx, state.drawings);
@@ -98,12 +107,20 @@ async function renderVideoStory(state: StorySlide): Promise<RenderedStoryOutput>
             }
             return;
         }
+        
+        // Apply CSS Filter
+        const filter = filters.find(f => f.className === state.filterClassName);
+        if(filter) {
+            ctx.filter = filter.style;
+        }
 
         ctx.fillStyle = 'black';
         ctx.fillRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT);
         
         const { x, y, width, height } = getFitDimensions(video.videoWidth, video.videoHeight, RENDER_WIDTH, RENDER_HEIGHT);
         ctx.drawImage(video, x, y, width, height);
+
+        ctx.filter = 'none'; // Reset filter before drawing overlays
 
         renderDrawing(ctx, state.drawings);
 
