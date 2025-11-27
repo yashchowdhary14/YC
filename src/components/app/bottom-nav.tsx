@@ -15,13 +15,13 @@ const navLinks = [
   { href: '/explore', icon: Search, activeIcon: (props: any) => <svg {...props} aria-label="Search" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M19 10.5A8.5 8.5 0 1 1 10.5 2a8.5 8.5 0 0 1 8.5 8.5Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><line fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" x1="16.511" x2="22" y1="16.511" y2="22"></line></svg> },
   { href: '/reels', icon: Clapperboard, activeIcon: (props: any) => <svg {...props} aria-label="Reels" fill="currentColor" height="24" role="img" viewBox="0 0 24 24" width="24"><path d="M12.003 2.001a10 10 0 1 0 10 10 10.012 10.012 0 0 0-10-10Zm0 18a8 8 0 1 1 8-8 8.009 8.009 0 0 1-8 8Z" fill="none" stroke="currentColor" strokeMiterlimit="10" strokeWidth="2"></path><path d="m12.003 16.001-4-4 4-4" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path><path d="M15.003 12.001h-7" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"></path></svg> },
   { href: '/live', icon: LiveIcon, activeIcon: (props: any) => <LiveIcon {...props} /> },
-  { href: '/profile2', icon: UserCircle, activeIcon: (props: any) => <UserCircle {...props} className="fill-foreground" /> },
+  { href: '/create', icon: UserCircle, activeIcon: (props: any) => <UserCircle {...props} className="fill-foreground" /> },
 ];
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user } = useUser();
-  const profileHref = user ? `/${user.displayName || user.email?.split('@')[0]}` : '/login';
+  const profileHref = user ? `/` : '/login';
 
   return (
     <div className="fixed bottom-0 left-0 right-0 h-14 bg-background border-t z-50 md:hidden">
