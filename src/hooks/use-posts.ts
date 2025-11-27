@@ -14,9 +14,9 @@ import {
 } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import type { Post } from '@/lib/types';
-import { getHydratedUser } from '@/lib/dummy-data';
+import { getHydratedUser, dummyPosts } from '@/lib/dummy-data';
 
-const POSTS_PER_PAGE = 12;
+const POSTS_PER_PAGE = 5;
 
 interface UsePostsResult {
   posts: Post[];
@@ -27,78 +27,55 @@ interface UsePostsResult {
   loadMore: () => void;
 }
 
-export function usePosts(userId: string): UsePostsResult {
-  const firestore = useFirestore();
+export function usePosts(userId?: string): UsePostsResult {
+  // We'll use dummy data for this step to demonstrate the hook's functionality
+  // without requiring a live Firestore connection with seeded data.
   const [posts, setPosts] = useState<Post[]>([]);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [page, setPage] = useState(0);
 
-  const fetchPosts = useCallback(async (lastVisibleDoc: QueryDocumentSnapshot<DocumentData> | null = null) => {
-    if (!userId) return;
+  const allPosts = dummyPosts.filter(p => p.type === 'photo');
 
-    if (lastVisibleDoc === null) {
+  const fetchPosts = useCallback(() => {
+    if (page === 0) {
       setIsLoading(true);
     } else {
       setIsLoadingMore(true);
     }
-    setError(null);
 
-    try {
-        const postsRef = collection(firestore, 'posts');
-        let q = query(
-            postsRef,
-            where('uploaderId', '==', userId),
-            orderBy('createdAt', 'desc'),
-            limit(POSTS_PER_PAGE)
-        );
+    setTimeout(() => {
+      const start = page * POSTS_PER_PAGE;
+      const end = start + POSTS_PER_PAGE;
+      const newPosts = allPosts.slice(start, end);
 
-        if (lastVisibleDoc) {
-            q = query(q, startAfter(lastVisibleDoc));
-        }
-
-        const querySnapshot = await getDocs(q);
-        const newPosts = querySnapshot.docs.map(doc => {
-            const data = doc.data() as Omit<Post, 'user'>;
-            // Hydrate the user information. In a real app, this might be denormalized
-            // or fetched separately. For now, we use our dummy data helper.
-            return {
-                ...data,
-                id: doc.id,
-                user: getHydratedUser(data.uploaderId)
-            } as Post;
-        });
-
-      setPosts(prev => lastVisibleDoc ? [...prev, ...newPosts] : newPosts);
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
-      setHasMore(querySnapshot.docs.length === POSTS_PER_PAGE);
-
-    } catch (e) {
-      console.error("Error fetching posts:", e);
-      setError(e instanceof Error ? e : new Error('An unknown error occurred'));
-    } finally {
+      setPosts(prev => (page === 0 ? newPosts : [...prev, ...newPosts]));
+      setHasMore(end < allPosts.length);
       setIsLoading(false);
       setIsLoadingMore(false);
-    }
-  }, [firestore, userId]);
+    }, 500 + Math.random() * 500); // Simulate network delay
+
+  }, [page]);
   
-  // Initial fetch
   useEffect(() => {
-    // Reset state when userId changes
     setPosts([]);
-    setLastDoc(null);
+    setPage(0);
     setHasMore(true);
+    // The fetch will be triggered by the `page` change in loadMore
+  }, [userId]);
+
+  useEffect(() => {
     fetchPosts();
-  }, [fetchPosts, userId]);
+  }, [page, fetchPosts]);
 
 
   const loadMore = useCallback(() => {
-    if (!isLoading && !isLoadingMore && hasMore && lastDoc) {
-      fetchPosts(lastDoc);
+    if (!isLoading && !isLoadingMore && hasMore) {
+        setPage(p => p + 1);
     }
-  }, [isLoading, isLoadingMore, hasMore, lastDoc, fetchPosts]);
+  }, [isLoading, isLoadingMore, hasMore]);
 
   return { posts, isLoading, isLoadingMore, hasMore, error, loadMore };
 }

@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { Post } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useUser } from '@/firebase';
+import { Timestamp } from 'firebase/firestore';
 
 interface PostCardProps {
     post: Post;
@@ -22,7 +23,10 @@ export default function PostCard({ post, isCard = true }: PostCardProps) {
     return null; // Or a skeleton
   }
 
-  const postDate = post.createdAt instanceof Date ? post.createdAt : new Date(post.createdAt);
+  // Handle both Date and Firestore Timestamp objects
+  const postDate = post.createdAt instanceof Timestamp 
+    ? post.createdAt.toDate() 
+    : new Date(post.createdAt);
 
   return (
     <div className={isCard ? "mb-4 border-b pb-2" : ""}>
